@@ -76,8 +76,13 @@
             },
             "url": {
               "raw": "{{base_url}}/auth/signup",
-              "host": ["{{base_url}}"],
-              "path": ["auth", "signup"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "signup"
+              ]
             }
           }
         },
@@ -97,8 +102,13 @@
             },
             "url": {
               "raw": "{{base_url}}/auth/login",
-              "host": ["{{base_url}}"],
-              "path": ["auth", "login"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
             }
           }
         },
@@ -118,8 +128,13 @@
             },
             "url": {
               "raw": "{{base_url}}/auth/forgotPassword",
-              "host": ["{{base_url}}"],
-              "path": ["auth", "forgotPassword"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "forgotPassword"
+              ]
             }
           }
         },
@@ -139,8 +154,13 @@
             },
             "url": {
               "raw": "{{base_url}}/auth/verifyResetCode",
-              "host": ["{{base_url}}"],
-              "path": ["auth", "verifyResetCode"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "verifyResetCode"
+              ]
             }
           }
         },
@@ -160,10 +180,89 @@
             },
             "url": {
               "raw": "{{base_url}}/auth/resetPassword",
-              "host": ["{{base_url}}"],
-              "path": ["auth", "resetPassword"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "resetPassword"
+              ]
             }
           }
+        },
+        {
+          "name": "GET /google",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/auth/google",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "google"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET /google/callback",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/auth/google/callback",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "google",
+                "callback"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET /facebook",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/auth/facebook",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "facebook"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET /facebook/callback",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/auth/facebook/callback",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "facebook",
+                "callback"
+              ]
+            }
+          },
+          "response": []
         }
       ]
     },
@@ -177,8 +276,13 @@
             "header": [],
             "url": {
               "raw": "{{base_url}}/users/getMe",
-              "host": ["{{base_url}}"],
-              "path": ["users", "getMe"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "users",
+                "getMe"
+              ]
             }
           }
         },
@@ -198,8 +302,13 @@
             },
             "url": {
               "raw": "{{base_url}}/users/changeMyPassword",
-              "host": ["{{base_url}}"],
-              "path": ["users", "changeMyPassword"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "users",
+                "changeMyPassword"
+              ]
             }
           }
         },
@@ -219,8 +328,13 @@
             },
             "url": {
               "raw": "{{base_url}}/users/updateMe",
-              "host": ["{{base_url}}"],
-              "path": ["users", "updateMe"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "users",
+                "updateMe"
+              ]
             }
           }
         },
@@ -231,8 +345,13 @@
             "header": [],
             "url": {
               "raw": "{{base_url}}/users/deleteMe",
-              "host": ["{{base_url}}"],
-              "path": ["users", "deleteMe"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "users",
+                "deleteMe"
+              ]
             }
           }
         },
@@ -243,8 +362,12 @@
             "header": [],
             "url": {
               "raw": "{{base_url}}/users?page=1&limit=10",
-              "host": ["{{base_url}}"],
-              "path": ["users"],
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "users"
+              ],
               "query": [
                 {
                   "key": "page",
@@ -265,8 +388,13 @@
             "header": [],
             "url": {
               "raw": "{{base_url}}/users/{{user_id}}",
-              "host": ["{{base_url}}"],
-              "path": ["users", "{{user_id}}"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "users",
+                "{{user_id}}"
+              ]
             }
           }
         },
@@ -286,8 +414,12 @@
             },
             "url": {
               "raw": "{{base_url}}/users",
-              "host": ["{{base_url}}"],
-              "path": ["users"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "users"
+              ]
             }
           }
         },
@@ -307,8 +439,13 @@
             },
             "url": {
               "raw": "{{base_url}}/users/{{user_id}}",
-              "host": ["{{base_url}}"],
-              "path": ["users", "{{user_id}}"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "users",
+                "{{user_id}}"
+              ]
             }
           }
         },
@@ -319,8 +456,13 @@
             "header": [],
             "url": {
               "raw": "{{base_url}}/users/{{user_id}}",
-              "host": ["{{base_url}}"],
-              "path": ["users", "{{user_id}}"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "users",
+                "{{user_id}}"
+              ]
             }
           }
         },
@@ -340,8 +482,14 @@
             },
             "url": {
               "raw": "{{base_url}}/users/changePassword/{{user_id}}",
-              "host": ["{{base_url}}"],
-              "path": ["users", "changePassword", "{{user_id}}"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "users",
+                "changePassword",
+                "{{user_id}}"
+              ]
             }
           }
         },
@@ -374,8 +522,12 @@
             "header": [],
             "url": {
               "raw": "{{base_url}}/categories?page=1&limit=10",
-              "host": ["{{base_url}}"],
-              "path": ["categories"],
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "categories"
+              ],
               "query": [
                 {
                   "key": "page",
@@ -396,8 +548,13 @@
             "header": [],
             "url": {
               "raw": "{{base_url}}/categories/{{category_id}}",
-              "host": ["{{base_url}}"],
-              "path": ["categories", "{{category_id}}"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "categories",
+                "{{category_id}}"
+              ]
             }
           }
         },
@@ -417,8 +574,12 @@
             },
             "url": {
               "raw": "{{base_url}}/categories",
-              "host": ["{{base_url}}"],
-              "path": ["categories"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "categories"
+              ]
             }
           }
         },
@@ -438,8 +599,13 @@
             },
             "url": {
               "raw": "{{base_url}}/categories/{{category_id}}",
-              "host": ["{{base_url}}"],
-              "path": ["categories", "{{category_id}}"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "categories",
+                "{{category_id}}"
+              ]
             }
           }
         },
@@ -450,8 +616,13 @@
             "header": [],
             "url": {
               "raw": "{{base_url}}/categories/{{category_id}}",
-              "host": ["{{base_url}}"],
-              "path": ["categories", "{{category_id}}"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "categories",
+                "{{category_id}}"
+              ]
             }
           }
         }
@@ -481,8 +652,12 @@
             },
             "url": {
               "raw": "{{base_url}}/companies",
-              "host": ["{{base_url}}"],
-              "path": ["companies"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "companies"
+              ]
             }
           }
         },
@@ -493,8 +668,12 @@
             "header": [],
             "url": {
               "raw": "{{base_url}}/companies?page=1&limit=10&isApproved=true",
-              "host": ["{{base_url}}"],
-              "path": ["companies"],
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "companies"
+              ],
               "query": [
                 {
                   "key": "page",
@@ -519,8 +698,13 @@
             "header": [],
             "url": {
               "raw": "{{base_url}}/companies/{{company_id}}",
-              "host": ["{{base_url}}"],
-              "path": ["companies", "{{company_id}}"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "companies",
+                "{{company_id}}"
+              ]
             }
           }
         },
@@ -531,8 +715,13 @@
             "header": [],
             "url": {
               "raw": "{{base_url}}/companies/search?name=مطعم",
-              "host": ["{{base_url}}"],
-              "path": ["companies", "search"],
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "companies",
+                "search"
+              ],
               "query": [
                 {
                   "key": "name",
@@ -549,8 +738,14 @@
             "header": [],
             "url": {
               "raw": "{{base_url}}/companies/category/{{category_id}}",
-              "host": ["{{base_url}}"],
-              "path": ["companies", "category", "{{category_id}}"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "companies",
+                "category",
+                "{{category_id}}"
+              ]
             }
           }
         },
@@ -561,7 +756,9 @@
             "header": [],
             "url": {
               "raw": "{{base_url}}/companies/category/{{category_id}}/search-location?city=الرياض&country=السعودية",
-              "host": ["{{base_url}}"],
+              "host": [
+                "{{base_url}}"
+              ],
               "path": [
                 "companies",
                 "category",
@@ -588,8 +785,13 @@
             "header": [],
             "url": {
               "raw": "{{base_url}}/companies/pending",
-              "host": ["{{base_url}}"],
-              "path": ["companies", "pending"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "companies",
+                "pending"
+              ]
             }
           }
         },
@@ -608,8 +810,13 @@
             },
             "url": {
               "raw": "{{base_url}}/companies/{{company_id}}",
-              "host": ["{{base_url}}"],
-              "path": ["companies", "{{company_id}}"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "companies",
+                "{{company_id}}"
+              ]
             }
           }
         },
@@ -620,8 +827,13 @@
             "header": [],
             "url": {
               "raw": "{{base_url}}/companies/{{company_id}}",
-              "host": ["{{base_url}}"],
-              "path": ["companies", "{{company_id}}"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "companies",
+                "{{company_id}}"
+              ]
             }
           }
         },
@@ -632,8 +844,14 @@
             "header": [],
             "url": {
               "raw": "{{base_url}}/companies/{{company_id}}/approve",
-              "host": ["{{base_url}}"],
-              "path": ["companies", "{{company_id}}", "approve"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "companies",
+                "{{company_id}}",
+                "approve"
+              ]
             }
           }
         },
@@ -649,8 +867,14 @@
             },
             "url": {
               "raw": "{{base_url}}/companies/{{company_id}}/video",
-              "host": ["{{base_url}}"],
-              "path": ["companies", "{{company_id}}", "video"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "companies",
+                "{{company_id}}",
+                "video"
+              ]
             }
           }
         },
@@ -661,8 +885,14 @@
             "header": [],
             "url": {
               "raw": "{{base_url}}/companies/{{company_id}}/view",
-              "host": ["{{base_url}}"],
-              "path": ["companies", "{{company_id}}", "view"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "companies",
+                "{{company_id}}",
+                "view"
+              ]
             }
           }
         },
@@ -676,8 +906,14 @@
                 "header": [],
                 "url": {
                   "raw": "{{base_url}}/companies/user/{{user_id}}",
-                  "host": ["{{base_url}}"],
-                  "path": ["companies", "user", "{{user_id}}"]
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "companies",
+                    "user",
+                    "{{user_id}}"
+                  ]
                 }
               }
             },
@@ -688,8 +924,16 @@
                 "header": [],
                 "url": {
                   "raw": "{{base_url}}/companies/user/{{user_id}}/company/{{company_id}}",
-                  "host": ["{{base_url}}"],
-                  "path": ["companies", "user", "{{user_id}}", "company", "{{company_id}}"]
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "companies",
+                    "user",
+                    "{{user_id}}",
+                    "company",
+                    "{{company_id}}"
+                  ]
                 }
               }
             },
@@ -700,8 +944,16 @@
                 "header": [],
                 "url": {
                   "raw": "{{base_url}}/companies/user/{{user_id}}/status/pending",
-                  "host": ["{{base_url}}"],
-                  "path": ["companies", "user", "{{user_id}}", "status", "pending"]
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "companies",
+                    "user",
+                    "{{user_id}}",
+                    "status",
+                    "pending"
+                  ]
                 }
               }
             },
@@ -712,8 +964,16 @@
                 "header": [],
                 "url": {
                   "raw": "{{base_url}}/companies/user/{{user_id}}/status/approved",
-                  "host": ["{{base_url}}"],
-                  "path": ["companies", "user", "{{user_id}}", "status", "approved"]
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "companies",
+                    "user",
+                    "{{user_id}}",
+                    "status",
+                    "approved"
+                  ]
                 }
               }
             }
@@ -731,8 +991,14 @@
             "header": [],
             "url": {
               "raw": "{{base_url}}/companies/{{company_id}}/reviews",
-              "host": ["{{base_url}}"],
-              "path": ["companies", "{{company_id}}", "reviews"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "companies",
+                "{{company_id}}",
+                "reviews"
+              ]
             }
           }
         },
@@ -740,15 +1006,21 @@
           "name": "[User] إضافة مراجعة جديدة لشركة",
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [ { "key": "Content-Type", "value": "application/json" } ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"title\": \"Great Service!\",\n  \"ratings\": 5\n}"
             },
             "url": {
               "raw": "{{base_url}}/companies/{{company_id}}/reviews",
-              "host": ["{{base_url}}"],
-              "path": ["companies", "{{company_id}}", "reviews"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "companies",
+                "{{company_id}}",
+                "reviews"
+              ]
             }
           }
         },
@@ -759,8 +1031,14 @@
             "header": [],
             "url": {
               "raw": "{{base_url}}/reviews/{{review_id}}/approve",
-              "host": ["{{base_url}}"],
-              "path": ["reviews", "{{review_id}}", "approve"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "reviews",
+                "{{review_id}}",
+                "approve"
+              ]
             }
           }
         },
@@ -771,8 +1049,13 @@
             "header": [],
             "url": {
               "raw": "{{base_url}}/reviews/{{review_id}}",
-              "host": ["{{base_url}}"],
-              "path": ["reviews", "{{review_id}}"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "reviews",
+                "{{review_id}}"
+              ]
             }
           }
         }
@@ -788,8 +1071,12 @@
             "header": [],
             "url": {
               "raw": "{{base_url}}/coupons?page=1&limit=10",
-              "host": ["{{base_url}}"],
-              "path": ["coupons"],
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "coupons"
+              ],
               "query": [
                 {
                   "key": "page",
@@ -810,8 +1097,13 @@
             "header": [],
             "url": {
               "raw": "{{base_url}}/coupons/{{coupon_id}}",
-              "host": ["{{base_url}}"],
-              "path": ["coupons", "{{coupon_id}}"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "coupons",
+                "{{coupon_id}}"
+              ]
             }
           }
         },
@@ -831,8 +1123,12 @@
             },
             "url": {
               "raw": "{{base_url}}/coupons",
-              "host": ["{{base_url}}"],
-              "path": ["coupons"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "coupons"
+              ]
             }
           }
         },
@@ -852,8 +1148,13 @@
             },
             "url": {
               "raw": "{{base_url}}/coupons/{{coupon_id}}",
-              "host": ["{{base_url}}"],
-              "path": ["coupons", "{{coupon_id}}"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "coupons",
+                "{{coupon_id}}"
+              ]
             }
           }
         },
@@ -864,8 +1165,13 @@
             "header": [],
             "url": {
               "raw": "{{base_url}}/coupons/{{coupon_id}}",
-              "host": ["{{base_url}}"],
-              "path": ["coupons", "{{coupon_id}}"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "coupons",
+                "{{coupon_id}}"
+              ]
             }
           }
         }
@@ -881,8 +1187,12 @@
             "header": [],
             "url": {
               "raw": "{{base_url}}/plans",
-              "host": ["{{base_url}}"],
-              "path": ["plans"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "plans"
+              ]
             }
           }
         },
@@ -890,15 +1200,19 @@
           "name": "[Admin] إنشاء خطة جديدة",
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [ { "key": "Content-Type", "value": "application/json" } ],
             "body": {
               "mode": "raw",
               "raw": "{\n    \"name\": \"Monthly Plan\",\n    \"price\": 10,\n    \"duration\": 30,\n    \"stripePriceId\": \"price_123456789\"\n}"
             },
             "url": {
               "raw": "{{base_url}}/plans",
-              "host": ["{{base_url}}"],
-              "path": ["plans"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "plans"
+              ]
             }
           }
         },
@@ -906,15 +1220,20 @@
           "name": "[User] إنشاء جلسة دفع للاشتراك",
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [ { "key": "Content-Type", "value": "application/json" } ],
             "body": {
               "mode": "raw",
               "raw": "{\n    \"planId\": \"{{plan_id}}\"\n}"
             },
             "url": {
               "raw": "{{base_url}}/payments/create-checkout-session",
-              "host": ["{{base_url}}"],
-              "path": ["payments", "create-checkout-session"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "payments",
+                "create-checkout-session"
+              ]
             }
           }
         }
