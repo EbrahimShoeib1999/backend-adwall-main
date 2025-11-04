@@ -1,9 +1,10 @@
+const fs = require('fs');
 require('colors');
 const dotenv = require('dotenv');
-const User = require('./model/userModel');
-const dbConnection = require('./config/database');
+const User = require('../../model/userModel');
+const dbConnection = require('../../config/database');
 
-dotenv.config({ path: './.env' });
+dotenv.config({ path: '../../.env' });
 
 // connect to DB
 dbConnection();
@@ -11,21 +12,17 @@ dbConnection();
 // Admin user data
 const adminUser = {
     name: 'admin',
-    email: 'admin@example.com',
-    password: 'adminpassword',
+    email: 'admin@info.com',
+    password: '123456',
     role: 'admin',
 };
 
 // Insert data into DB
 const insertData = async () => {
   try {
-    const admin = await User.findOne({ email: adminUser.email });
-    if (!admin) {
-        await User.create(adminUser);
-        console.log('Admin User Inserted'.green.inverse);
-    } else {
-        console.log('Admin User already exists'.yellow.inverse);
-    }
+    await User.create(adminUser);
+
+    console.log('Admin User Inserted'.green.inverse);
     process.exit();
   } catch (error) {
     console.log(error);
@@ -43,7 +40,7 @@ const destroyData = async () => {
   }
 };
 
-// node create-admin.js -i
+// node adminSeeder.js -i
 if (process.argv[2] === '-i') {
   insertData();
 } else if (process.argv[2] === '-d') {

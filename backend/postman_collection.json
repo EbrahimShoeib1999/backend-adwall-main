@@ -8,7 +8,7 @@
       "name": "Auth",
       "item": [
         {
-          "name": "POST /signup",
+          "name": "POST /auth/signup",
           "request": {
             "method": "POST",
             "header": [],
@@ -26,7 +26,7 @@
           "response": []
         },
         {
-          "name": "POST /login",
+          "name": "POST /auth/login",
           "request": {
             "method": "POST",
             "header": [],
@@ -44,7 +44,7 @@
           "response": []
         },
         {
-          "name": "POST /forgotPassword",
+          "name": "POST /auth/forgotPassword",
           "request": {
             "method": "POST",
             "header": [],
@@ -62,7 +62,7 @@
           "response": []
         },
         {
-          "name": "POST /verifyResetCode",
+          "name": "POST /auth/verifyResetCode",
           "request": {
             "method": "POST",
             "header": [],
@@ -80,7 +80,7 @@
           "response": []
         },
         {
-          "name": "PUT /resetPassword",
+          "name": "PUT /auth/resetPassword",
           "request": {
             "method": "PUT",
             "header": [],
@@ -98,7 +98,7 @@
           "response": []
         },
         {
-          "name": "GET /google",
+          "name": "GET /auth/google",
           "request": {
             "method": "GET",
             "header": [],
@@ -116,7 +116,7 @@
           "response": []
         },
         {
-          "name": "GET /google/callback",
+          "name": "GET /auth/google/callback",
           "request": {
             "method": "GET",
             "header": [],
@@ -135,7 +135,7 @@
           "response": []
         },
         {
-          "name": "GET /facebook",
+          "name": "GET /auth/facebook",
           "request": {
             "method": "GET",
             "header": [],
@@ -153,7 +153,7 @@
           "response": []
         },
         {
-          "name": "GET /facebook/callback",
+          "name": "GET /auth/facebook/callback",
           "request": {
             "method": "GET",
             "header": [],
@@ -174,105 +174,10 @@
       ]
     },
     {
-      "name": "Category",
-      "item": [
-        {
-          "name": "GET /",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/category/",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "category",
-                ""
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "POST /",
-          "request": {
-            "method": "POST",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/category/",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "category",
-                ""
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "GET /:id",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/category/:id",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "category",
-                ":id"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "PUT /:id",
-          "request": {
-            "method": "PUT",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/category/:id",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "category",
-                ":id"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "DELETE /:id",
-          "request": {
-            "method": "DELETE",
-            "header": [],
-            "url": {.
-              "raw": "{{baseUrl}}/category/:id",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "category",
-                ":id"
-              ]
-            }
-          },
-          "response": []
-        }
-      ]
-    },
-    {
       "name": "Company",
       "item": [
         {
-          "name": "GET /",
+          "name": "GET /company/",
           "request": {
             "method": "GET",
             "header": [],
@@ -282,15 +187,14 @@
                 "{{baseUrl}}"
               ],
               "path": [
-                "company",
-                ""
+                "company"
               ]
             }
           },
           "response": []
         },
         {
-          "name": "GET /:id",
+          "name": "GET /company/:id",
           "request": {
             "method": "GET",
             "header": [],
@@ -308,7 +212,7 @@
           "response": []
         },
         {
-          "name": "GET /search",
+          "name": "GET /company/search",
           "request": {
             "method": "GET",
             "header": [],
@@ -326,7 +230,7 @@
           "response": []
         },
         {
-          "name": "GET /category/:categoryId",
+          "name": "GET /company/category/:categoryId",
           "request": {
             "method": "GET",
             "header": [],
@@ -345,7 +249,7 @@
           "response": []
         },
         {
-          "name": "GET /category/:categoryId/search-location",
+          "name": "GET /company/category/:categoryId/search-location",
           "request": {
             "method": "GET",
             "header": [],
@@ -365,7 +269,7 @@
           "response": []
         },
         {
-          "name": "PATCH /:id/view",
+          "name": "PATCH /company/:id/view",
           "request": {
             "method": "PATCH",
             "header": [],
@@ -384,7 +288,7 @@
           "response": []
         },
         {
-          "name": "POST /",
+          "name": "POST /company/",
           "request": {
             "method": "POST",
             "header": [],
@@ -394,15 +298,14 @@
                 "{{baseUrl}}"
               ],
               "path": [
-                "company",
-                ""
+                "company"
               ]
             }
           },
           "response": []
         },
         {
-          "name": "PUT /:id",
+          "name": "PUT /company/:id",
           "request": {
             "method": "PUT",
             "header": [],
@@ -420,7 +323,7 @@
           "response": []
         },
         {
-          "name": "DELETE /:id",
+          "name": "DELETE /company/:id",
           "request": {
             "method": "DELETE",
             "header": [],
@@ -438,7 +341,7 @@
           "response": []
         },
         {
-          "name": "GET /user/:userId",
+          "name": "GET /company/user/:userId",
           "request": {
             "method": "GET",
             "header": [],
@@ -457,7 +360,7 @@
           "response": []
         },
         {
-          "name": "GET /user/:userId/company/:companyId",
+          "name": "GET /company/user/:userId/company/:companyId",
           "request": {
             "method": "GET",
             "header": [],
@@ -478,7 +381,7 @@
           "response": []
         },
         {
-          "name": "GET /user/:userId/status/:status",
+          "name": "GET /company/user/:userId/status/:status",
           "request": {
             "method": "GET",
             "header": [],
@@ -499,7 +402,7 @@
           "response": []
         },
         {
-          "name": "GET /pending",
+          "name": "GET /company/pending",
           "request": {
             "method": "GET",
             "header": [],
@@ -517,7 +420,7 @@
           "response": []
         },
         {
-          "name": "PATCH /:id/approve",
+          "name": "PATCH /company/:id/approve",
           "request": {
             "method": "PATCH",
             "header": [],
@@ -536,7 +439,7 @@
           "response": []
         },
         {
-          "name": "PATCH /:id/video",
+          "name": "PATCH /company/:id/video",
           "request": {
             "method": "PATCH",
             "header": [],
@@ -557,105 +460,10 @@
       ]
     },
     {
-      "name": "Coupon",
-      "item": [
-        {
-          "name": "GET /",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/coupon/",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "coupon",
-                ""
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "POST /",
-          "request": {
-            "method": "POST",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/coupon/",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "coupon",
-                ""
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "GET /:id",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/coupon/:id",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "coupon",
-                ":id"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "PUT /:id",
-          "request": {
-            "method": "PUT",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/coupon/:id",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "coupon",
-                ":id"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "DELETE /:id",
-          "request": {
-            "method": "DELETE",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/coupon/:id",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "coupon",
-                ":id"
-              ]
-            }
-          },
-          "response": []
-        }
-      ]
-    },
-    {
       "name": "Payment",
       "item": [
         {
-          "name": "POST /webhook",
+          "name": "POST /payment/webhook",
           "request": {
             "method": "POST",
             "header": [],
@@ -673,7 +481,7 @@
           "response": []
         },
         {
-          "name": "POST /create-checkout-session",
+          "name": "POST /payment/create-checkout-session",
           "request": {
             "method": "POST",
             "header": [],
@@ -693,201 +501,10 @@
       ]
     },
     {
-      "name": "Plan",
-      "item": [
-        {
-          "name": "GET /",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/plan/",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "plan",
-                ""
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "POST /",
-          "request": {
-            "method": "POST",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/plan/",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "plan",
-                ""
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "GET /:id",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/plan/:id",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "plan",
-                ":id"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "PUT /:id",
-.          "request": {
-            "method": "PUT",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/plan/:id",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "plan",
-                ":id"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "DELETE /:id",
-          "request": {
-            "method": "DELETE",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/plan/:id",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "plan",
-                ":id"
-              ]
-            }
-          },
-          "response": []
-        }
-      ]
-    },
-    {
-      "name": "Review",
-      "item": [
-        {
-          "name": "GET /",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/review/",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "review",
-                ""
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "POST /",
-          "request": {
-            "method": "POST",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/review/",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "review",
-                ""
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "GET /:id",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/review/:id",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "review",
-                ":id"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "DELETE /:id",
-          "request": {
-            "method": "DELETE",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/review/:id",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "review",
-                ":id"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "PATCH /:id/approve",
-          "request": {
-            "method": "PATCH",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/review/:id/approve",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "review",
-                ":id",
-                "approve"
-              ]
-            }
-          },
-          "response": []
-        }
-      ]
-    },
-    {
       "name": "Sitemap",
       "item": [
         {
-          "name": "GET /sitemap.xml",
+          "name": "GET /sitemap/sitemap.xml",
           "request": {
             "method": "GET",
             "header": [],
@@ -910,7 +527,7 @@
       "name": "User",
       "item": [
         {
-          "name": "GET /getMe",
+          "name": "GET /user/getMe",
           "request": {
             "method": "GET",
             "header": [],
@@ -928,7 +545,7 @@
           "response": []
         },
         {
-          "name": "PUT /changeMyPassword",
+          "name": "PUT /user/changeMyPassword",
           "request": {
             "method": "PUT",
             "header": [],
@@ -946,7 +563,7 @@
           "response": []
         },
         {
-          "name": "PUT /updateMe",
+          "name": "PUT /user/updateMe",
           "request": {
             "method": "PUT",
             "header": [],
@@ -964,7 +581,7 @@
           "response": []
         },
         {
-          "name": "DELETE /deleteMe",
+          "name": "DELETE /user/deleteMe",
           "request": {
             "method": "DELETE",
             "header": [],
@@ -982,7 +599,7 @@
           "response": []
         },
         {
-          "name": "GET /stats",
+          "name": "GET /user/stats",
           "request": {
             "method": "GET",
             "header": [],
@@ -1000,7 +617,7 @@
           "response": []
         },
         {
-          "name": "PUT /changePassword/:id",
+          "name": "PUT /user/changePassword/:id",
           "request": {
             "method": "PUT",
             "header": [],
@@ -1012,96 +629,6 @@
               "path": [
                 "user",
                 "changePassword",
-                ":id"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "GET /",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/user/",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "user",
-                ""
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "POST /",
-          "request": {
-            "method": "POST",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/user/",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "user",
-                ""
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "GET /:id",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/user/:id",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "user",
-                ":id"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "PUT /:id",
-          "request": {
-            "method": "PUT",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/user/:id",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "user",
-                ":id"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "DELETE /:id",
-          "request": {
-            "method": "DELETE",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/user/:id",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "user",
                 ":id"
               ]
             }
