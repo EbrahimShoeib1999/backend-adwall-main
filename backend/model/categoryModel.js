@@ -21,12 +21,26 @@ const categorySchema = new mongoose.Schema(
       required: [true, "Color required"],
     },
 
-    // A and B => shopping.com/a-and-b
     slug: {
       type: String,
       lowercase: true,
     },
     image: String,
+    descriptionAr: {
+      type: String,
+      maxlength: [2000, "Too long description"],
+    },
+    descriptionEn: {
+      type: String,
+      maxlength: [2000, "Too long description"],
+    },
+    descriptionTr: {
+      type: String,
+      maxlength: [2000, "Too long description"],
+    },
+    icon: {
+      type: String,
+    },
   },
   { timestamps: true }
 );

@@ -24,7 +24,10 @@ exports.signup = asyncHandler(async (req, res, next) => {
   // 2- Generate token
   const token = createToken(user._id);
 
-  res.status(201).json({ data: user, token });
+  // Remove password from response
+  delete user._doc.password;
+
+  res.status(201).json({ status: "success", data: user, token });
 });
 
 // @desc    Login
@@ -48,7 +51,7 @@ exports.login = asyncHandler(async (req, res, next) => {
   // Delete password from response
   delete user._doc.password;
   // 4) send response to client side
-  res.status(200).json({ data: user, token });
+  res.status(200).json({ status: "success", data: user, token });
 });
 
 // @desc   make sure the user is logged in
@@ -146,7 +149,7 @@ exports.forgotPassword = asyncHandler(async (req, res, next) => {
   await user.save();
 
   // 3) Send the reset code via email
-  const message = `Hi ${user.name},\n We received a request to reset the password on your E-shop Account. \n ${resetCode} \n Enter this code to complete the reset. \n Thanks for helping us keep your account secure.\n The E-shop Team`;
+  const message = `Hi ${user.name},\n We received a request to reset the password on your AddWall Account. \n ${resetCode} \n Enter this code to complete the reset. \n Thanks for helping us keep your account secure.\n The AddWall Team`;
   try {
     await sendEmail({
       email: user.email,
@@ -220,5 +223,5 @@ exports.resetPassword = asyncHandler(async (req, res, next) => {
 
   // 3) if everything is ok, generate token
   const token = createToken(user._id);
-  res.status(200).json({ token });
+  res.status(200).json({ status: "success", token });
 });

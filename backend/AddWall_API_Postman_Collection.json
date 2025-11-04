@@ -44,6 +44,16 @@
       "key": "coupon_id",
       "value": "",
       "type": "string"
+    },
+    {
+      "key": "review_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "plan_id",
+      "value": "",
+      "type": "string"
     }
   ],
   "item": [
@@ -334,6 +344,23 @@
               "path": ["users", "changePassword", "{{user_id}}"]
             }
           }
+        },
+        {
+          "name": "[Admin] جلب إحصائيات المستخدمين",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/users/stats",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "users",
+                "stats"
+              ]
+            }
+          }
         }
       ]
     },
@@ -435,17 +462,22 @@
       "item": [
         {
           "name": "تقديم طلب تسجيل شركة جديدة",
+          "description": "يقوم المستخدم بتقديم طلب لتسجيل شركة جديدة مع رفع الشعار. الطلب يكون في حالة انتظار موافقة الأدمن.",
           "request": {
             "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
             "body": {
-              "mode": "raw",
-              "raw": "{\n  \"companyName\": \"مطعم الرياض\",\n  \"categoryId\": \"{{category_id}}\",\n  \"description\": \"أفضل مطعم في الرياض يقدم الأكلات الشعبية السعودية\",\n  \"country\": \"السعودية\",\n  \"city\": \"الرياض\",\n  \"email\": \"info@riyadhrestaurant.com\",\n  \"whatsapp\": \"+966501234567\",\n  \"facebook\": \"https://facebook.com/riyadhrestaurant\",\n  \"website\": \"https://riyadhrestaurant.com\"\n}"
+              "mode": "formdata",
+              "formdata": [
+                { "key": "companyName", "value": "My Awesome Company", "type": "text" },
+                { "key": "companyNameTr", "value": "Harika Şirketim", "type": "text" },
+                { "key": "description", "value": "This is a description of my awesome company.", "type": "text" },
+                { "key": "descriptionTr", "value": "Bu harika şirketimin bir açıklamasıdır.", "type": "text" },
+                { "key": "categoryId", "value": "{{category_id}}", "type": "text" },
+                { "key": "country", "value": "Turkey", "type": "text" },
+                { "key": "city", "value": "Istanbul", "type": "text" },
+                { "key": "email", "value": "contact@awesome.com", "type": "text" },
+                { "key": "logo", "type": "file", "src": [] }
+              ]
             },
             "url": {
               "raw": "{{base_url}}/companies",
@@ -481,17 +513,29 @@
           }
         },
         {
+          "name": "جلب شركة محددة",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/companies/{{company_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["companies", "{{company_id}}"]
+            }
+          }
+        },
+        {
           "name": "البحث عن شركة بالاسم",
           "request": {
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{base_url}}/companies/search?q=مطعم",
+              "raw": "{{base_url}}/companies/search?name=مطعم",
               "host": ["{{base_url}}"],
               "path": ["companies", "search"],
               "query": [
                 {
-                  "key": "q",
+                  "key": "name",
                   "value": "مطعم"
                 }
               ]
@@ -550,35 +594,34 @@
           }
         },
         {
-          "name": "[Owner] تحديث شركتي",
+          "name": "[Owner/Admin] تحديث شركة",
+          "description": "يقوم مالك الشركة أو الأدمن بتحديث بيانات الشركة. يمكن تحديث الشعار أيضاً.",
           "request": {
             "method": "PUT",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
             "body": {
-              "mode": "raw",
-              "raw": "{\n  \"companyName\": \"مطعم الرياض الجديد\",\n  \"description\": \"أفضل مطعم في الرياض مع خدمة توصيل\",\n  \"whatsapp\": \"+966509876543\"\n}"
+              "mode": "formdata",
+              "formdata": [
+                { "key": "companyName", "value": "My Updated Company Name", "type": "text" },
+                { "key": "whatsapp", "value": "+905551234567", "type": "text" },
+                { "key": "logo", "type": "file", "src": [] }
+              ]
             },
             "url": {
-              "raw": "{{base_url}}/companies/update/{{company_id}}",
+              "raw": "{{base_url}}/companies/{{company_id}}",
               "host": ["{{base_url}}"],
-              "path": ["companies", "update", "{{company_id}}"]
+              "path": ["companies", "{{company_id}}"]
             }
           }
         },
         {
-          "name": "[Owner] حذف شركتي",
+          "name": "[Owner/Admin] حذف شركة",
           "request": {
             "method": "DELETE",
             "header": [],
             "url": {
-              "raw": "{{base_url}}/companies/delete/{{company_id}}",
+              "raw": "{{base_url}}/companies/{{company_id}}",
               "host": ["{{base_url}}"],
-              "path": ["companies", "delete", "{{company_id}}"]
+              "path": ["companies", "{{company_id}}"]
             }
           }
         },
@@ -586,20 +629,150 @@
           "name": "[Admin] الموافقة على شركة",
           "request": {
             "method": "PATCH",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"isApproved\": true\n}"
-            },
+            "header": [],
             "url": {
               "raw": "{{base_url}}/companies/{{company_id}}/approve",
               "host": ["{{base_url}}"],
               "path": ["companies", "{{company_id}}", "approve"]
+            }
+          }
+        },
+        {
+          "name": "[Admin] رفع فيديو لشركة VIP",
+          "request": {
+            "method": "PATCH",
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                { "key": "video", "type": "file", "src": [] }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/companies/{{company_id}}/video",
+              "host": ["{{base_url}}"],
+              "path": ["companies", "{{company_id}}", "video"]
+            }
+          }
+        },
+        {
+          "name": "زيادة عدد مشاهدات الشركة",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/companies/{{company_id}}/view",
+              "host": ["{{base_url}}"],
+              "path": ["companies", "{{company_id}}", "view"]
+            }
+          }
+        },
+        {
+          "name": "جلب شركات مستخدم معين",
+          "item": [
+            {
+              "name": "جلب كل الشركات",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/companies/user/{{user_id}}",
+                  "host": ["{{base_url}}"],
+                  "path": ["companies", "user", "{{user_id}}"]
+                }
+              }
+            },
+            {
+              "name": "جلب شركة معينة",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/companies/user/{{user_id}}/company/{{company_id}}",
+                  "host": ["{{base_url}}"],
+                  "path": ["companies", "user", "{{user_id}}", "company", "{{company_id}}"]
+                }
+              }
+            },
+            {
+              "name": "جلب الشركات حسب الحالة (Pending)",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/companies/user/{{user_id}}/status/pending",
+                  "host": ["{{base_url}}"],
+                  "path": ["companies", "user", "{{user_id}}", "status", "pending"]
+                }
+              }
+            },
+            {
+              "name": "جلب الشركات حسب الحالة (Approved)",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/companies/user/{{user_id}}/status/approved",
+                  "host": ["{{base_url}}"],
+                  "path": ["companies", "user", "{{user_id}}", "status", "approved"]
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "⭐ Reviews Management",
+      "item": [
+        {
+          "name": "جلب جميع المراجعات لشركة",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/companies/{{company_id}}/reviews",
+              "host": ["{{base_url}}"],
+              "path": ["companies", "{{company_id}}", "reviews"]
+            }
+          }
+        },
+        {
+          "name": "[User] إضافة مراجعة جديدة لشركة",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Great Service!\",\n  \"ratings\": 5\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/companies/{{company_id}}/reviews",
+              "host": ["{{base_url}}"],
+              "path": ["companies", "{{company_id}}", "reviews"]
+            }
+          }
+        },
+        {
+          "name": "[Admin] الموافقة على مراجعة",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/reviews/{{review_id}}/approve",
+              "host": ["{{base_url}}"],
+              "path": ["reviews", "{{review_id}}", "approve"]
+            }
+          }
+        },
+        {
+          "name": "[Admin] حذف مراجعة",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/reviews/{{review_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["reviews", "{{review_id}}"]
             }
           }
         }
@@ -693,6 +866,76 @@
               "raw": "{{base_url}}/coupons/{{coupon_id}}",
               "host": ["{{base_url}}"],
               "path": ["coupons", "{{coupon_id}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "💳 Plans & Subscriptions",
+      "item": [
+        {
+          "name": "جلب جميع الخطط",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/plans",
+              "host": ["{{base_url}}"],
+              "path": ["plans"]
+            }
+          }
+        },
+        {
+          "name": "[Admin] إنشاء خطة جديدة",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"name\": \"Monthly Plan\",\n    \"price\": 10,\n    \"duration\": 30,\n    \"stripePriceId\": \"price_123456789\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/plans",
+              "host": ["{{base_url}}"],
+              "path": ["plans"]
+            }
+          }
+        },
+        {
+          "name": "[User] إنشاء جلسة دفع للاشتراك",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"planId\": \"{{plan_id}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/payments/create-checkout-session",
+              "host": ["{{base_url}}"],
+              "path": ["payments", "create-checkout-session"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "🤖 Bot, Sitemap & Others",
+      "item": [
+        {
+          "name": "جلب خريطة الموقع (Sitemap)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/sitemap.xml",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "sitemap.xml"
+              ]
             }
           }
         }

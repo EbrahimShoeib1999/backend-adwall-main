@@ -72,8 +72,14 @@ exports.getAll = (Model, modelName = "") =>
 
       const apiFeatures = new ApiFeatures(Model.find(filter), req.query)
         .paginate(documentsCounts)
-        .filter()
-        .search(modelName)
+        .filter();
+
+      // Apply multilingual search if applicable
+      if (modelName) {
+        apiFeatures.search(modelName);
+      }
+
+      apiFeatures
         .limitFields()
         .sort();
 

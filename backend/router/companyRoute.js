@@ -1,92 +1,73 @@
 const express = require("express");
+const reviewRoute = require('./reviewRoute');
 
-const uploadLogo = require("../middlewares/uploadImageMiddleware");
+const { uploadSingleVideo } = require("../middlewares/uploadVideoMiddleware");
+const { uploadSingleImage } = require("../middlewares/uploadImageMiddleware");
 const {
-  updatecompany,
-  deletecompany,
+  updateCompany,
+  deleteCompany,
   approveCompany,
   createCompany,
   getCompaniesByCategory,
   getPendingCompanies,
-  getallcompany,
+  getAllCompanies,
   searchCompaniesByName,
-  uploadCompanyImage,
   resizeImage,
   searchCompaniesByCategoryAndLocation,
   getUserCompanies,
   getUserCompany,
   getUserCompaniesByStatus,
-  getOnecompany,
+  getOneCompany,
+  processVideo,
+  updateCompanyVideo,
+  incrementCompanyView,
 } = require("../controllers/companyService");
-const router = express.Router();
+
+const { createCompanyValidator } = require("../utils/validators/companyValidator");
+
 const auth = require("../controllers/authService");
-// [الزبون] إرسال طلب اشتراك شركة جديدة (يحتاج موافقة الأدمن)
-// @route   POST /api/companies
-// @desc    يقوم الزبون بإرسال بيانات شركته ليتم مراجعتها من قبل الأدمن
-router.post("/", auth.protect, uploadCompanyImage, resizeImage, createCompany);
 
-router.get("/:id", getOnecompany);
-// [الأدمن] جلب جميع الشركات المسجلة (مع إمكانية الفلترة والموافقة)
-// @route   GET /api/companies
-// @desc    يعرض جميع الشركات (يمكن للأدمن فقط رؤية الشركات غير الموافق عليها)
-// ملاحظة: يجب حماية هذا الرابط ليكون للأدمن فقط لاحقاً
-// مثال: ?isApproved=false لجلب الشركات التي تنتظر الموافقة
+const router = express.Router();
 
-router.get("/", getallcompany);
+// Nested route for reviews
+router.use('/:companyId/reviews', reviewRoute);
 
-// البحث عن الشركات بالاسم
+// Public routes
+router.get("/", getAllCompanies);
+router.get("/:id", getOneCompany);
 router.get("/search", searchCompaniesByName);
-// البحث عن الشركات بالمدينة والدولة
-//router.get("/search-location", searchCompaniesByLocation);
-
-// جلب الشركات حسب التصنيف
-// البحث عن الشركات ضمن الفئة باستخدام المدينة أو الدولة أو كلاهما
-router.get(
-  "/category/:categoryId/search-location",
-  searchCompaniesByCategoryAndLocation
-);
 router.get("/category/:categoryId", getCompaniesByCategory);
+router.get("/category/:categoryId/search-location", searchCompaniesByCategoryAndLocation);
+router.patch("/:id/view", incrementCompanyView);
 
-// تحديث شركة
-router.put("/", auth.protect, updatecompany);
-router.put("/update/:id", auth.protect, updatecompany);
-// جلب الشركات غير الموافق عليها (طلبات الاشتراك)
+// Protected routes
+router.use(auth.protect);
 
-router.get(
-  "/pending",
-  //   auth.protect,
-  //   auth.allowedTo("admin"),
-  getPendingCompanies
+router.post(
+  "/",
+  uploadSingleImage("logo"),
+  resizeImage,
+  createCompanyValidator,
+  createCompany
 );
+router.put("/:id", uploadSingleImage("logo"), resizeImage, updateCompany);
+router.delete("/:id", deleteCompany);
 
-// حذف شركة
-router.delete("/delete/:id", auth.protect, deletecompany);
+// User-specific routes
+router.get("/user/:userId", getUserCompanies);
+router.get("/user/:userId/company/:companyId", getUserCompany);
+router.get("/user/:userId/status/:status", getUserCompaniesByStatus);
 
-// موافقة الأدمن على إضافة شركة
+// Admin routes
+router.use(auth.allowedTo("admin"));
+
+router.get("/pending", getPendingCompanies);
+router.patch("/:id/approve", approveCompany);
 router.patch(
-  "/:id/approve",
-  auth.protect,
-  auth.allowedTo("admin"),
-  approveCompany
-);
-router.delete(
-  "/deletebyadmin/:id",
-  auth.protect,
-  auth.allowedTo("admin"),
-  deletecompany
-);
-
-// جلب كل الشركات التابعة لمستخدم معين
-router.get("/user/:userId", auth.protect, getUserCompanies);
-
-// جلب شركة معينة تابعة لمستخدم معين
-router.get("/user/:userId/company/:companyId", auth.protect, getUserCompany);
-
-// جلب شركات المستخدم حسب الحالة (approved/pending)
-router.get(
-  "/user/:userId/status/:status",
-  auth.protect,
-  getUserCompaniesByStatus
+  "/:id/video",
+  uploadSingleVideo("video"),
+  processVideo,
+  updateCompanyVideo
 );
 
 module.exports = router;

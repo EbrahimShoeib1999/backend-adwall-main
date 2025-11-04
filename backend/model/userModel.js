@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
 const bcrypt = require("bcryptjs");
+const slugify = require("slugify");
 
 const userSchema = new mongoose.Schema(
   {
@@ -20,10 +21,11 @@ const userSchema = new mongoose.Schema(
     },
     phone: String,
     profileImg: String,
+    googleId: String,
+    facebookId: String,
 
     password: {
       type: String,
-      required: [true, "password required"],
       minlength: [6, "Too short password"],
     },
     passwordChangedAt: Date,
@@ -65,6 +67,9 @@ const userSchema = new mongoose.Schema(
 );
 
 userSchema.pre("save", async function (next) {
+  if (this.isModified("name")) {
+    this.slug = slugify(this.name, { lower: true });
+  }
   if (!this.isModified("password")) return next();
   // Hashing user password
   this.password = await bcrypt.hash(this.password, 12);

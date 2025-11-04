@@ -2,6 +2,7 @@ const asyncHandler = require("express-async-handler");
 const { v4: uuidv4 } = require("uuid");
 const sharp = require("sharp");
 const bcrypt = require("bcryptjs");
+const slugify = require("slugify");
 
 const factory = require("./handlersFactory");
 const ApiError = require("../utils/apiError");
@@ -53,7 +54,6 @@ exports.updateUser = asyncHandler(async (req, res, next) => {
     req.params.id,
     {
       name: req.body.name,
-      slug: req.body.slug,
       phone: req.body.phone,
       email: req.body.email,
       profileImg: req.body.profileImg,

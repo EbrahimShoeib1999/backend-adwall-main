@@ -5,13 +5,21 @@ const express = require("express");
 const morgan = require("morgan");
 const cors = require("cors");
 const compression = require("compression");
+const passport = require("passport");
+const fs = require("fs");
 
-require("dotenv").config({ path: "env.txt" });
+// Load environment variables from env.txt if it exists, otherwise from .env
+const envPath = fs.existsSync(path.join(__dirname, 'env.txt')) ? 'env.txt' : '.env';
+require("dotenv").config({ path: envPath });
+
 const ApiError = require("./utils/apiError");
 const globalError = require("./middlewares/errorMiddleware");
 const dbConnection = require("./config/database");
 // Routes
+const paymentRoute = require("./router/paymentRoute");
 const mountRoutes = require("./router");
+// Passport config
+require('./config/passport');
 
 // Connect with db
 dbConnection();
@@ -26,16 +34,15 @@ app.options("*", cors());
 // compress all responses
 app.use(compression());
 
-// Checkout webhook
-// app.post(
-//   "/webhook-checkout",
-//   express.raw({ type: "application/json" }),
-//   webhookCheckout
-// );
+// Stripe webhook
+app.use("/api/v1/payments", paymentRoute);
 
 // Middlewares
 app.use(express.json());
 app.use(express.static(path.join(__dirname, "uploads")));
+
+// Passport middleware
+app.use(passport.initialize());
 
 if (process.env.NODE_ENV === "development") {
   app.use(morgan("dev"));
