@@ -1,4 +1,4 @@
 @echo off
 cd /d %~dp0
-node create-admin.js
+node generatePostmanCollection.js
 pause
