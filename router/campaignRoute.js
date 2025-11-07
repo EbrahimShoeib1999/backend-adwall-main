@@ -1,0 +1,38 @@
+const express = require('express');
+
+const {
+    getCampaigns,
+    getCampaign,
+    createCampaign,
+    updateCampaign,
+    deleteCampaign,
+} = require('../controllers/campaignService');
+
+const authService = require('../controllers/authService');
+
+const router = express.Router();
+
+router
+    .route('/')
+    .get(getCampaigns)
+    .post(
+        authService.protect,
+        authService.allowedTo('admin', 'manager'),
+        createCampaign
+    );
+
+router
+    .route('/:id')
+    .get(getCampaign)
+    .put(
+        authService.protect,
+        authService.allowedTo('admin', 'manager'),
+        updateCampaign
+    )
+    .delete(
+        authService.protect,
+        authService.allowedTo('admin'),
+        deleteCampaign
+    );
+
+module.exports = router;

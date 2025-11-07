@@ -1,13 +1,12 @@
 require('./generatePostmanCollection.js');
 const path = require("path");
+const fs = require("fs");
 
 const express = require("express");
-
 const morgan = require("morgan");
 const cors = require("cors");
 const compression = require("compression");
 const passport = require("passport");
-const fs = require("fs");
 
 // Load environment variables from env.txt if it exists, otherwise from .env
 const envPath = fs.existsSync(path.join(__dirname, 'env.txt')) ? 'env.txt' : '.env';
@@ -16,9 +15,9 @@ require("dotenv").config({ path: envPath });
 const ApiError = require("./utils/apiError");
 const globalError = require("./middlewares/errorMiddleware");
 const dbConnection = require("./config/database");
-// Routes
-const paymentRoute = require("./router/paymentRoute");
-const mountRoutes = require("./router");
+const mainRouter = require("./router"); // Import the main router
+const { stripeWebhook } = require('./controllers/paymentController');
+
 // Passport config
 require('./config/passport');
 
@@ -35,8 +34,8 @@ app.options("*", cors());
 // compress all responses
 app.use(compression());
 
-// Stripe webhook
-app.use("/api/v1/payments", paymentRoute);
+// Stripe webhook - Must be before express.json()
+app.post('/api/v1/payments/webhook', express.raw({ type: 'application/json' }), stripeWebhook);
 
 // Middlewares
 app.use(express.json());
@@ -50,9 +49,10 @@ if (process.env.NODE_ENV === "development") {
   console.log(`mode: ${process.env.NODE_ENV}`);
 }
 
-// Mount Routes
-mountRoutes(app);
+// Mount All Routes
+app.use("/api/v1", mainRouter);
 
+// Error Handling
 app.all("*", (req, res, next) => {
   next(new ApiError(`Can't find this route: ${req.originalUrl}`, 400));
 });

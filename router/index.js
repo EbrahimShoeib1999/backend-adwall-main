@@ -1,3 +1,4 @@
+const express = require('express');
 const categoryRoute = require("./categoryRoute");
 const companiesRoute = require("./companyRoute");
 const userRoute = require("./userRoute");
@@ -6,18 +7,20 @@ const couponRoute = require("./couponRoute");
 const reviewRoute = require("./reviewRoute");
 const planRoute = require("./planRoute");
 const sitemapRoute = require("./sitemapRoute");
+const campaignRoute = require("./campaignRoute");
+const miaRoute = require("./miaRoute");
 
-const mountRoutes = (app) => {
-  app.use("/api/v1/categories", categoryRoute);
-  app.use("/api/v1/users", userRoute);
-  app.use("/api/v1/auth", authRoute);
-  app.use("/api/v1/companies", companiesRoute);
-  app.use("/api/v1/coupons", couponRoute);
-  app.use("/api/v1/reviews", reviewRoute);
-  app.use("/api/v1/plans", planRoute);
+const router = express.Router();
 
-  // Sitemap should be at the root level of api
-  app.use("/api/v1", sitemapRoute);
-};
+router.use("/categories", categoryRoute);
+router.use("/users", userRoute);
+router.use("/auth", authRoute);
+router.use("/companies", companiesRoute);
+router.use("/coupons", couponRoute);
+router.use("/reviews", reviewRoute);
+router.use("/plans", planRoute);
+router.use("/campaigns", campaignRoute);
+router.use("/mias", miaRoute);
+router.use("/", sitemapRoute);
 
-module.exports = mountRoutes;
+module.exports = router;
