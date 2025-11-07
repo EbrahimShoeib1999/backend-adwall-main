@@ -9,6 +9,7 @@ const planRoute = require("./planRoute");
 const sitemapRoute = require("./sitemapRoute");
 const campaignRoute = require("./campaignRoute");
 const miaRoute = require("./miaRoute");
+const paymentRoute = require("./paymentRoute");
 
 const router = express.Router();
 
@@ -21,6 +22,7 @@ router.use("/reviews", reviewRoute);
 router.use("/plans", planRoute);
 router.use("/campaigns", campaignRoute);
 router.use("/mias", miaRoute);
+router.use("/payments", paymentRoute);
 router.use("/", sitemapRoute);
 
 module.exports = router;
