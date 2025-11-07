@@ -187,9 +187,3 @@ exports.updateLoggedUserValidator = [
     .withMessage('رقم الهاتف غير صالح. يُقبل فقط أرقام مصر و السعودية'),
   validatorMiddleware,
 ];
-
-/**
- * @desc    Validator for changing user password (Admin or User)
- */
-exports.changeUserPasswordValidator = [
-  check('id').isMongoId().withMessage('معرف المستخدم غير صالح'),
