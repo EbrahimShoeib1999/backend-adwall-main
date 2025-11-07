@@ -8,6 +8,7 @@ const cors = require("cors");
 const compression = require("compression");
 const passport = require("passport");
 
+
 // Load environment variables from env.txt if it exists, otherwise from .env
 const envPath = fs.existsSync(path.join(__dirname, 'env.txt')) ? 'env.txt' : '.env';
 require("dotenv").config({ path: envPath });
