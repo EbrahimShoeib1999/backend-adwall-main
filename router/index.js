@@ -14,7 +14,7 @@ const paymentRoute = require("./paymentRoute");
 const router = express.Router();
 
 router.use("/categories", categoryRoute);
-router.use("/users", userRoute);
+router.use("/Auth", userRoute);
 router.use("/auth", authRoute);
 router.use("/companies", companiesRoute);
 router.use("/coupons", couponRoute);

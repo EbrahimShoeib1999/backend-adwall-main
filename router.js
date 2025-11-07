@@ -30,8 +30,9 @@ const router = express.Router();
 
 //--------------------------------------------------
 // Auth Routes
-// Base URL: /api/v1/auth
-// Usage: Handles user registration, login, and authentication.
+// Base URL: /api/v1/Auth
+// Usage: Handles user and admin authentication, registration, and profile management.
+// All login and user management for both roles are unified under this base URL.
 //--------------------------------------------------
 const authRouter = express.Router();
 authRouter.post('/signup', signupValidator, authService.signup);
@@ -47,27 +48,21 @@ authRouter.get('/facebook', passport.authenticate('facebook', { scope: ['email']
 authRouter.get('/facebook/callback', passport.authenticate('facebook', { session: false }), (req, res) => {
     res.redirect(`${process.env.FRONTEND_URL}/login-success?token=${req.user.token}`);
 });
-router.use("/auth", authRouter);
 
+// Protected user routes (for both regular users and admins)
+authRouter.use(authService.protect);
+authRouter.get("/getMe", getLoggedUserData, getUser);
+authRouter.put("/changeMyPassword", updateLoggedUserPassword);
+authRouter.put("/updateMe", updateLoggedUserValidator, updateLoggedUserData);
+authRouter.delete("/deleteMe", deleteLoggedUserData);
 
-//--------------------------------------------------
-// Users Routes
-// Base URL: /api/v1/users
-// Usage: Manages user data and profiles.
-//--------------------------------------------------
-const userRouter = express.Router();
-// userRouter.use(authService.protect); // This line is commented out for testing
-userRouter.get("/getMe", getLoggedUserData, getUser);
-userRouter.put("/changeMyPassword", updateLoggedUserPassword);
-userRouter.put("/updateMe", updateLoggedUserValidator, updateLoggedUserData);
-userRouter.delete("/deleteMe", deleteLoggedUserData);
-// Admin only
-userRouter.use(authService.allowedTo("admin"));
-userRouter.get("/stats", getUsersStats);
-userRouter.put("/changePassword/:id", changeUserPasswordValidator, changeUserPassword);
-userRouter.route("/").get(getUsers).post(uploadUserImage, resizeUserImage, createUserValidator, createUser);
-userRouter.route("/:id").get(getUserValidator, getUser).put(uploadUserImage, resizeUserImage, updateUserValidator, updateUser).delete(deleteUserValidator, deleteUser);
-router.use("/users", userRouter);
+// Admin only user management routes
+authRouter.use(authService.allowedTo("admin"));
+authRouter.get("/stats", getUsersStats);
+authRouter.put("/changePassword/:id", changeUserPasswordValidator, changeUserPassword);
+authRouter.route("/").get(getUsers).post(uploadUserImage, resizeUserImage, createUserValidator, createUser);
+authRouter.route("/:id").get(getUserValidator, getUser).put(uploadUserImage, resizeUserImage, updateUserValidator, updateUser).delete(deleteUserValidator, deleteUser);
+router.use("/Auth", authRouter);
 
 
 //--------------------------------------------------

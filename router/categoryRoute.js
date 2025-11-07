@@ -19,6 +19,7 @@ const {
 
 const authService = require("../controllers/authService");
 const cachingMiddleware = require("../middlewares/cachingMiddleware");
+const { allowedTo } = require("../middlewares/auth");
 
 const router = express.Router();
 
@@ -29,7 +30,7 @@ router
   .get(cachingMiddleware, getCategories)
   .post(
     authService.protect,
-    authService.allowedTo("admin", "manager"),
+    allowedTo("admin", "manager"),
     uploadCategoryImage,
     resizeImage,
     createCategoryValidator,
@@ -40,7 +41,7 @@ router
   .get(getCategoryValidator, getCategory)
   .put(
     authService.protect,
-    authService.allowedTo("admin", "manager"),
+    allowedTo("admin", "manager"),
     uploadCategoryImage,
     resizeImage,
     updateCategoryValidator,
@@ -48,7 +49,7 @@ router
   )
   .delete(
     authService.protect,
-    authService.allowedTo("admin"),
+    allowedTo("admin"),
     deleteCategoryValidator,
     deleteCategory
   );

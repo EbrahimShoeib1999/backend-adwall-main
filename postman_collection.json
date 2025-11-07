@@ -1,235 +1,176 @@
 {
   "info": {
     "name": "AdWall API",
+    "_postman_id": "adwall-api-collection-v1",
+    "description": "مجموعة Postman كاملة لـ AdWall API مع أمثلة للطلبات والاستجابات",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://72.60.178.180:8000",
+      "type": "string",
+      "description": "عنوان السيرفر الأساسي"
+    }
+  ],
   "item": [
     {
-      "name": "Auth",
+      "name": "المصادقة (Auth)",
       "item": [
         {
-          "name": "POST /api/v1/auth/signup",
+          "name": "تسجيل مستخدم جديد",
           "request": {
             "method": "POST",
-            "header": [],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Dummy User\",\n  \"email\": \"dummy.user@example.com\",\n  \"password\": \"dummyPassword123\",\n  \"passwordConfirm\": \"dummyPassword123\"\n}"
+            },
             "url": {
               "raw": "{{baseUrl}}/api/v1/auth/signup",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "auth",
-                "signup"
-              ]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"name\": \"Test User\",\n  \"email\": \"test@example.com\",\n  \"password\": \"password123\",\n  \"passwordConfirm\": \"password123\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "auth", "signup"]
             }
           },
           "response": []
         },
         {
-          "name": "POST /api/v1/auth/login",
+          "name": "تسجيل الدخول",
           "request": {
             "method": "POST",
-            "header": [],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"dummy.user@example.com\",\n  \"password\": \"dummyPassword123\"\n}"
+            },
             "url": {
               "raw": "{{baseUrl}}/api/v1/auth/login",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "auth",
-                "login"
-              ]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"email\": \"test@example.com\",\n  \"password\": \"password123\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "auth", "login"]
             }
           },
           "response": []
         },
         {
-          "name": "POST /api/v1/auth/forgotPassword",
+          "name": "نسيت كلمة المرور",
           "request": {
             "method": "POST",
-            "header": [],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"dummy.user@example.com\"\n}"
+            },
             "url": {
               "raw": "{{baseUrl}}/api/v1/auth/forgotPassword",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "auth",
-                "forgotPassword"
-              ]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"email\": \"test@example.com\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "auth", "forgotPassword"]
             }
           },
           "response": []
         },
         {
-          "name": "POST /api/v1/auth/verifyResetCode",
+          "name": "التحقق من كود إعادة التعيين",
           "request": {
             "method": "POST",
-            "header": [],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"resetCode\": \"000000\"\n}"
+            },
             "url": {
               "raw": "{{baseUrl}}/api/v1/auth/verifyResetCode",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "auth",
-                "verifyResetCode"
-              ]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"resetCode\": \"123456\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "auth", "verifyResetCode"]
             }
           },
           "response": []
         },
         {
-          "name": "PUT /api/v1/auth/resetPassword",
+          "name": "إعادة تعيين كلمة المرور",
           "request": {
             "method": "PUT",
-            "header": [],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"dummy.user@example.com\",\n  \"newPassword\": \"newDummyPassword123\",\n  \"newPasswordConfirm\": \"newDummyPassword123\"\n}"
+            },
             "url": {
               "raw": "{{baseUrl}}/api/v1/auth/resetPassword",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "auth",
-                "resetPassword"
-              ]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"email\": \"test@example.com\",\n  \"newPassword\": \"newpassword123\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "auth", "resetPassword"]
             }
           },
           "response": []
         },
         {
-          "name": "GET /api/v1/auth/google",
+          "name": "تسجيل الدخول عبر Google",
           "request": {
             "method": "GET",
-            "header": [],
             "url": {
               "raw": "{{baseUrl}}/api/v1/auth/google",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "auth",
-                "google"
-              ]
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "auth", "google"]
             }
           },
           "response": []
         },
         {
-          "name": "GET /api/v1/auth/google/callback",
+          "name": "Callback Google",
           "request": {
             "method": "GET",
-            "header": [],
             "url": {
               "raw": "{{baseUrl}}/api/v1/auth/google/callback",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "auth",
-                "google",
-                "callback"
-              ]
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "auth", "google", "callback"]
             }
           },
           "response": []
         },
         {
-          "name": "GET /api/v1/auth/facebook",
+          "name": "تسجيل الدخول عبر Facebook",
           "request": {
             "method": "GET",
-            "header": [],
             "url": {
               "raw": "{{baseUrl}}/api/v1/auth/facebook",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "auth",
-                "facebook"
-              ]
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "auth", "facebook"]
             }
           },
           "response": []
         },
         {
-          "name": "GET /api/v1/auth/facebook/callback",
+          "name": "Callback Facebook",
           "request": {
             "method": "GET",
-            "header": [],
             "url": {
               "raw": "{{baseUrl}}/api/v1/auth/facebook/callback",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "auth",
-                "facebook",
-                "callback"
-              ]
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "auth", "facebook", "callback"]
             }
           },
           "response": []
@@ -237,315 +178,218 @@
       ]
     },
     {
-      "name": "Company",
+      "name": "الشركات (Companies)",
       "item": [
         {
-          "name": "GET /api/v1/company/",
+          "name": "جلب جميع الشركات",
           "request": {
             "method": "GET",
-            "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/v1/company/",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "company"
-              ]
+              "raw": "{{baseUrl}}/api/v1/companies",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "companies"]
             }
           },
           "response": []
         },
         {
-          "name": "GET /api/v1/company/:id",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/api/v1/company/:id",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "company",
-                ":id"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "GET /api/v1/company/search",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/api/v1/company/search",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "company",
-                "search"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "GET /api/v1/company/category/:categoryId",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/api/v1/company/category/:categoryId",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "company",
-                "category",
-                ":categoryId"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "GET /api/v1/company/category/:categoryId/search-location",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/api/v1/company/category/:categoryId/search-location",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "company",
-                "category",
-                ":categoryId",
-                "search-location"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "PATCH /api/v1/company/:id/view",
-          "request": {
-            "method": "PATCH",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/api/v1/company/:id/view",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "company",
-                ":id",
-                "view"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "POST /api/v1/company/",
+          "name": "إنشاء شركة جديدة",
           "request": {
             "method": "POST",
-            "header": [],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"شركة تجريبية\",\n  \"description\": \"وصف تجريبي للشركة\",\n  \"address\": \"123 شارع تجريبي، المدينة\",\n  \"phone\": \"+1234567890\",\n  \"email\": \"contact@dummy.com\",\n  \"website\": \"https://dummy.com\",\n  \"category\": \"60d5ec49f1b2c2a4b8e4d1a1\",\n  \"user\": \"60d5ec49f1b2c2a4b8e4d1a2\"\n}"
+            },
             "url": {
-              "raw": "{{baseUrl}}/api/v1/company/",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "company"
-              ]
+              "raw": "{{baseUrl}}/api/v1/companies",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "companies"]
             }
           },
           "response": []
         },
         {
-          "name": "PUT /api/v1/company/:id",
+          "name": "جلب شركة بواسطة ID",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/companies/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "companies", ":id"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "تحديث شركة",
           "request": {
             "method": "PUT",
-            "header": [],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"شركة محدثة\",\n  \"description\": \"وصف محدث\"\n}"
+            },
             "url": {
-              "raw": "{{baseUrl}}/api/v1/company/:id",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "company",
-                ":id"
-              ]
+              "raw": "{{baseUrl}}/api/v1/companies/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "companies", ":id"]
             }
           },
           "response": []
         },
         {
-          "name": "DELETE /api/v1/company/:id",
+          "name": "حذف شركة",
           "request": {
             "method": "DELETE",
-            "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/v1/company/:id",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "company",
-                ":id"
-              ]
+              "raw": "{{baseUrl}}/api/v1/companies/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "companies", ":id"]
             }
           },
           "response": []
         },
         {
-          "name": "GET /api/v1/company/user/:userId",
+          "name": "البحث في الشركات",
           "request": {
             "method": "GET",
-            "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/v1/company/user/:userId",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "company",
-                "user",
-                ":userId"
+              "raw": "{{baseUrl}}/api/v1/companies/search?q=مطعم",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "companies", "search"],
+              "query": [
+                {
+                  "key": "q",
+                  "value": "مطعم"
+                }
               ]
             }
           },
           "response": []
         },
         {
-          "name": "GET /api/v1/company/user/:userId/company/:companyId",
+          "name": "الشركات المعلقة",
           "request": {
             "method": "GET",
-            "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/v1/company/user/:userId/company/:companyId",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "company",
-                "user",
-                ":userId",
-                "company",
-                ":companyId"
-              ]
+              "raw": "{{baseUrl}}/api/v1/companies/pending",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "companies", "pending"]
             }
           },
           "response": []
         },
         {
-          "name": "GET /api/v1/company/user/:userId/status/:status",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/api/v1/company/user/:userId/status/:status",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "company",
-                "user",
-                ":userId",
-                "status",
-                ":status"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "GET /api/v1/company/pending",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/api/v1/company/pending",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "company",
-                "pending"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "PATCH /api/v1/company/:id/approve",
+          "name": "الموافقة على شركة",
           "request": {
             "method": "PATCH",
-            "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/v1/company/:id/approve",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "company",
-                ":id",
-                "approve"
-              ]
+              "raw": "{{baseUrl}}/api/v1/companies/:id/approve",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "companies", ":id", "approve"]
             }
           },
           "response": []
         },
         {
-          "name": "PATCH /api/v1/company/:id/video",
+          "name": "زيادة عدد المشاهدات",
           "request": {
             "method": "PATCH",
-            "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/v1/company/:id/video",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "company",
-                ":id",
-                "video"
+              "raw": "{{baseUrl}}/api/v1/companies/:id/view",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "companies", ":id", "view"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "رفع فيديو للشركة",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "multipart/form-data"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "video",
+                  "type": "file",
+                  "src": []
+                }
               ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/companies/:id/video",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "companies", ":id", "video"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "شركات حسب الفئة",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/companies/category/:categoryId",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "companies", "category", ":categoryId"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "بحث بالموقع ضمن فئة",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/companies/category/:categoryId/search-location?lat=24.71&lng=46.67",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "companies", "category", ":categoryId", "search-location"],
+              "query": [
+                { "key": "lat", "value": "24.71" },
+                { "key": "lng", "value": "46.67" }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "شركات المستخدم",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/companies/user/:userId",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "companies", "user", ":userId"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "حالة شركة لمستخدم",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/companies/user/:userId/status/:status",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "companies", "user", ":userId", "status", ":status"]
             }
           },
           "response": []
@@ -553,44 +397,88 @@
       ]
     },
     {
-      "name": "Payment",
+      "name": "الحملات (Campaigns)",
+      "item": [
+        { "name": "جلب الحملات", "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/api/v1/campaigns", "host": ["{{baseUrl}}"], "path": ["api", "v1", "campaigns"] } }, "response": [] },
+        { "name": "إنشاء حملة", "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"title\": \"حملة عروض رمضان\",\n  \"company\": \"60d5ec49f1b2c2a4b8e4d1a1\"\n}" }, "url": { "raw": "{{baseUrl}}/api/v1/campaigns", "host": ["{{baseUrl}}"], "path": ["api", "v1", "campaigns"] } }, "response": [] },
+        { "name": "جلب حملة", "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/api/v1/campaigns/:id", "host": ["{{baseUrl}}"], "path": ["api", "v1", "campaigns", ":id"] } }, "response": [] },
+        { "name": "تحديث حملة", "request": { "method": "PUT", "url": { "raw": "{{baseUrl}}/api/v1/campaigns/:id", "host": ["{{baseUrl}}"], "path": ["api", "v1", "campaigns", ":id"] } }, "response": [] },
+        { "name": "حذف حملة", "request": { "method": "DELETE", "url": { "raw": "{{baseUrl}}/api/v1/campaigns/:id", "host": ["{{baseUrl}}"], "path": ["api", "v1", "campaigns", ":id"] } }, "response": [] }
+      ]
+    },
+    {
+      "name": "الفئات (Categories)",
+      "item": [
+        { "name": "جلب الفئات", "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/api/v1/categories", "host": ["{{baseUrl}}"], "path": ["api", "v1", "categories"] } }, "response": [] },
+        { "name": "إنشاء فئة", "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"name\": \"مطاعم\"\n}" }, "url": { "raw": "{{baseUrl}}/api/v1/categories", "host": ["{{baseUrl}}"], "path": ["api", "v1", "categories"] } }, "response": [] },
+        { "name": "جلب فئة", "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/api/v1/categories/:id", "host": ["{{baseUrl}}"], "path": ["api", "v1", "categories", ":id"] } }, "response": [] },
+        { "name": "تحديث فئة", "request": { "method": "PUT", "url": { "raw": "{{baseUrl}}/api/v1/categories/:id", "host": ["{{baseUrl}}"], "path": ["api", "v1", "categories", ":id"] } }, "response": [] },
+        { "name": "حذف فئة", "request": { "method": "DELETE", "url": { "raw": "{{baseUrl}}/api/v1/categories/:id", "host": ["{{baseUrl}}"], "path": ["api", "v1", "categories", ":id"] } }, "response": [] }
+      ]
+    },
+    {
+      "name": "الكوبونات (Coupons)",
+      "item": [
+        { "name": "جلب الكوبونات", "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/api/v1/coupons", "host": ["{{baseUrl}}"], "path": ["api", "v1", "coupons"] } }, "response": [] },
+        { "name": "إنشاء كوبون", "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"code\": \"SAVE20\",\n  \"discount\": 20,\n  \"company\": \"60d5ec49f1b2c2a4b8e4d1a1\"\n}" }, "url": { "raw": "{{baseUrl}}/api/v1/coupons", "host": ["{{baseUrl}}"], "path": ["api", "v1", "coupons"] } }, "response": [] },
+        { "name": "جلب كوبون", "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/api/v1/coupons/:id", "host": ["{{baseUrl}}"], "path": ["api", "v1", "coupons", ":id"] } }, "response": [] },
+        { "name": "تحديث كوبون", "request": { "method": "PUT", "url": { "raw": "{{baseUrl}}/api/v1/coupons/:id", "host": ["{{baseUrl}}"], "path": ["api", "v1", "coupons", ":id"] } }, "response": [] },
+        { "name": "حذف كوبون", "request": { "method": "DELETE", "url": { "raw": "{{baseUrl}}/api/v1/coupons/:id", "host": ["{{baseUrl}}"], "path": ["api", "v1", "coupons", ":id"] } }, "response": [] }
+      ]
+    },
+    {
+      "name": "مياس (Mias)",
+      "item": [
+        { "name": "جلب مياس", "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/api/v1/mias", "host": ["{{baseUrl}}"], "path": ["api", "v1", "mias"] } }, "response": [] },
+        { "name": "إنشاء ميا", "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"name\": \"ميا جديدة\"\n}" }, "url": { "raw": "{{baseUrl}}/api/v1/mias", "host": ["{{baseUrl}}"], "path": ["api", "v1", "mias"] } }, "response": [] },
+        { "name": "جلب ميا", "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/api/v1/mias/:id", "host": ["{{baseUrl}}"], "path": ["api", "v1", "mias", ":id"] } }, "response": [] },
+        { "name": "تحديث ميا", "request": { "method": "PUT", "url": { "raw": "{{baseUrl}}/api/v1/mias/:id", "host": ["{{baseUrl}}"], "path": ["api", "v1", "mias", ":id"] } }, "response": [] },
+        { "name": "حذف ميا", "request": { "method": "DELETE", "url": { "raw": "{{baseUrl}}/api/v1/mias/:id", "host": ["{{baseUrl}}"], "path": ["api", "v1", "mias", ":id"] } }, "response": [] }
+      ]
+    },
+    {
+      "name": "الدفع (Payments)",
       "item": [
         {
-          "name": "POST /api/v1/payment/webhook",
+          "name": "Webhook Stripe",
           "request": {
             "method": "POST",
-            "header": [],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{ \"type\": \"checkout.session.completed\", \"data\": { \"object\": { \"id\": \"cs_test_123\" } } }"
+            },
             "url": {
-              "raw": "{{baseUrl}}/api/v1/payment/webhook",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "payment",
-                "webhook"
-              ]
+              "raw": "{{baseUrl}}/api/v1/payments/webhook",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "payments", "webhook"]
             }
           },
           "response": []
         },
         {
-          "name": "POST /api/v1/payment/create-checkout-session",
+          "name": "إنشاء جلسة دفع",
           "request": {
             "method": "POST",
-            "header": [],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"planId\": \"plan_123\",\n  \"success_url\": \"https://example.com/success\",\n  \"cancel_url\": \"https://example.com/cancel\"\n}"
+            },
             "url": {
-              "raw": "{{baseUrl}}/api/v1/payment/create-checkout-session",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "payment",
-                "create-checkout-session"
-              ]
+              "raw": "{{baseUrl}}/api/v1/payments/create-checkout-session",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "payments", "create-checkout-session"]
             }
           },
           "response": []
@@ -598,150 +486,42 @@
       ]
     },
     {
-      "name": "Sitemap",
+      "name": "الخطط (Plans)",
       "item": [
-        {
-          "name": "GET /api/v1/sitemap/sitemap.xml",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/api/v1/sitemap/sitemap.xml",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "sitemap",
-                "sitemap.xml"
-              ]
-            }
-          },
-          "response": []
-        }
+        { "name": "جلب الخطط", "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/api/v1/plans", "host": ["{{baseUrl}}"], "path": ["api", "v1", "plans"] } }, "response": [] },
+        { "name": "إنشاء خطة", "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"name\": \"أساسي\",\n  \"price\": 99,\n  \"features\": [\"ميزة 1\", \"ميزة 2\"]\n}" }, "url": { "raw": "{{baseUrl}}/api/v1/plans", "host": ["{{baseUrl}}"], "path": ["api", "v1", "plans"] } }, "response": [] }
       ]
     },
     {
-      "name": "User",
+      "name": "التقييمات (Reviews)",
+      "item": [
+        { "name": "جلب التقييمات", "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/api/v1/reviews", "host": ["{{baseUrl}}"], "path": ["api", "v1", "reviews"] } }, "response": [] },
+        { "name": "إضافة تقييم", "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"rating\": 5,\n  \"comment\": \"ممتاز!\",\n  \"company\": \"60d5ec49f1b2c2a4b8e4d1a1\"\n}" }, "url": { "raw": "{{baseUrl}}/api/v1/reviews", "host": ["{{baseUrl}}"], "path": ["api", "v1", "reviews"] } }, "response": [] },
+        { "name": "تقييمات الشركة", "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/api/v1/companies/:companyId/reviews", "host": ["{{baseUrl}}"], "path": ["api", "v1", "companies", ":companyId", "reviews"] } }, "response": [] },
+        { "name": "الموافقة على تقييم", "request": { "method": "PATCH", "url": { "raw": "{{baseUrl}}/api/v1/reviews/:id/approve", "host": ["{{baseUrl}}"], "path": ["api", "v1", "reviews", ":id", "approve"] } }, "response": [] }
+      ]
+    },
+    {
+      "name": "المستخدمون (Users)",
+      "item": [
+        { "name": "بياناتي", "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/api/v1/users/getMe", "host": ["{{baseUrl}}"], "path": ["api", "v1", "users", "getMe"] } }, "response": [] },
+        { "name": "تحديث بياناتي", "request": { "method": "PUT", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"name\": \"مستخدم محدث\",\n  \"email\": \"updated@example.com\"\n}" }, "url": { "raw": "{{baseUrl}}/api/v1/users/updateMe", "host": ["{{baseUrl}}"], "path": ["api", "v1", "users", "updateMe"] } }, "response": [] },
+        { "name": "تغيير كلمة المرور", "request": { "method": "PUT", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"currentPassword\": \"old123\",\n  \"newPassword\": \"new456\",\n  \"newPasswordConfirm\": \"new456\"\n}" }, "url": { "raw": "{{baseUrl}}/api/v1/users/changeMyPassword", "host": ["{{baseUrl}}"], "path": ["api", "v1", "users", "changeMyPassword"] } }, "response": [] },
+        { "name": "حذف حسابي", "request": { "method": "DELETE", "url": { "raw": "{{baseUrl}}/api/v1/users/deleteMe", "host": ["{{baseUrl}}"], "path": ["api", "v1", "users", "deleteMe"] } }, "response": [] },
+        { "name": "إحصائيات المستخدم", "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/api/v1/users/stats", "host": ["{{baseUrl}}"], "path": ["api", "v1", "users", "stats"] } }, "response": [] }
+      ]
+    },
+    {
+      "name": "خريطة الموقع (Sitemap)",
       "item": [
         {
-          "name": "GET /api/v1/user/getMe",
+          "name": "جلب Sitemap",
           "request": {
             "method": "GET",
-            "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/v1/user/getMe",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "user",
-                "getMe"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "PUT /api/v1/user/changeMyPassword",
-          "request": {
-            "method": "PUT",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/api/v1/user/changeMyPassword",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "user",
-                "changeMyPassword"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "PUT /api/v1/user/updateMe",
-          "request": {
-            "method": "PUT",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/api/v1/user/updateMe",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "user",
-                "updateMe"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "DELETE /api/v1/user/deleteMe",
-          "request": {
-            "method": "DELETE",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/api/v1/user/deleteMe",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "user",
-                "deleteMe"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "GET /api/v1/user/stats",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/api/v1/user/stats",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "user",
-                "stats"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "PUT /api/v1/user/changePassword/:id",
-          "request": {
-            "method": "PUT",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/api/v1/user/changePassword/:id",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "user",
-                "changePassword",
-                ":id"
-              ]
+              "raw": "{{baseUrl}}/api/v1/sitemap.xml",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "sitemap.xml"]
             }
           },
           "response": []

@@ -25,6 +25,7 @@ const {
 } = require("../controllers/userService");
 
 const authService = require("../controllers/authService");
+const { allowedTo } = require("../middlewares/auth");
 
 const router = express.Router();
 
@@ -36,24 +37,38 @@ router.put("/updateMe", updateLoggedUserValidator, updateLoggedUserData);
 router.delete("/deleteMe", deleteLoggedUserData);
 
 // Admin
-router.use(authService.allowedTo("admin"));
-
-// Get users statistics
-router.get("/stats", getUsersStats);
+router.get("/stats", allowedTo("admin"), getUsersStats);
 
 router.put(
   "/changePassword/:id",
+  allowedTo("admin"),
   changeUserPasswordValidator,
   changeUserPassword
 );
 router
   .route("/")
-  .get(getUsers)
-  .post(uploadUserImage, resizeImage, createUserValidator, createUser);
+  .get(allowedTo("admin"), getUsers)
+  .post(
+    allowedTo("admin"),
+    uploadUserImage,
+    resizeImage,
+    createUserValidator,
+    createUser
+  );
 router
   .route("/:id")
-  .get(getUserValidator, getUser)
-  .put(uploadUserImage, resizeImage, updateUserValidator, updateUser)
-  .delete(deleteUserValidator, deleteUser);
+  .get(allowedTo("admin"), getUserValidator, getUser)
+  .put(
+    allowedTo("admin"),
+    uploadUserImage,
+    resizeImage,
+    updateUserValidator,
+    updateUser
+  )
+  .delete(
+    allowedTo("admin"),
+    deleteUserValidator,
+    deleteUser
+  );
 
 module.exports = router;
