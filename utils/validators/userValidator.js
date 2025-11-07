@@ -4,154 +4,169 @@ const { check, body } = require('express-validator');
 const validatorMiddleware = require('../../middlewares/validatorMiddleware');
 const User = require('../../model/userModel');
 
+/**
+ * @desc    Validator for creating a new user
+ */
 exports.createUserValidator = [
+  // Name validation
   check('name')
     .notEmpty()
-    .withMessage('User required')
+    .withMessage('اسم المستخدم مطلوب')
     .isLength({ min: 3 })
-    .withMessage('Too short User name')
+    .withMessage('الاسم قصير جدًا (الحد الأدنى 3 أحرف)')
     .custom((val, { req }) => {
-      req.body.slug = slugify(val);
+      req.body.slug = slugify(val, { lower: true });
       return true;
     }),
 
+  // Email validation
   check('email')
     .notEmpty()
-    .withMessage('Email required')
+    .withMessage('البريد الإلكتروني مطلوب')
     .isEmail()
-    .withMessage('Invalid email address')
-    .custom((val) =>
-      User.findOne({ email: val }).then((user) => {
+    .withMessage('عنوان بريد إلكتروني غير صالح')
+    .custom((email) =>
+      User.findOne({ email }).then((user) => {
         if (user) {
-          return Promise.reject(new Error('E-mail already in user'));
+          return Promise.reject(new Error('البريد الإلكتروني مُستخدم بالفعل'));
         }
       })
     ),
 
+  // Password validation
   check('password')
     .notEmpty()
-    .withMessage('Password required')
+    .withMessage('كلمة المرور مطلوبة')
     .isLength({ min: 6 })
-    .withMessage('Password must be at least 6 characters')
+    .withMessage('كلمة المرور يجب أن تكون 6 أحرف على الأقل')
     .custom((password, { req }) => {
       if (password !== req.body.passwordConfirm) {
-        throw new Error('Password Confirmation incorrect');
+        throw new Error('تأكيد كلمة المرور غير متطابق');
       }
       return true;
     }),
 
+  // Password confirmation
   check('passwordConfirm')
     .notEmpty()
-    .withMessage('Password confirmation required'),
+    .withMessage('تأكيد كلمة المرور مطلوب'),
 
+  // Phone (optional)
   check('phone')
     .optional()
     .isMobilePhone(['ar-EG', 'ar-SA'])
-    .withMessage('Invalid phone number only accepted Egy and SA Phone numbers'),
+    .withMessage('رقم الهاتف غير صالح. يُقبل فقط أرقام مصر و السعودية'),
 
+  // Optional fields
   check('profileImg').optional(),
   check('role').optional(),
 
   validatorMiddleware,
 ];
 
+/**
+ * @desc    Validator for getting a user by ID
+ */
 exports.getUserValidator = [
-  check('id').isMongoId().withMessage('Invalid User id format'),
+  check('id').isMongoId().withMessage('معرف المستخدم غير صالح'),
   validatorMiddleware,
 ];
 
+/**
+ * @desc    Validator for updating user (except password)
+ */
 exports.updateUserValidator = [
-  check('id').isMongoId().withMessage('Invalid User id format'),
+  check('id').isMongoId().withMessage('معرف المستخدم غير صالح'),
+
+  // Name (optional)
   body('name')
     .optional()
+    .isLength({ min: 3 })
+    .withMessage('الاسم قصير جدًا (الحد الأدنى 3 أحرف)')
     .custom((val, { req }) => {
-      req.body.slug = slugify(val);
+      req.body.slug = slugify(val, { lower: true });
       return true;
     }),
+
+  // Email (optional but must be valid and unique if provided)
   check('email')
-    .notEmpty()
-    .withMessage('Email required')
+    .optional()
     .isEmail()
-    .withMessage('Invalid email address')
-    .custom((val) =>
-      User.findOne({ email: val }).then((user) => {
+    .withMessage('عنوان بريد إلكتروني غير صالح')
+    .custom((email) =>
+      User.findOne({ email }).then((user) => {
         if (user) {
-          return Promise.reject(new Error('E-mail already in user'));
+          return Promise.reject(new Error('البريد الإلكتروني مُستخدم بالفعل'));
         }
       })
     ),
+
+  // Phone (optional)
   check('phone')
     .optional()
     .isMobilePhone(['ar-EG', 'ar-SA'])
-    .withMessage('Invalid phone number only accepted Egy and SA Phone numbers'),
+    .withMessage('رقم الهاتف غير صالح. يُقبل فقط أرقام مصر و السعودية'),
 
+  // Optional fields
   check('profileImg').optional(),
   check('role').optional(),
+
   validatorMiddleware,
 ];
 
+/**
+ * @desc    Validator for changing user password (Admin or User)
+ */
 exports.changeUserPasswordValidator = [
-  check('id').isMongoId().withMessage('Invalid User id format'),
+  check('id').isMongoId().withMessage('معرف المستخدم غير صالح'),
+
+  // Current password
   body('currentPassword')
     .notEmpty()
-    .withMessage('You must enter your current password'),
-  body('passwordConfirm')
-    .notEmpty()
-    .withMessage('You must enter the password confirm'),
+    .withMessage('يجب إدخال كلمة المرور الحالية'),
+
+  // New password
   body('password')
     .notEmpty()
-    .withMessage('You must enter new password')
-    .custom(async (val, { req }) => {
-      // 1) Verify current password
-      const user = await User.findById(req.params.id);
-      if (!user) {
-        throw new Error('There is no user for this id');
-      }
-      const isCorrectPassword = await bcrypt.compare(
-        req.body.currentPassword,
-        user.password
-      );
-      if (!isCorrectPassword) {
-        throw new Error('Incorrect current password');
-      }
+    .withMessage('يجب إدخال كلمة المرور الجديدة')
+    .isLength({ min: 6 })
+    .withMessage('كلمة المرور يجب أن تكون 6 أحرف على الأقل'),
 
-      // 2) Verify password confirm
-      if (val !== req.body.passwordConfirm) {
-        throw new Error('Password Confirmation incorrect');
-      }
-      return true;
-    }),
-  validatorMiddleware,
-];
-
-exports.deleteUserValidator = [
-  check('id').isMongoId().withMessage('Invalid User id format'),
-  validatorMiddleware,
-];
-
-exports.updateLoggedUserValidator = [
-  body('name')
-    .optional()
-    .custom((val, { req }) => {
-      req.body.slug = slugify(val);
-      return true;
-    }),
-  check('email')
+  // Password confirmation
+  body('passwordConfirm')
     .notEmpty()
-    .withMessage('Email required')
-    .isEmail()
-    .withMessage('Invalid email address')
-    .custom((val) =>
-      User.findOne({ email: val }).then((user) => {
-        if (user) {
-          return Promise.reject(new Error('E-mail already in user'));
-        }
-      })
-    ),
-  check('phone')
-    .optional()
-    .isMobilePhone(['ar-EG', 'ar-SA'])
-    .withMessage('Invalid phone number only accepted Egy and SA Phone numbers'),
+    .withMessage('يجب تأكيد كلمة المرور الجديدة'),
 
+  // Custom validation: check current password + confirm new password
+  body('password').custom(async (newPassword, { req }) => {
+    const user = await User.findById(req.params.id);
+    if (!user) {
+      throw new Error('لا يوجد مستخدم بهذا المعرف');
+    }
+
+    const isCorrectPassword = await bcrypt.compare(
+      req.body.currentPassword,
+      user.password
+    );
+
+    if (!isCorrectPassword) {
+      throw new Error('كلمة المرور الحالية غير صحيحة');
+    }
+
+    if (newPassword !== req.body.passwordConfirm) {
+      throw new Error('تأكيد كلمة المرور غير متطابق');
+    }
+
+    return true;
+  }),
+
+  validatorMiddleware,
+];
+
+/**
+ * @desc    Validator for deleting a user
+ */
+exports.deleteUserValidator = [
+  check('id').isMongoId().withMessage('معرف المستخدم غير صالح'),
   validatorMiddleware,
 ];
