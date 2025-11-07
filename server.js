@@ -12,6 +12,7 @@ const passport = require("passport");
 const envPath = fs.existsSync(path.join(__dirname, 'env.txt')) ? 'env.txt' : '.env';
 require("dotenv").config({ path: envPath });
 
+
 const ApiError = require("./utils/apiError");
 const globalError = require("./middlewares/errorMiddleware");
 const dbConnection = require("./config/database");
