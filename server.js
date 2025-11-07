@@ -8,11 +8,9 @@ const cors = require("cors");
 const compression = require("compression");
 const passport = require("passport");
 
-
 // Load environment variables from env.txt if it exists, otherwise from .env
 const envPath = fs.existsSync(path.join(__dirname, 'env.txt')) ? 'env.txt' : '.env';
 require("dotenv").config({ path: envPath });
-
 
 const ApiError = require("./utils/apiError");
 const globalError = require("./middlewares/errorMiddleware");
@@ -29,7 +27,7 @@ dbConnection();
 // express app
 const app = express();
 
-// Trim whitespace and newline characters from the URL
+// Trim whitespace and newline characters from the URL to prevent routing errors
 app.use((req, res, next) => {
   req.url = req.url.trim();
   next();
@@ -58,13 +56,9 @@ if (process.env.NODE_ENV === "development") {
 }
 
 // Mount All Routes
-// app.use((req, res, next) => {
-//   req.url = req.url.replace(/\/$/, '').replace(/%0A/g, '');
-//   next();
-// });
 app.use("/api/v1", mainRouter);
 
-// Error Handling
+// Error Handling for routes that are not found
 app.all("*", (req, res, next) => {
   next(new ApiError(`Can't find this route: ${req.originalUrl}`, 400));
 });
