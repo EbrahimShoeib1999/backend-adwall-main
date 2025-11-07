@@ -29,6 +29,12 @@ dbConnection();
 // express app
 const app = express();
 
+// Trim whitespace and newline characters from the URL
+app.use((req, res, next) => {
+  req.url = req.url.trim();
+  next();
+});
+
 // Enable other domains to access your application
 app.use(cors());
 app.options("*", cors());
