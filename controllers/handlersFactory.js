@@ -32,12 +32,20 @@ exports.updateOne = (Model) =>
     res.status(200).json({ data: document });
   });
 
-exports.createOne = (Model) =>
-  asyncHandler(async (req, res) => {
-    const newDoc = await Model.create(req.body);
-    res.status(201).json({ data: newDoc });
-  });
+// handlersFactory.js
 
+exports.createOne = (Model) => {
+  return asyncHandler(async (req, res) => {
+    const doc = await Model.create(req.body);
+
+    // أضف URL للصورة يدويًا
+    if (doc.image && !doc.image.startsWith('http')) {
+      doc.image = `${process.env.BASE_URL}/categories/${doc.image}`;
+    }
+
+    res.status(201).json({ data: doc });
+  });
+};
 exports.getOne = (Model, populationOpt) =>
   asyncHandler(async (req, res, next) => {
     const { id } = req.params;
