@@ -33,7 +33,7 @@ router.use(authService.protect);
 
 router.get("/getMe", getLoggedUserData, getUser);
 router.put("/changeMyPassword", updateLoggedUserPassword);
-router.put("/updateMe", updateLoggedUserValidator, updateLoggedUserData);
+router.put("/updateMe", updateLoggedUserData);
 router.delete("/deleteMe", deleteLoggedUserData);
 
 // Admin
