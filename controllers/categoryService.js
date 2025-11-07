@@ -1,3 +1,4 @@
+// controllers/categoryService.js
 const sharp = require('sharp');
 const { v4: uuidv4 } = require('uuid');
 const asyncHandler = require('express-async-handler');
@@ -15,9 +16,8 @@ exports.resizeImage = asyncHandler(async (req, res, next) => {
   if (!req.file) return next();
 
   const filename = `category-${uuidv4()}-${Date.now()}.jpeg`;
+  const uploadDir = 'uploads/categories';
 
-  // Ensure the uploads/categories directory exists
-  const uploadDir = `uploads/categories`;
   if (!fs.existsSync(uploadDir)) {
     fs.mkdirSync(uploadDir, { recursive: true });
   }
@@ -28,33 +28,13 @@ exports.resizeImage = asyncHandler(async (req, res, next) => {
     .jpeg({ quality: 95 })
     .toFile(`${uploadDir}/${filename}`);
 
-  // Save image into our db
-  req.body.image = filename;
-
+  req.body.image = filename; // Critical: Save filename to body
   next();
 });
 
-// @desc    Get list of categories
-// @route   GET /api/v1/categories
-// @access  Public
+// CRUD
 exports.getCategories = factory.getAll(Category);
-
-// @desc    Get specific category by id
-// @route   GET /api/v1/categories/:id
-// @access  Public
 exports.getCategory = factory.getOne(Category);
-
-// @desc    Create category
-// @route   POST  /api/v1/categories
-// @access  Private/Admin-Manager
 exports.createCategory = factory.createOne(Category);
-
-// @desc    Update specific category
-// @route   PUT /api/v1/categories/:id
-// @access  Private/Admin-Manager
 exports.updateCategory = factory.updateOne(Category);
-
-// @desc    Delete specific category
-// @route   DELETE /api/v1/categories/:id
-// @access  Private/Admin
 exports.deleteCategory = factory.deleteOne(Category);

@@ -1,5 +1,5 @@
+// routes/categoryRoute.js
 const express = require("express");
-
 const {
   getCategoryValidator,
   createCategoryValidator,
@@ -18,16 +18,13 @@ const {
 } = require("../controllers/categoryService");
 
 const authService = require("../controllers/authService");
-const cachingMiddleware = require("../middlewares/cachingMiddleware");
 const { allowedTo } = require("../middlewares/auth");
 
 const router = express.Router();
 
-// Nested route
-
 router
   .route("/")
-  .get(cachingMiddleware, getCategories)
+  .get(getCategories)
   .post(
     authService.protect,
     allowedTo("admin", "manager"),
@@ -36,6 +33,7 @@ router
     createCategoryValidator,
     createCategory
   );
+
 router
   .route("/:id")
   .get(getCategoryValidator, getCategory)

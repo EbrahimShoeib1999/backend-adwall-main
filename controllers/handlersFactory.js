@@ -1,6 +1,8 @@
 const asyncHandler = require("express-async-handler");
 const ApiError = require("../utils/apiError");
 const ApiFeatures = require("../utils/apiFeatures");
+// handlersFactory.js
+
 
 exports.deleteOne = (Model) =>
   asyncHandler(async (req, res, next) => {
@@ -32,13 +34,13 @@ exports.updateOne = (Model) =>
     res.status(200).json({ data: document });
   });
 
-// handlersFactory.js
+
 
 exports.createOne = (Model) => {
   return asyncHandler(async (req, res) => {
-    const doc = await Model.create(req.body);
+    let doc = await Model.create(req.body);
 
-    // أضف URL للصورة يدويًا
+    // Manually set image URL
     if (doc.image && !doc.image.startsWith('http')) {
       doc.image = `${process.env.BASE_URL}/categories/${doc.image}`;
     }
@@ -46,6 +48,8 @@ exports.createOne = (Model) => {
     res.status(201).json({ data: doc });
   });
 };
+
+// (Other methods like getAll, updateOne, etc. remain unchanged)
 exports.getOne = (Model, populationOpt) =>
   asyncHandler(async (req, res, next) => {
     const { id } = req.params;
