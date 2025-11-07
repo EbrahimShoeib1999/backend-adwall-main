@@ -170,3 +170,26 @@ exports.deleteUserValidator = [
   check('id').isMongoId().withMessage('معرف المستخدم غير صالح'),
   validatorMiddleware,
 ];
+
+/**
+ * @desc    Validator for updating logged in user data (name, phone)
+ */
+exports.updateLoggedUserValidator = [
+  body('name')
+    .optional()
+    .custom((val, { req }) => {
+      req.body.slug = slugify(val, { lower: true });
+      return true;
+    }),
+  check('phone')
+    .optional()
+    .isMobilePhone(['ar-EG', 'ar-SA'])
+    .withMessage('رقم الهاتف غير صالح. يُقبل فقط أرقام مصر و السعودية'),
+  validatorMiddleware,
+];
+
+/**
+ * @desc    Validator for changing user password (Admin or User)
+ */
+exports.changeUserPasswordValidator = [
+  check('id').isMongoId().withMessage('معرف المستخدم غير صالح'),
