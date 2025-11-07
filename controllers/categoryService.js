@@ -1,3 +1,5 @@
+const sharp = require('sharp');
+const { v4: uuidv4 } = require('uuid');
 const asyncHandler = require('express-async-handler');
 
 const factory = require('./handlersFactory');
@@ -6,6 +8,24 @@ const Category = require('../model/categoryModel');
 
 // Upload single image
 exports.uploadCategoryImage = uploadSingleImage('image');
+
+// Image processing
+exports.resizeImage = asyncHandler(async (req, res, next) => {
+  const filename = `category-${uuidv4()}-${Date.now()}.jpeg`;
+
+  if (req.file) {
+    await sharp(req.file.buffer)
+      .resize(600, 600)
+      .toFormat('jpeg')
+      .jpeg({ quality: 95 })
+      .toFile(`uploads/categories/${filename}`);
+
+    // Save image into our db
+    req.body.image = filename;
+  }
+
+  next();
+});
 
 // @desc    Get list of categories
 // @route   GET /api/v1/categories
@@ -20,34 +40,12 @@ exports.getCategory = factory.getOne(Category);
 // @desc    Create category
 // @route   POST  /api/v1/categories
 // @access  Private/Admin-Manager
-exports.createCategory = asyncHandler(async (req, res) => {
-  if (req.file) {
-    req.body.image = req.file.buffer;
-  }
-  const newDoc = await Category.create(req.body);
-  res.status(201).json({ data: newDoc });
-});
+exports.createCategory = factory.createOne(Category);
 
 // @desc    Update specific category
 // @route   PUT /api/v1/categories/:id
 // @access  Private/Admin-Manager
-exports.updateCategory = asyncHandler(async (req, res, next) => {
-  if (req.file) {
-    req.body.image = req.file.buffer;
-  }
-  const document = await Category.findByIdAndUpdate(req.params.id, req.body, {
-    new: true,
-  });
-
-  if (!document) {
-    return next(
-      new ApiError(`No document for this id ${req.params.id}`, 404)
-    );
-  }
-  // Trigger "save" event when update document
-  document.save();
-  res.status(200).json({ data: document });
-});
+exports.updateCategory = factory.updateOne(Category);
 
 // @desc    Delete specific category
 // @route   DELETE /api/v1/categories/:id

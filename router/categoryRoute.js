@@ -32,6 +32,7 @@ router
     authService.protect,
     allowedTo("admin", "manager"),
     uploadCategoryImage,
+    resizeImage,
     createCategoryValidator,
     createCategory
   );
@@ -42,6 +43,7 @@ router
     authService.protect,
     allowedTo("admin", "manager"),
     uploadCategoryImage,
+    resizeImage,
     updateCategoryValidator,
     updateCategory
   )

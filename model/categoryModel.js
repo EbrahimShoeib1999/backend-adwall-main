@@ -25,7 +25,7 @@ const categorySchema = new mongoose.Schema(
       type: String,
       lowercase: true,
     },
-    image: Buffer,
+    image: String,
     descriptionAr: {
       type: String,
       maxlength: [2000, "Too long description"],
@@ -44,6 +44,22 @@ const categorySchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
+
+const setImageURL = (doc) => {
+  if (doc.image && !doc.image.startsWith("http")) {
+    const imageUrl = `${process.env.BASE_URL}/categories/${doc.image}`;
+    doc.image = imageUrl;
+  }
+};
+// findOne, findAll and update
+categorySchema.post("init", (doc) => {
+  setImageURL(doc);
+});
+
+// create
+categorySchema.post("save", (doc) => {
+  setImageURL(doc);
+});
 
 // 2- Create model
 const CategoryModel = mongoose.model("Category", categorySchema);
