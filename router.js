@@ -23,7 +23,21 @@ const { createCheckoutSession } = require('./controllers/paymentController');
 const { getPlans, getPlan, createPlan, updatePlan, deletePlan } = require('./controllers/planController');
 const { createReview, getReviews, getReview, deleteReview, approveReview, createFilterObj } = require('./controllers/reviewController');
 const { generateSitemap } = require('./controllers/sitemapService');
-const { getUsers, getUser, createUser, updateUser, deleteUser, uploadUserImage, resizeImage: resizeUserImage, changeUserPassword, getLoggedUserData, updateLoggedUserPassword, updateLoggedUserData, deleteLoggedUserData, getUsersStats } = require("./controllers/userService");
+const {
+  getLoggedUserData,
+  updateLoggedUserPassword,
+  updateLoggedUserData,
+  deleteLoggedUserData,
+  getUsersStats,
+  changeUserPassword,
+  uploadUserImage,
+  resizeImage: resizeUserImage, // Alias resizeImage to resizeUserImage
+  createUser,
+  getUsers,
+  getUser,
+  updateUser,
+  deleteUser,
+} = require('./controllers/userService');
 
 // Main router instance
 const router = express.Router();
@@ -39,7 +53,7 @@ authRouter.post('/signup', signupValidator, authService.signup);
 authRouter.post('/login', loginValidator, authService.login);
 authRouter.post('/forgotPassword', authService.forgotPassword);
 authRouter.post('/verifyResetCode', authService.verifyPassResetCode);
-authRouter.put('/resetPassword', authService.resetPassword);
+// authRouter.put('/resetPassword', authService.resetPassword);
 authRouter.get('/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
 authRouter.get('/google/callback', passport.authenticate('google', { session: false }), (req, res) => {
     res.redirect(`${process.env.FRONTEND_URL}/login-success?token=${req.user.token}`);
@@ -61,7 +75,8 @@ authRouter.use(authService.allowedTo("admin"));
 authRouter.get("/stats", getUsersStats);
 authRouter.put("/changePassword/:id", changeUserPasswordValidator, changeUserPassword);
 authRouter.route("/").get(getUsers).post(uploadUserImage, resizeUserImage, createUserValidator, createUser);
-authRouter.route("/:id").get(getUserValidator, getUser).put(uploadUserImage, resizeUserImage, updateUserValidator, updateUser).delete(deleteUserValidator, deleteUser);
+console.log('Value of updateUser:', updateUser);
+authRouter.route("/:id").get(getUserValidator, getUser).put(updateUser).delete(deleteUserValidator, deleteUser);
 router.use("/Auth", authRouter);
 
 

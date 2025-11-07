@@ -32,8 +32,16 @@ const categorySchema = new mongoose.Schema(
 );
 
 const setImageURL = (doc) => {
-  if (doc && doc.image && !doc.image.startsWith("http")) {
-    doc.image = `${process.env.BASE_URL}/categories/${doc.image}`;
+  console.log('setImageURL called for doc:', doc._id);
+  console.log('doc.image before:', doc.image);
+  console.log('process.env.BASE_URL:', process.env.BASE_URL);
+
+  if (doc.image && !doc.image.startsWith("http")) {
+    const imageUrl = `${process.env.BASE_URL}/categories/${doc.image}`;
+    doc.image = imageUrl;
+    console.log('doc.image after:', doc.image);
+  } else {
+    console.log('doc.image not modified (either falsy or already a URL)');
   }
 };
 

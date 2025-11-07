@@ -13,7 +13,7 @@ exports.uploadCategoryImage = uploadSingleImage('image');
 
 // Image processing
 exports.resizeImage = asyncHandler(async (req, res, next) => {
-  if (!req.file) return next();
+  if (!req.body.image) return next();
 
   const filename = `category-${uuidv4()}-${Date.now()}.jpeg`;
   const uploadDir = 'uploads/categories';
@@ -22,7 +22,7 @@ exports.resizeImage = asyncHandler(async (req, res, next) => {
     fs.mkdirSync(uploadDir, { recursive: true });
   }
 
-  await sharp(req.file.buffer)
+  await sharp(req.image.buffer)
     .resize(600, 600)
     .toFormat('jpeg')
     .jpeg({ quality: 95 })
