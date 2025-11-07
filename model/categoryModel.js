@@ -26,3 +26,26 @@ const categorySchema = new mongoose.Schema(
       lowercase: true,
     },
     image: Buffer,
+    descriptionAr: {
+      type: String,
+      maxlength: [2000, "Too long description"],
+    },
+    descriptionEn: {
+      type: String,
+      maxlength: [2000, "Too long description"],
+    },
+    descriptionTr: {
+      type: String,
+      maxlength: [2000, "Too long description"],
+    },
+    icon: {
+      type: String,
+    },
+  },
+  { timestamps: true }
+);
+
+// 2- Create model
+const CategoryModel = mongoose.model("Category", categorySchema);
+
+module.exports = CategoryModel;
