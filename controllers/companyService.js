@@ -48,7 +48,14 @@ exports.createCompany = asyncHandler(async (req, res, next) => {
 // [الأدمن] جلب جميع الشركات المسجلة (مع إمكانية الفلترة)
 // @route   GET /api/companies
 // @desc    يعرض جميع الشركات ويمكن الفلترة حسب الموافقة (?isApproved=false)
-exports.getAllCompanies = factory.getAll(Company);
+exports.getAllCompanies = factory.getAll(
+  Company,
+  "Company",
+  [
+    { path: "userId", select: "name email" },
+    { path: "categoryId", select: "nameAr nameEn color" },
+  ]
+);
 exports.getOneCompany = factory.getOne(Company);
 
 // @desc    Search companies by name

@@ -56,7 +56,7 @@ exports.getOne = (Model, populationOpt) =>
     res.status(200).json({ data: document });
   });
 
-exports.getAll = (Model, modelName = "") =>
+exports.getAll = (Model, modelName = "", populateOptions = []) =>
   asyncHandler(async (req, res, next) => {
     try {
       console.log(`Getting all ${Model.modelName}...`);
@@ -73,6 +73,13 @@ exports.getAll = (Model, modelName = "") =>
       const apiFeatures = new ApiFeatures(Model.find(filter), req.query)
         .paginate(documentsCounts)
         .filter();
+
+      // Apply population if options are provided
+      if (populateOptions.length > 0) {
+        populateOptions.forEach(option => {
+          apiFeatures.mongooseQuery = apiFeatures.mongooseQuery.populate(option);
+        });
+      }
 
       // Apply multilingual search if applicable
       if (modelName) {
