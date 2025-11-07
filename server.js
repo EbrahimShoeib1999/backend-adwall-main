@@ -52,10 +52,10 @@ if (process.env.NODE_ENV === "development") {
 }
 
 // Mount All Routes
-app.use((req, res, next) => {
-  req.url = req.url.replace(/\/$/, '').replace(/%0A/g, '');
-  next();
-});
+// app.use((req, res, next) => {
+//   req.url = req.url.replace(/\/$/, '').replace(/%0A/g, '');
+//   next();
+// });
 app.use("/api/v1", mainRouter);
 
 // Error Handling
