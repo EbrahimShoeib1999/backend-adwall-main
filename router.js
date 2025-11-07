@@ -5,7 +5,7 @@ const passport = require("passport");
 const cachingMiddleware = require("./middlewares/cachingMiddleware");
 const { uploadSingleVideo } = require("./middlewares/uploadVideoMiddleware");
 const { uploadSingleImage } = require("./middlewares/uploadImageMiddleware");
-
+  
 // Validators
 const { signupValidator, loginValidator } = require('./utils/validators/authValidator');
 const { getCategoryValidator, createCategoryValidator, updateCategoryValidator, deleteCategoryValidator } = require("./utils/validators/categoryValidator");
