@@ -1,6 +1,7 @@
 const sharp = require('sharp');
 const { v4: uuidv4 } = require('uuid');
 const asyncHandler = require('express-async-handler');
+const fs = require('fs');
 
 const factory = require('./handlersFactory');
 const { uploadSingleImage } = require('../middlewares/uploadImageMiddleware');
@@ -11,18 +12,24 @@ exports.uploadCategoryImage = uploadSingleImage('image');
 
 // Image processing
 exports.resizeImage = asyncHandler(async (req, res, next) => {
+  if (!req.file) return next();
+
   const filename = `category-${uuidv4()}-${Date.now()}.jpeg`;
 
-  if (req.file) {
-    await sharp(req.file.buffer)
-      .resize(600, 600)
-      .toFormat('jpeg')
-      .jpeg({ quality: 95 })
-      .toFile(`uploads/categories/${filename}`);
-
-    // Save image into our db
-    req.body.image = filename;
+  // Ensure the uploads/categories directory exists
+  const uploadDir = `uploads/categories`;
+  if (!fs.existsSync(uploadDir)) {
+    fs.mkdirSync(uploadDir, { recursive: true });
   }
+
+  await sharp(req.file.buffer)
+    .resize(600, 600)
+    .toFormat('jpeg')
+    .jpeg({ quality: 95 })
+    .toFile(`${uploadDir}/${filename}`);
+
+  // Save image into our db
+  req.body.image = filename;
 
   next();
 });
