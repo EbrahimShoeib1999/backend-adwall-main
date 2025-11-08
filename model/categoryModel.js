@@ -32,28 +32,15 @@ const categorySchema = new mongoose.Schema(
 );
 
 const setImageURL = (doc) => {
-  console.log('setImageURL called for doc:', doc._id);
-  console.log('doc.image before:', doc.image);
-  console.log('process.env.BASE_URL:', process.env.BASE_URL);
-
-  if (doc.image && !doc.image.startsWith("http")) {
-    const imageUrl = `${process.env.BASE_URL}/categories/${doc.image}`;
-    doc.image = imageUrl;
-    console.log('doc.image after:', doc.image);
-  } else {
-    console.log('doc.image not modified (either falsy or already a URL)');
+  if (doc && doc.image && !doc.image.startsWith("http")) {
+    doc.image = `${process.env.BASE_URL}/categories/${doc.image}`;
   }
 };
 
-// After fetching from DB
-categorySchema.post("init", (doc) => setImageURL(doc));
-
-// After save (create or update)
-categorySchema.post("save", (doc) => setImageURL(doc));
-
-// After findOneAndUpdate
+categorySchema.post("init", setImageURL);
+categorySchema.post("save", setImageURL);
 categorySchema.post("findOneAndUpdate", function (doc) {
-  setImageURL(doc);
+  if (doc) setImageURL(doc);
 });
 
 module.exports = mongoose.model("Category", categorySchema);

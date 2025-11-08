@@ -13,7 +13,7 @@ exports.uploadCategoryImage = uploadSingleImage('image');
 
 // Image processing
 exports.resizeImage = asyncHandler(async (req, res, next) => {
-  if (!req.body.image) return next();
+  if (!req.file) return next(); // تحقق من وجود الملف
 
   const filename = `category-${uuidv4()}-${Date.now()}.jpeg`;
   const uploadDir = 'uploads/categories';
@@ -22,13 +22,13 @@ exports.resizeImage = asyncHandler(async (req, res, next) => {
     fs.mkdirSync(uploadDir, { recursive: true });
   }
 
-  await sharp(req.image.buffer)
+  await sharp(req.file.buffer) // استخدم req.file.buffer
     .resize(600, 600)
     .toFormat('jpeg')
     .jpeg({ quality: 95 })
     .toFile(`${uploadDir}/${filename}`);
 
-  req.body.image = filename; // Critical: Save filename to body
+  req.body.image = filename; // احفظ اسم الملف في body
   next();
 });
 
