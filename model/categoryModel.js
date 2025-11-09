@@ -22,25 +22,9 @@ const categorySchema = new mongoose.Schema(
       required: [true, "Color required"],
     },
     slug: { type: String, lowercase: true },
-    image: String,
-    descriptionAr: { type: String, maxlength: 2000 },
-    descriptionEn: { type: String, maxlength: 2000 },
-    descriptionEn: { type: String, maxlength: 2000 },
-    icon: String,
+    image: Buffer,
   },
   { timestamps: true }
 );
-
-const setImageURL = (doc) => {
-  if (doc && doc.image && !doc.image.startsWith("http")) {
-    doc.image = `${process.env.BASE_URL}/categories/${doc.image}`;
-  }
-};
-
-categorySchema.post("init", setImageURL);
-categorySchema.post("save", setImageURL);
-categorySchema.post("findOneAndUpdate", function (doc) {
-  if (doc) setImageURL(doc);
-});
 
 module.exports = mongoose.model("Category", categorySchema);
