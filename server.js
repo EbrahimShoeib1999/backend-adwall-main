@@ -1,4 +1,5 @@
 // server.js
+
 require('./generatePostmanCollection.js');
 const path = require("path");
 const fs = require("fs");
@@ -41,20 +42,22 @@ app.options("*", cors());
 // Compress responses
 app.use(compression());
 
-// Stripe webhook (must be raw)
+// Stripe webhook (must be before express.json)
 app.post('/api/v1/payments/webhook', express.raw({ type: 'application/json' }), stripeWebhook);
 
-// Mount routes BEFORE express.json()
+// === مهم جدًا: ارفع الـ routes قبل express.json() ===
+// لأن الـ upload بيستخدم form-data و express.json() بيحذفها
 app.use("/api/v1", mainRouter);
 
-// Serve static files (images)
+// === دلوقتي نستخدم express.json() بعد الـ routes ===
+// عشان ما يأثرش على الـ upload
+app.use(express.json());
+
+// Serve uploaded files
 app.use(express.static(path.join(__dirname, "uploads")));
 
 // Passport
 app.use(passport.initialize());
-
-// Only use express.json() for routes that need JSON (NOT for file uploads)
-// Remove global express.json() — it's the root cause of the bug!
 
 if (process.env.NODE_ENV === "development") {
   app.use(morgan("dev"));

@@ -2,7 +2,6 @@ const multer = require('multer');
 const ApiError = require('../utils/apiError');
 
 const multerOptions = () => {
-
   const multerStorage = multer.memoryStorage();
 
   const multerFilter = function (req, file, cb) {
@@ -13,7 +12,11 @@ const multerOptions = () => {
     }
   };
 
-  const upload = multer({ storage: multerStorage, fileFilter: multerFilter });
+  const upload = multer({
+    storage: multerStorage,
+    fileFilter: multerFilter,
+    limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
+  });
 
   return upload;
 };
