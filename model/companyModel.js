@@ -9,9 +9,9 @@ const companySchema = new mongoose.Schema(
       required: [true, "يرجى إدخال اسم الشركة"],
       unique: true,
     },
-    companyNameTr: {
+    companyNameEn: {
       type: String,
-      required: [true, "Lütfen şirket adını girin"],
+      required: [true, "Please enter company name"],
     },
     slug: {
       type: String,
@@ -21,9 +21,9 @@ const companySchema = new mongoose.Schema(
       type: String,
       required: [true, "يرجى إدخال وصف الشركة"],
     },
-    descriptionTr: {
+    descriptionEn: {
       type: String,
-      required: [true, "Lütfen şirket açıklamasını girin"],
+      required: [true, "Please enter company description"],
     },
     logo: {
       type: String,

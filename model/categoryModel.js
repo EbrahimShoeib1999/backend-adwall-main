@@ -25,7 +25,7 @@ const categorySchema = new mongoose.Schema(
     image: String,
     descriptionAr: { type: String, maxlength: 2000 },
     descriptionEn: { type: String, maxlength: 2000 },
-    descriptionTr: { type: String, maxlength: 2000 },
+    descriptionEn: { type: String, maxlength: 2000 },
     icon: String,
   },
   { timestamps: true }

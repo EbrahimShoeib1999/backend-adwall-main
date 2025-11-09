@@ -7,17 +7,17 @@ exports.createCompanyValidator = [
     .withMessage('Company name is required')
     .isLength({ min: 2 })
     .withMessage('Too short company name'),
-  check('companyNameTr')
+  check('companyNameEn')
     .notEmpty()
-    .withMessage('Turkish company name is required'),
+    .withMessage('English company name is required'),
   check('description')
     .notEmpty()
     .withMessage('Description is required')
     .isLength({ min: 20 })
     .withMessage('Too short company description'),
-  check('descriptionTr')
+  check('descriptionEn')
     .notEmpty()
-    .withMessage('Turkish description is required'),
+    .withMessage('English description is required'),
   check('country')
     .notEmpty()
     .withMessage('Country is required'),
@@ -36,7 +36,7 @@ exports.createCompanyValidator = [
     .withMessage('Invalid ID format for category'),
   check('whatsapp')
     .optional()
-    .isMobilePhone(['tr-TR', 'ar-SA', 'ar-EG']) // Example locales
+    .isMobilePhone(['en-US', 'ar-SA', 'ar-EG']) // Example locales
     .withMessage('Invalid WhatsApp number'),
   check('website')
     .optional()

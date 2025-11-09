@@ -28,7 +28,7 @@ exports.resizeImage = asyncHandler(async (req, res, next) => {
     .jpeg({ quality: 95 })
     .toFile(`${uploadDir}/${filename}`);
 
-  req.body.image = filename; // احفظ اسم الملف في body
+  req.body.image = `${uploadDir.split('/').pop()}/${filename}`; // احفظ اسم الملف في body
   next();
 });
 

@@ -25,7 +25,7 @@ exports.resizeImage = asyncHandler(async (req, res, next) => {
       .toFile(`uploads/brands/${filename}`);
 
     // Save image into our db
-    req.body.logo = filename;
+    req.body.logo = `brands/${filename}`;
   }
 
   next();
@@ -127,9 +127,9 @@ exports.searchCompaniesByName = asyncHandler(async (req, res, next) => {
   const searchConditions = {
     $or: [
       { companyName: { $regex: name, $options: "i" } },
-      { companyNameTr: { $regex: name, $options: "i" } }, // For Turkish
+      { companyNameEn: { $regex: name, $options: "i" } }, // For English
       { description: { $regex: name, $options: "i" } },
-      { descriptionTr: { $regex: name, $options: "i" } }, // For Turkish
+      { descriptionEn: { $regex: name, $options: "i" } }, // For English
     ],
     isApproved: true,
   };
