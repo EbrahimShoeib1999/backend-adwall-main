@@ -18,14 +18,13 @@ exports.resizeImage = asyncHandler(async (req, res, next) => {
   const filename = `company-${uuidv4()}-${Date.now()}.jpeg`;
 
   if (req.file) {
-    await sharp(req.file.buffer)
+    const processedImageBuffer = await sharp(req.file.buffer)
       .resize(600, 600)
       .toFormat("jpeg")
       .jpeg({ quality: 95 })
-      .toFile(`uploads/brands/${filename}`);
+      .toBuffer();
 
-    // Save image into our db
-    req.body.logo = `brands/${filename}`;
+    req.body.logo = processedImageBuffer;
   }
 
   next();

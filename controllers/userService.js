@@ -3,6 +3,7 @@ const { v4: uuidv4 } = require("uuid");
 const sharp = require("sharp");
 const bcrypt = require("bcryptjs");
 const slugify = require("slugify");
+const fs = require('fs');
 
 const factory = require("./handlersFactory");
 const ApiError = require("../utils/apiError");
@@ -15,19 +16,17 @@ exports.uploadUserImage = uploadSingleImage("profileImg");
 
 // Image processing
 exports.resizeImage = asyncHandler(async (req, res, next) => {
+  if (!req.file) return next();
+
   const filename = `user-${uuidv4()}-${Date.now()}.jpeg`;
 
-  if (req.file) {
-    await sharp(req.file.buffer)
-      .resize(600, 600)
-      .toFormat("jpeg")
-      .jpeg({ quality: 95 })
-      .toFile(`uploads/users/${filename}`);
+  await sharp(req.file.buffer)
+    .resize(600, 600)
+    .toFormat("jpeg")
+    .jpeg({ quality: 95 })
+    .toFile(`uploads/users/${filename}`);
 
-    // Save image into our db
-    req.body.profileImg = filename;
-  }
-
+  req.body.profileImg = filename;
   next();
 });
 

@@ -17,19 +17,35 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: [true, "email required"],
       unique: true,
+      validate: {
+        validator: function (val) {
+          return /^\S+@\S+.\S+$/.test(val);
+        },
+        message: "Invalid email format",
+      },
     },
     phone: {
       type: String,
       required: [true, "phone required"],
       unique: true,
+      validate: {
+        validator: function (val) {
+          return /^01[0-2,5]{1}[0-9]{8}$/.test(val);
+        },
+        message: "Invalid phone number",
+      },
     },
-    profileImg: String,
+    // الأفضل تخزين URL بدلاً من buffer
+    profileImg: {
+      type: String,
+      default: "default-profile.png",
+    },
     googleId: String,
     facebookId: String,
-
     password: {
       type: String,
       minlength: [6, "Too short password"],
+      select: false, // ✅ لا تُرجع في الاستعلامات
     },
     passwordChangedAt: Date,
     passwordResetCode: String,
@@ -48,23 +64,25 @@ const userSchema = new mongoose.Schema(
       type: Date,
       default: Date.now,
     },
-    // child reference (one to many)
     wishlist: [
       {
         type: mongoose.Schema.ObjectId,
         ref: "Product",
       },
     ],
-    addresses: [
-      {
-        id: { type: mongoose.Schema.Types.ObjectId },
-        alias: String,
-        details: String,
-        phone: String,
-        city: String,
-        postalCode: String,
-      },
-    ],
+    addresses: {
+      type: [
+        {
+          id: { type: mongoose.Schema.Types.ObjectId },
+          alias: String,
+          details: String,
+          phone: String,
+          city: String,
+          postalCode: String,
+        },
+      ],
+      default: [],
+    },
   },
   { timestamps: true }
 );
@@ -73,12 +91,14 @@ userSchema.pre("save", async function (next) {
   if (this.isModified("name")) {
     this.slug = slugify(this.name, { lower: true });
   }
+
   if (!this.isModified("password")) return next();
+
   // Hashing user password
   this.password = await bcrypt.hash(this.password, 12);
+  this.passwordChangedAt = Date.now();
   next();
 });
 
 const User = mongoose.model("User", userSchema);
-
 module.exports = User;

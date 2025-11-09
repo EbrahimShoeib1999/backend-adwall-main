@@ -25,10 +25,7 @@ const companySchema = new mongoose.Schema(
       type: String,
       required: [true, "Please enter company description"],
     },
-    logo: {
-      type: String,
-      required: [true, "يرجى تحميل شعار الشركة"],
-    },
+    logo: Buffer,
     country: {
       type: String,
       required: [true, "يرجى إدخال الدولة"],
@@ -99,25 +96,6 @@ companySchema.virtual("reviews", {
 companySchema.pre(/^find/, function (next) {
   this.populate({ path: "categoryId", select: "nameAr nameEn color -_id" });
   next();
-});
-
-const setURLs = (doc) => {
-  if (doc.logo) {
-    const logoUrl = `${process.env.BASE_URL}/brands/${doc.logo}`;
-    doc.logo = logoUrl;
-  }
-  if (doc.video) {
-    const videoUrl = `${process.env.BASE_URL}/videos/${doc.video}`;
-    doc.video = videoUrl;
-  }
-};
-
-companySchema.post("init", (doc) => {
-  setURLs(doc);
-});
-
-companySchema.post("save", (doc) => {
-  setURLs(doc);
 });
 
 module.exports = mongoose.model("Company", companySchema);

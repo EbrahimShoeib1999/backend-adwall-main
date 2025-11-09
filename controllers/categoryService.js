@@ -2,6 +2,7 @@
 const sharp = require('sharp');
 const { v4: uuidv4 } = require('uuid');
 const asyncHandler = require('express-async-handler');
+const fs = require('fs');
 
 const factory = require('./handlersFactory');
 const { uploadSingleImage } = require('../middlewares/uploadImageMiddleware');
@@ -14,13 +15,15 @@ exports.uploadCategoryImage = uploadSingleImage('image');
 exports.resizeImage = asyncHandler(async (req, res, next) => {
   if (!req.file) return next(); // تحقق من وجود الملف
 
-  const processedImageBuffer = await sharp(req.file.buffer)
+  const filename = `category-${uuidv4()}-${Date.now()}.jpeg`;
+
+  await sharp(req.file.buffer)
     .resize(600, 600)
     .toFormat('jpeg')
     .jpeg({ quality: 95 })
-    .toBuffer();
+    .toFile(`uploads/categories/${filename}`);
 
-  req.body.image = processedImageBuffer;
+  req.body.image = filename;
   next();
 });
 
