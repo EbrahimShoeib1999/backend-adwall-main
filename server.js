@@ -55,6 +55,11 @@ app.post('/api/v1/payments/webhook', express.raw({ type: 'application/json' }), 
 
 app.use(express.json({ limit: "20kb" }));
 
+// Test route
+app.get('/api/v1/test', (req, res) => {
+  res.status(200).json({ message: 'Test route works!' });
+});
+
 // Mount Routes
 // TODO: make it dynamic
 app.use("/api/v1", mainRouter);
