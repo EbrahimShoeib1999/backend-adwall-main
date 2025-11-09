@@ -19,12 +19,15 @@ const globalError = require("./middlewares/errorMiddleware");
 const dbConnection = require("./config/database");
 const mainRouter = require("./router");
 const { stripeWebhook } = require('./controllers/paymentController');
+const ensureAdminUser = require('./utils/seedAdmin');
 
 // Passport config
 require('./config/passport');
 
 // Connect with db
 dbConnection();
+
+
 
 // express app
 const app = express();
@@ -75,16 +78,20 @@ app.all("*", (req, res, next) => {
 // Global error handler
 app.use(globalError);
 
-const PORT = process.env.PORT || 8000;
-const server = app.listen(PORT, () => {
-  console.log(`App running on port ${PORT}`);
-});
+(async () => {
+  await ensureAdminUser();
 
-// Handle unhandled rejections
-process.on("unhandledRejection", (err) => {
-  console.error(`UnhandledRejection: ${err.name} | ${err.message}`);
-  server.close(() => {
-    console.error(`Shutting down....`);
-    process.exit(1);
+  const PORT = process.env.PORT || 8000;
+  const server = app.listen(PORT, () => {
+    console.log(`App running on port ${PORT}`);
   });
-});
+
+  // Handle unhandled rejections
+  process.on("unhandledRejection", (err) => {
+    console.error(`UnhandledRejection: ${err.name} | ${err.message}`);
+    server.close(() => {
+      console.error(`Shutting down....`);
+      process.exit(1);
+    });
+  });
+})();
