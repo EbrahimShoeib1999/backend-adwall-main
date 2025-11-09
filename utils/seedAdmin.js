@@ -17,11 +17,10 @@ const ensureAdminUser = async () => {
     const admin = await User.findOne({ email: adminUser.email });
     if (!admin) {
         console.log('Admin user not found. Creating new admin user...');
-        const hashedPassword = await bcrypt.hash(adminUser.password, 12);
         await User.create({
             name: adminUser.name,
             email: adminUser.email,
-            password: hashedPassword,
+            password: adminUser.password, // Pass plain password, pre('save') hook will hash it
             role: adminUser.role,
             phone: '0000000000', // Added a default phone number
         });
