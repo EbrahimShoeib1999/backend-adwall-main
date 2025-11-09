@@ -1,5 +1,6 @@
 require('colors');
 const dotenv = require('dotenv');
+const bcrypt = require('bcryptjs');
 const User = require('./model/userModel');
 const dbConnection = require('./config/database');
 
@@ -21,7 +22,8 @@ const insertData = async () => {
   try {
     const admin = await User.findOne({ email: adminUser.email });
     if (!admin) {
-        await User.create(adminUser);
+        const hashedPassword = await bcrypt.hash(adminUser.password, 10);
+        await User.create({ ...adminUser, password: hashedPassword });
         console.log('Admin User Inserted'.green.inverse);
     } else {
         console.log('Admin User already exists'.yellow.inverse);

@@ -51,11 +51,10 @@ exports.createUserValidator = [
     .notEmpty()
     .withMessage('تأكيد كلمة المرور مطلوب'),
 
-  // Phone (optional)
   check('phone')
     .optional()
-    .isMobilePhone(['ar-EG', 'ar-SA'])
-    .withMessage('رقم الهاتف غير صالح. يُقبل فقط أرقام مصر و السعودية'),
+    .matches(/^\+(?:[0-9] ?){6,14}[0-9]$/)
+    .withMessage('رقم هاتف غير صالح'),
 
   // Optional fields
   check('profileImg').optional(),
@@ -104,8 +103,8 @@ exports.updateUserValidator = [
   // Phone (optional)
   check('phone')
     .optional()
-    .isMobilePhone(['ar-EG', 'ar-SA'])
-    .withMessage('رقم هاتف غير صالح، يُقبل فقط أرقام الهواتف المصرية والسعودية'),
+    .matches(/^\+(?:[0-9] ?){6,14}[0-9]$/)
+    .withMessage('رقم هاتف غير صالح، يجب أن يكون رقم هاتف دولي صحيح'),
 
   // Optional fields
   check('profileImg').optional(),
@@ -193,7 +192,7 @@ exports.updateLoggedUserValidator = [
   body('name').optional(),
   check('phone')
     .optional()
-    .isMobilePhone(['ar-EG', 'ar-SA'])
-    .withMessage('رقم الهاتف غير صالح. يُقبل فقط أرقام مصر و السعودية'),
+    .matches(/^\+(?:[0-9] ?){6,14}[0-9]$/)
+    .withMessage('رقم الهاتف غير صالح. يجب أن يكون رقم هاتف دولي صحيح'),
   validatorMiddleware,
 ];
