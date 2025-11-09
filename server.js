@@ -36,8 +36,13 @@ app.use((req, res, next) => {
 });
 
 // Enable CORS
-app.use(cors());
-app.options("*", cors());
+const corsOptions = {
+  origin: ['http://localhost:3000', 'http://localhost:3001', 'http://127.0.0.1:3000', 'http://127.0.0.1:3001'],
+  credentials: true,
+  optionsSuccessStatus: 200 // some legacy browsers (IE11, various SmartTVs) choke on 204
+};
+app.use(cors(corsOptions));
+app.options("*", cors(corsOptions));
 
 // Compress responses
 app.use(compression());
