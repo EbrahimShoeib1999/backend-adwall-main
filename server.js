@@ -62,10 +62,10 @@ app.get('/api/v1/test', (req, res) => {
 
 // Mount Routes
 // TODO: make it dynamic
-app.use("/api/v1", mainRouter);
+// app.use("/api/v1", mainRouter);
 
 // Serve uploaded files
-app.use(express.static(path.join(__dirname, "uploads")));
+// app.use(express.static(path.join(__dirname, "uploads")));
 
 // Passport
 app.use(passport.initialize());
