@@ -45,13 +45,11 @@ app.use(compression());
 // Stripe webhook (must be before express.json)
 app.post('/api/v1/payments/webhook', express.raw({ type: 'application/json' }), stripeWebhook);
 
-// === مهم جدًا: ارفع الـ routes قبل express.json() ===
-// لأن الـ upload بيستخدم form-data و express.json() بيحذفها
-app.use("/api/v1", mainRouter);
+app.use(express.json({ limit: "20kb" }));
 
-// === دلوقتي نستخدم express.json() بعد الـ routes ===
-// عشان ما يأثرش على الـ upload
-app.use(express.json());
+// Mount Routes
+// TODO: make it dynamic
+app.use("/api/v1", mainRouter);
 
 // Serve uploaded files
 app.use(express.static(path.join(__dirname, "uploads")));
