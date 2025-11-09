@@ -59,6 +59,21 @@ router.get('/auth/facebook/callback', passport.authenticate('facebook', { sessio
     res.redirect(`${process.env.FRONTEND_URL}/login-success?token=${req.user.token}`);
 });
 
+//--------------------------------------------------
+// Categories Routes (Public)
+//--------------------------------------------------
+router.get("/categories", cachingMiddleware, getCategories);
+router.get("/categories/:id", getCategoryValidator, getCategory);
+
+//--------------------------------------------------
+// Companies Routes (Public)
+//--------------------------------------------------
+router.get("/companies", getAllCompanies);
+router.get("/companies/search", searchCompaniesByName);
+router.get("/companies/category/:categoryId", getCompaniesByCategory);
+router.get("/companies/category/:categoryId/search-location", searchCompaniesByCategoryAndLocation);
+router.get("/companies/:id", getOneCompany);
+router.patch("/companies/:id/view", incrementCompanyView);
 
 //--------------------------------------------------
 // User Routes
@@ -79,12 +94,15 @@ router.route("/users/:id").get(authService.allowedTo("admin"), getUserValidator,
 
 
 //--------------------------------------------------
-// Categories Routes
+// Categories Routes (Protected)
 //--------------------------------------------------
-const categoryRouter = express.Router();
-categoryRouter.route("/").get(cachingMiddleware, getCategories).post(authService.protect, authService.allowedTo("admin", "manager"), uploadCategoryImage, resizeCategoryImage, createCategoryValidator, createCategory);
-categoryRouter.route("/:id").get(getCategoryValidator, getCategory).put(authService.protect, authService.allowedTo("admin", "manager"), uploadCategoryImage, resizeCategoryImage, updateCategoryValidator, updateCategory).delete(authService.protect, authService.allowedTo("admin"), deleteCategoryValidator, deleteCategory);
-router.use("/categories", categoryRouter);
+const protectedCategoryRouter = express.Router();
+protectedCategoryRouter.route("/")
+    .post(authService.allowedTo("admin", "manager"), uploadCategoryImage, resizeCategoryImage, createCategoryValidator, createCategory);
+protectedCategoryRouter.route("/:id")
+    .put(authService.allowedTo("admin", "manager"), uploadCategoryImage, resizeCategoryImage, updateCategoryValidator, updateCategory)
+    .delete(authService.allowedTo("admin"), deleteCategoryValidator, deleteCategory);
+router.use("/categories", protectedCategoryRouter);
 
 
 //--------------------------------------------------
@@ -97,32 +115,23 @@ reviewRouter.route('/:id/approve').patch(authService.protect, authService.allowe
 
 
 //--------------------------------------------------
-// Companies Routes
+// Companies Routes (Protected)
 //--------------------------------------------------
-const companyRouter = express.Router();
-companyRouter.use('/:companyId/reviews', reviewRouter); // Nest reviews
-// Public
-companyRouter.get("/", getAllCompanies);
-companyRouter.get("/search", searchCompaniesByName);
-companyRouter.get("/category/:categoryId", getCompaniesByCategory);
-companyRouter.get("/category/:categoryId/search-location", searchCompaniesByCategoryAndLocation);
-companyRouter.get("/:id", getOneCompany);
-companyRouter.patch("/:id/view", incrementCompanyView);
-// Protected
-companyRouter.use(authService.protect);
-companyRouter.post("/", uploadSingleImage("logo"), resizeCompanyImage, createCompanyValidator, createCompanyService);
-companyRouter.put("/:id", uploadSingleImage("logo"), resizeCompanyImage, updateCompany);
-companyRouter.delete("/:id", deleteCompany);
+const protectedCompanyRouter = express.Router();
+protectedCompanyRouter.use('/:companyId/reviews', reviewRouter); // Nest reviews
+protectedCompanyRouter.post("/", uploadSingleImage("logo"), resizeCompanyImage, createCompanyValidator, createCompanyService);
+protectedCompanyRouter.put("/:id", uploadSingleImage("logo"), resizeCompanyImage, updateCompany);
+protectedCompanyRouter.delete("/:id", deleteCompany);
 // User-specific
-companyRouter.get("/user/:userId", getUserCompanies);
-companyRouter.get("/user/:userId/company/:companyId", getUserCompany);
-companyRouter.get("/user/:userId/status/:status", getUserCompaniesByStatus);
+protectedCompanyRouter.get("/user/:userId", getUserCompanies);
+protectedCompanyRouter.get("/user/:userId/company/:companyId", getUserCompany);
+protectedCompanyRouter.get("/user/:userId/status/:status", getUserCompaniesByStatus);
 // Admin only
-companyRouter.use(authService.allowedTo("admin"));
-companyRouter.get("/pending", getPendingCompanies);
-companyRouter.patch("/:id/approve", approveCompany);
-companyRouter.patch("/:id/video", uploadSingleVideo("video"), processVideo, updateCompanyVideo);
-router.use("/companies", companyRouter);
+protectedCompanyRouter.use(authService.allowedTo("admin"));
+protectedCompanyRouter.get("/pending", getPendingCompanies);
+protectedCompanyRouter.patch("/:id/approve", approveCompany);
+protectedCompanyRouter.patch("/:id/video", uploadSingleVideo("video"), processVideo, updateCompanyVideo);
+router.use("/companies", protectedCompanyRouter);
 
 
 //--------------------------------------------------
