@@ -185,5 +185,16 @@ exports.updateLoggedUserValidator = [
     .optional()
     .isMobilePhone(['ar-EG', 'ar-SA'])
     .withMessage('رقم الهاتف غير صالح. يُقبل فقط أرقام مصر و السعودية'),
+  body().custom((value, { req }) => {
+    const allowedUpdates = ['name', 'phone'];
+    const updates = Object.keys(req.body);
+    const isValidOperation = updates.every((update) =>
+      allowedUpdates.includes(update)
+    );
+    if (!isValidOperation) {
+      throw new Error('لا يمكن تحديث هذه الحقول. يُسمح بتحديث الاسم ورقم الهاتف فقط.');
+    }
+    return true;
+  }),
   validatorMiddleware,
 ];
