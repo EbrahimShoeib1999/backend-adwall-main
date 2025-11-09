@@ -105,7 +105,7 @@ exports.updateUserValidator = [
   check('phone')
     .optional()
     .isMobilePhone(['ar-EG', 'ar-SA'])
-    .withMessage('رقم الهاتف غير صالح. يُقبل فقط أرقام مصر و السعودية'),
+    .withMessage('رقم هاتف غير صالح، يُقبل فقط أرقام الهواتف المصرية والسعودية'),
 
   // Optional fields
   check('profileImg').optional(),

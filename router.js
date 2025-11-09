@@ -7,7 +7,7 @@ const { uploadSingleVideo } = require("./middlewares/uploadVideoMiddleware");
 const { uploadSingleImage } = require("./middlewares/uploadImageMiddleware");
   
 // Validators
-const { signupValidator, loginValidator } = require('./utils/validators/authValidator');
+const { signupValidator, loginValidator, resetPasswordValidator } = require('./utils/validators/authValidator');
 const { getCategoryValidator, createCategoryValidator, updateCategoryValidator, deleteCategoryValidator } = require("./utils/validators/categoryValidator");
 const { createCompanyValidator } = require("./utils/validators/companyValidator");
 const { getUserValidator, createUserValidator, updateUserValidator, deleteUserValidator, changeUserPasswordValidator, updateLoggedUserValidator } = require("./utils/validators/userValidator");
@@ -44,46 +44,42 @@ const router = express.Router();
 
 //--------------------------------------------------
 // Auth Routes
-// Base URL: /api/v1/Auth
-// Usage: Handles user and admin authentication, registration, and profile management.
-// All login and user management for both roles are unified under this base URL.
 //--------------------------------------------------
-const authRouter = express.Router();
-authRouter.post('/signup', signupValidator, authService.signup);
-authRouter.post('/login', loginValidator, authService.login);
-authRouter.post('/forgotPassword', authService.forgotPassword);
-authRouter.post('/verifyResetCode', authService.verifyPassResetCode);
-// authRouter.put('/resetPassword', authService.resetPassword);
-authRouter.get('/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
-authRouter.get('/google/callback', passport.authenticate('google', { session: false }), (req, res) => {
+router.post('/auth/signup', signupValidator, authService.signup);
+router.post('/auth/login', loginValidator, authService.login);
+router.post('/auth/forgotPassword', authService.forgotPassword);
+router.post('/auth/verifyResetCode', authService.verifyPassResetCode);
+router.put('/auth/resetPassword', resetPasswordValidator, authService.resetPassword);
+router.get('/auth/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
+router.get('/auth/google/callback', passport.authenticate('google', { session: false }), (req, res) => {
     res.redirect(`${process.env.FRONTEND_URL}/login-success?token=${req.user.token}`);
 });
-authRouter.get('/facebook', passport.authenticate('facebook', { scope: ['email'] }));
-authRouter.get('/facebook/callback', passport.authenticate('facebook', { session: false }), (req, res) => {
+router.get('/auth/facebook', passport.authenticate('facebook', { scope: ['email'] }));
+router.get('/auth/facebook/callback', passport.authenticate('facebook', { session: false }), (req, res) => {
     res.redirect(`${process.env.FRONTEND_URL}/login-success?token=${req.user.token}`);
 });
 
-// Protected user routes (for both regular users and admins)
-authRouter.use(authService.protect);
-authRouter.get("/getMe", getLoggedUserData, getUser);
-authRouter.put("/changeMyPassword", updateLoggedUserPassword);
-authRouter.put("/updateMe", updateLoggedUserValidator, updateLoggedUserData);
-authRouter.delete("/deleteMe", deleteLoggedUserData);
+
+//--------------------------------------------------
+// User Routes
+//--------------------------------------------------
+router.use(authService.protect);
+
+// Logged user routes
+router.get("/users/getMe", getLoggedUserData, getUser);
+router.put("/users/changeMyPassword", updateLoggedUserPassword);
+router.put("/users/updateMe", updateLoggedUserValidator, updateLoggedUserData);
+router.delete("/users/deleteMe", deleteLoggedUserData);
 
 // Admin only user management routes
-authRouter.use(authService.allowedTo("admin"));
-authRouter.get("/stats", getUsersStats);
-authRouter.put("/changePassword/:id", changeUserPasswordValidator, changeUserPassword);
-authRouter.route("/").get(getUsers).post(uploadUserImage, resizeUserImage, createUserValidator, createUser);
-console.log('Value of updateUser:', updateUser);
-authRouter.route("/:id").get(getUserValidator, getUser).put(updateUser).delete(deleteUserValidator, deleteUser);
-router.use("/Auth", authRouter);
+router.get("/users/stats", authService.allowedTo("admin"), getUsersStats);
+router.put("/users/changePassword/:id", authService.allowedTo("admin"), changeUserPasswordValidator, changeUserPassword);
+router.route("/users").get(authService.allowedTo("admin"), getUsers).post(authService.allowedTo("admin"), uploadUserImage, resizeUserImage, createUserValidator, createUser);
+router.route("/users/:id").get(authService.allowedTo("admin"), getUserValidator, getUser).put(authService.allowedTo("admin"), updateUser).delete(authService.allowedTo("admin"), deleteUserValidator, deleteUser);
 
 
 //--------------------------------------------------
 // Categories Routes
-// Base URL: /api/v1/categories
-// Usage: Manages company categories.
 //--------------------------------------------------
 const categoryRouter = express.Router();
 categoryRouter.route("/").get(cachingMiddleware, getCategories).post(authService.protect, authService.allowedTo("admin", "manager"), uploadCategoryImage, resizeCategoryImage, createCategoryValidator, createCategory);
@@ -93,8 +89,6 @@ router.use("/categories", categoryRouter);
 
 //--------------------------------------------------
 // Reviews Routes (Nested under Companies)
-// Base URL: /api/v1/companies/:companyId/reviews
-// Usage: Manages reviews for companies.
 //--------------------------------------------------
 const reviewRouter = express.Router({ mergeParams: true });
 reviewRouter.route('/').get(createFilterObj, getReviews).post(authService.protect, authService.allowedTo('user'), createReview);
@@ -104,8 +98,6 @@ reviewRouter.route('/:id/approve').patch(authService.protect, authService.allowe
 
 //--------------------------------------------------
 // Companies Routes
-// Base URL: /api/v1/companies
-// Usage: Manages company listings and ads.
 //--------------------------------------------------
 const companyRouter = express.Router();
 companyRouter.use('/:companyId/reviews', reviewRouter); // Nest reviews
@@ -135,8 +127,6 @@ router.use("/companies", companyRouter);
 
 //--------------------------------------------------
 // Coupons Routes
-// Base URL: /api/v1/coupons
-// Usage: Manages discount coupons (Admin/Manager only).
 //--------------------------------------------------
 const couponRouter = express.Router();
 couponRouter.use(authService.protect, authService.allowedTo("admin", "manager"));
@@ -147,8 +137,6 @@ router.use("/coupons", couponRouter);
 
 //--------------------------------------------------
 // Plans Routes
-// Base URL: /api/v1/plans
-// Usage: Manages subscription plans.
 //--------------------------------------------------
 const planRouter = express.Router();
 planRouter.route('/').get(getPlans);
@@ -162,8 +150,6 @@ router.use("/plans", planRouter);
 
 //--------------------------------------------------
 // Campaigns Routes
-// Base URL: /api/v1/campaigns
-// Usage: Manages ad campaigns (Admin/Manager only).
 //--------------------------------------------------
 const campaignRouter = express.Router();
 campaignRouter.route('/').get(getCampaigns).post(authService.protect, authService.allowedTo('admin', 'manager'), createCampaign);
@@ -173,8 +159,6 @@ router.use("/campaigns", campaignRouter);
 
 //--------------------------------------------------
 // MIA Routes
-// Base URL: /api/v1/mias
-// Usage: Manages MIA data (Admin/Manager only).
 //--------------------------------------------------
 const miaRouter = express.Router();
 miaRouter.route('/').get(getMias).post(authService.protect, authService.allowedTo('admin', 'manager'), createMia);
@@ -184,8 +168,6 @@ router.use("/mias", miaRouter);
 
 //--------------------------------------------------
 // Payment Routes
-// Base URL: /api/v1/payments
-// Usage: Handles payment checkout sessions.
 //--------------------------------------------------
 const paymentRouter = express.Router();
 paymentRouter.post('/create-checkout-session', authService.protect, createCheckoutSession);
@@ -194,8 +176,6 @@ router.use("/payments", paymentRouter);
 
 //--------------------------------------------------
 // Sitemap Route
-// Base URL: /api/v1/sitemap.xml
-// Usage: Generates the sitemap for SEO.
 //--------------------------------------------------
 const sitemapRouter = express.Router();
 sitemapRouter.get('/sitemap.xml', generateSitemap);

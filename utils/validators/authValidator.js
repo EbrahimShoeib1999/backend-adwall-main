@@ -14,6 +14,21 @@ exports.signupValidator = [
       return true;
     }),
 
+  check('phone')
+    .notEmpty()
+    .withMessage('Phone number required')
+    .isMobilePhone(['ar-EG', 'ar-SA'])
+    .withMessage(
+      'Invalid phone number, only Egypt and Saudi Arabia phone numbers are allowed'
+    )
+    .custom((val) =>
+      User.findOne({ phone: val }).then((user) => {
+        if (user) {
+          return Promise.reject(new Error('Phone number already in use'));
+        }
+      })
+    ),
+
   check('email')
     .notEmpty()
     .withMessage('Email required')
@@ -59,5 +74,19 @@ exports.loginValidator = [
     .isLength({ min: 6 })
     .withMessage('Password must be at least 6 characters'),
 
+  validatorMiddleware,
+];
+
+exports.resetPasswordValidator = [
+  check('email')
+    .notEmpty()
+    .withMessage('Email required')
+    .isEmail()
+    .withMessage('Invalid email address'),
+  check('newPassword')
+    .notEmpty()
+    .withMessage('Password required')
+    .isLength({ min: 6 })
+    .withMessage('Password must be at least 6 characters'),
   validatorMiddleware,
 ];
