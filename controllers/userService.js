@@ -127,14 +127,18 @@ exports.updateLoggedUserPassword = asyncHandler(async (req, res, next) => {
 // @route   PUT /api/v1/users/updateMe
 // @access  Private/Protect
 exports.updateLoggedUserData = asyncHandler(async (req, res, next) => {
-  const updatedUser = await User.findByIdAndUpdate(
-    req.user._id,
-    {
-      name: req.body.name,
-      phone: req.body.phone,
-    },
-    { new: true }
-  );
+  const updateData = {};
+  if (req.body.name) {
+    updateData.name = req.body.name;
+    updateData.slug = slugify(req.body.name, { lower: true });
+  }
+  if (req.body.phone) {
+    updateData.phone = req.body.phone;
+  }
+
+  const updatedUser = await User.findByIdAndUpdate(req.user._id, updateData, {
+    new: true,
+  });
 
   res.status(200).json({ data: updatedUser });
 });

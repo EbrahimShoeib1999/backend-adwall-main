@@ -175,19 +175,13 @@ exports.deleteUserValidator = [
  * @desc    Validator for updating logged in user data (name, phone)
  */
 exports.updateLoggedUserValidator = [
-  body('name')
-    .optional()
-    .custom((val, { req }) => {
-      req.body.slug = slugify(val, { lower: true });
-      return true;
-    }),
-  check('phone')
-    .optional()
-    .isMobilePhone(['ar-EG', 'ar-SA'])
-    .withMessage('رقم الهاتف غير صالح. يُقبل فقط أرقام مصر و السعودية'),
   body().custom((value, { req }) => {
     const allowedUpdates = ['name', 'phone'];
     const updates = Object.keys(req.body);
+    // Ensure there's at least one valid field to update
+    if (updates.length === 0) {
+      throw new Error('يجب توفير حقل واحد على الأقل للتحديث.');
+    }
     const isValidOperation = updates.every((update) =>
       allowedUpdates.includes(update)
     );
@@ -196,5 +190,10 @@ exports.updateLoggedUserValidator = [
     }
     return true;
   }),
+  body('name').optional(),
+  check('phone')
+    .optional()
+    .isMobilePhone(['ar-EG', 'ar-SA'])
+    .withMessage('رقم الهاتف غير صالح. يُقبل فقط أرقام مصر و السعودية'),
   validatorMiddleware,
 ];
