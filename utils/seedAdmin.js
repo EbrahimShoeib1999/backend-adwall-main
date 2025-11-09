@@ -11,9 +11,12 @@ const adminUser = {
 
 // Function to ensure admin user exists
 const ensureAdminUser = async () => {
+  console.log('Attempting to ensure admin user exists...');
   try {
+    console.log(`Searching for admin with email: ${adminUser.email}`);
     const admin = await User.findOne({ email: adminUser.email });
     if (!admin) {
+        console.log('Admin user not found. Creating new admin user...');
         const hashedPassword = await bcrypt.hash(adminUser.password, 12);
         await User.create({
             name: adminUser.name,
@@ -28,6 +31,7 @@ const ensureAdminUser = async () => {
     }
   } catch (error) {
     console.error('Error ensuring admin user on server startup:', error);
+    console.error(error); // Log the full error object for more details
   }
 };
 
