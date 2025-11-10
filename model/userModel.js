@@ -24,7 +24,7 @@ const userSchema = new mongoose.Schema(
         message: "Invalid email format",
       },
     },
-    c: {
+    phone: {
       type: String,
       required: [true, "phone required"],
       unique: true,
