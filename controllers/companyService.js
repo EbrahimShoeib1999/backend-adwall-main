@@ -35,8 +35,6 @@ exports.resizeImage = asyncHandler(async (req, res, next) => {
 exports.createCompany = asyncHandler(async (req, res, next) => {
   // Set the userId from the logged-in user
   req.body.userId = req.user._id;
-  // New companies are pending approval by default
-  req.body.isApproved = false;
 
   const newDoc = await Company.create(req.body);
   res.status(201).json({
@@ -107,7 +105,7 @@ exports.deleteCompany = asyncHandler(async (req, res, next) => {
 // @access  Public
 exports.getCompaniesByCategory = asyncHandler(async (req, res, next) => {
   const { categoryId } = req.params;
-  const companies = await Company.find({ categoryId, isApproved: true });
+  const companies = await Company.find({ categoryId, status: "approved" });
   res.status(200).json({
     status: "success",
     results: companies.length,
@@ -130,7 +128,7 @@ exports.searchCompaniesByName = asyncHandler(async (req, res, next) => {
       { description: { $regex: name, $options: "i" } },
       { descriptionEn: { $regex: name, $options: "i" } }, // For English
     ],
-    isApproved: true,
+    status: "approved",
   };
 
   const companies = await Company.find(searchConditions);
@@ -146,7 +144,7 @@ exports.searchCompaniesByName = asyncHandler(async (req, res, next) => {
 // @route   GET /api/companies/pending
 // @access  Admin
 exports.getPendingCompanies = asyncHandler(async (req, res, next) => {
-  const pendingCompanies = await Company.find({ isApproved: false });
+  const pendingCompanies = await Company.find({ status: "pending" });
   res.status(200).json({
     status: "success",
     results: pendingCompanies.length,
@@ -162,7 +160,7 @@ exports.searchCompaniesByLocation = asyncHandler(async (req, res, next) => {
   if (!city && !country) {
     return next(new ApiError("يرجى إدخال المدينة أو الدولة للبحث", 400));
   }
-  const query = { isApproved: true };
+  const query = { status: "approved" };
   if (city) query.city = { $regex: city, $options: "i" };
   if (country) query.country = { $regex: country, $options: "i" };
 
@@ -184,7 +182,7 @@ exports.searchCompaniesByCategoryAndLocation = asyncHandler(
     if (!categoryId) {
       return next(new ApiError("يرجى تحديد الفئة", 400));
     }
-    const query = { categoryId, isApproved: true };
+    const query = { categoryId, status: "approved" };
     if (city) query.city = { $regex: city, $options: "i" };
     if (country) query.country = { $regex: country, $options: "i" };
     // إذا لم يتم تمرير city أو country، يرجع كل الشركات ضمن الفئة
@@ -206,10 +204,10 @@ exports.approveCompany = asyncHandler(async (req, res, next) => {
   if (!company) {
     return next(new ApiError("الشركة غير موجودة", 404));
   }
-  if (company.isApproved) {
+  if (company.status === "approved") {
     return next(new ApiError("تمت الموافقة على الشركة مسبقاً", 400));
   }
-  company.isApproved = true;
+  company.status = "approved";
   await company.save();
 
   // Send notification email to the user
@@ -240,6 +238,64 @@ The AddWall Team`;
   res.status(200).json({
     status: "success",
     message: "تمت الموافقة على الشركة بنجاح",
+    data: company,
+  });
+});
+
+// @desc    Admin reject company
+// @route   PATCH /api/companies/:id/reject
+// @access  Admin
+exports.rejectCompany = asyncHandler(async (req, res, next) => {
+  const { id } = req.params;
+  const { reason } = req.body; // Reason for rejection
+
+  if (!reason) {
+    return next(new ApiError("يرجى تقديم سبب الرفض", 400));
+  }
+
+  const company = await Company.findById(id).populate('userId', 'name email');
+
+  if (!company) {
+    return next(new ApiError("الشركة غير موجودة", 404));
+  }
+
+  if (company.status === 'rejected') {
+    return next(new ApiError("تم رفض الشركة مسبقاً", 400));
+  }
+
+  company.status = 'rejected';
+  company.rejectionReason = reason;
+  await company.save();
+
+  // Send notification email to the user
+  try {
+    if (company.userId) {
+      const message = `Hi ${company.userId.name},
+
+We regret to inform you that your company submission "${company.companyName}" has been rejected for the following reason:
+${reason}
+
+If you have any questions, please contact our support team.
+
+Thanks,
+The AddWall Team`;
+      await sendEmail({
+        email: company.userId.email,
+        subject: "Your Company Submission Status",
+        message,
+      });
+    }
+  } catch (err) {
+    // Log the error for debugging purposes, but don't fail the request
+    console.error(
+      `Failed to send rejection email for company ${company._id}:`,
+      err
+    );
+  }
+
+  res.status(200).json({
+    status: "success",
+    message: "تم رفض الشركة بنجاح",
     data: company,
   });
 });
@@ -304,14 +360,13 @@ exports.getUserCompaniesByStatus = asyncHandler(async (req, res, next) => {
   }
 
   // Validate status parameter
-  if (!["approved", "pending"].includes(status)) {
+  if (!["approved", "pending", "rejected"].includes(status)) {
     return next(
-      new ApiError("حالة غير صحيحة. يرجى استخدام approved أو pending", 400)
+      new ApiError("حالة غير صحيحة. يرجى استخدام approved, pending, or rejected", 400)
     );
   }
 
-  const isApproved = status === "approved";
-  const companies = await Company.find({ userId, isApproved })
+  const companies = await Company.find({ userId, status })
     .populate("categoryId", "nameAr nameEn slug")
     .sort({ createdAt: -1 });
 

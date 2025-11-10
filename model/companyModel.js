@@ -41,9 +41,13 @@ const companySchema = new mongoose.Schema(
     whatsapp: String,
     facebook: String,
     website: String,
-    isApproved: {
-      type: Boolean,
-      default: false, // يتطلب موافقة الأدمن
+    status: {
+      type: String,
+      enum: ["pending", "approved", "rejected"],
+      default: "pending",
+    },
+    rejectionReason: {
+      type: String,
     },
     adType: {
       type: String,

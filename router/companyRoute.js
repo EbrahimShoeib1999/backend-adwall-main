@@ -7,6 +7,7 @@ const {
   updateCompany,
   deleteCompany,
   approveCompany,
+  rejectCompany,
   createCompany,
   getCompaniesByCategory,
   getPendingCompanies,
@@ -63,6 +64,7 @@ router.use(auth.allowedTo("admin"));
 
 router.get("/pending", getPendingCompanies);
 router.patch("/:id/approve", approveCompany);
+router.patch("/:id/reject", rejectCompany);
 router.patch(
   "/:id/video",
   uploadSingleVideo("video"),
