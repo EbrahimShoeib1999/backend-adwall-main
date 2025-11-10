@@ -58,6 +58,11 @@ app.get('/api/v1/test', (req, res) => {
   res.status(200).json({ message: 'Test route works!' });
 });
 
+// Temporary route for debugging
+app.patch("/api/v1/companies/:id/reject", (req, res) => {
+  res.status(200).json({ message: "Temporary reject route hit!" });
+});
+
 // Serve uploaded files
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
