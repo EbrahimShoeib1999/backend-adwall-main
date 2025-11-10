@@ -32,27 +32,35 @@ exports.createOne = (Model) =>
   asyncHandler(async (req, res, next) => {
     try {
       const doc = await Model.create(req.body);
-      res.status(201).json({ data: doc });
+      return res.status(201).json({
+        status: 'success',
+        data: doc,
+      });
     } catch (error) {
-      console.log("Error in createOne:", error);
-      console.log("Request Body:", req.body);
-      if (error.code === 11000) {
-        console.log("Duplicate Key Error Details:", error.keyValue);
-      }
-      if (error.code === 11000) {
+      // تسجيل الأخطاء لأغراض التصحيح (في بيئة التطوير)
+      console.error('Error in createOne:', error.message);
+      console.error('Request Body:', JSON.stringify(req.body, null, 2));
+
+      // معالجة خطأ التكرار (Duplicate Key - MongoDB Error Code 11000)
+      if (error.code === 11000 && error.keyValue) {
         const field = Object.keys(error.keyValue)[0];
         const value = error.keyValue[field];
-        return next(
-          new ApiError(
-            `Duplicate value for ${field}: ${value}. Please use another value.`,
-            400
-          )
-        );
+        const message = `This ${field} '${value}' is already taken. Please use a different ${field}.`;
+        return next(new ApiError(message, 400));
       }
-      next(error);
+
+      // أخطاء التحقق من الصحة (Validation Errors)
+      if (error.name === 'ValidationError') {
+        const messages = Object.values(error.errors)
+          .map((err) => err.message)
+          .join(', ');
+        return next(new ApiError(messages, 400));
+      }
+
+      // تمرير أي خطأ آخر إلى error handler العام
+      return next(error);
     }
   });
-
 exports.getOne = (Model, populationOpt) =>
   asyncHandler(async (req, res, next) => {
     const { id } = req.params;
