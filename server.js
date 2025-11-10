@@ -27,8 +27,6 @@ require('./config/passport');
 // Connect with db
 dbConnection();
 
-
-
 // express app
 const app = express();
 
@@ -87,8 +85,9 @@ app.use(globalError);
   await ensureAdminUser();
 
   const PORT = process.env.PORT || 8000;
-  const server = app.listen(PORT, () => {
-    console.log(`App running on port ${PORT}`);
+  const server = app.listen(PORT, '0.0.0.0', () => {
+    console.log(`App running on http://0.0.0.0:${PORT}`);
+    console.log(`External URL: http://72.60.178.180:${PORT}`);
   });
 
   // Handle unhandled rejections
