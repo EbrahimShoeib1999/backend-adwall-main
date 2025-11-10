@@ -72,6 +72,10 @@ router.get("/companies", getAllCompanies);
 router.get("/companies/search", searchCompaniesByName);
 router.get("/companies/category/:categoryId", getCompaniesByCategory);
 router.get("/companies/category/:categoryId/search-location", searchCompaniesByCategoryAndLocation);
+
+// Admin only - Get Pending Companies (moved here to be before /:id)
+router.get("/companies/pending", authService.protect, authService.allowedTo("admin"), getPendingCompanies);
+
 router.get("/companies/:id", getOneCompany);
 router.patch("/companies/:id/view", incrementCompanyView);
 
@@ -126,9 +130,8 @@ protectedCompanyRouter.delete("/:id", deleteCompany);
 protectedCompanyRouter.get("/user/:userId", getUserCompanies);
 protectedCompanyRouter.get("/user/:userId/company/:companyId", getUserCompany);
 protectedCompanyRouter.get("/user/:userId/status/:status", getUserCompaniesByStatus);
-// Admin only
+// Admin only (remaining routes)
 protectedCompanyRouter.use(authService.allowedTo("admin"));
-protectedCompanyRouter.get("/pending", getPendingCompanies);
 protectedCompanyRouter.patch("/:id/approve", approveCompany);
 protectedCompanyRouter.patch("/:id/video", uploadSingleVideo("video"), processVideo, updateCompanyVideo);
 router.use("/companies", protectedCompanyRouter);

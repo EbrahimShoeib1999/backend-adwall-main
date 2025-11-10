@@ -200,27 +200,32 @@ exports.searchCompaniesByCategoryAndLocation = asyncHandler(
 // @access  Admin
 exports.approveCompany = asyncHandler(async (req, res, next) => {
   const { id } = req.params;
-  const company = await Company.findById(id).populate('userId', 'name email');
-  if (!company) {
-    return next(new ApiError("الشركة غير موجودة", 404));
-  }
-  if (company.status === "approved") {
+
+  const updatedCompany = await Company.findOneAndUpdate(
+    { _id: id, status: { $ne: "approved" } },
+    { status: "approved" },
+    { new: true }
+  ).populate("userId", "name email");
+
+  if (!updatedCompany) {
+    const company = await Company.findById(id);
+    if (!company) {
+      return next(new ApiError("الشركة غير موجودة", 404));
+    }
     return next(new ApiError("تمت الموافقة على الشركة مسبقاً", 400));
   }
-  company.status = "approved";
-  await company.save();
 
   // Send notification email to the user
   try {
-    if (company.userId) {
-      const message = `Hi ${company.userId.name},
+    if (updatedCompany.userId) {
+      const message = `Hi ${updatedCompany.userId.name},
 
-Congratulations! Your company "${company.companyName}" has been approved and is now live on AddWall.
+Congratulations! Your company "${updatedCompany.companyName}" has been approved and is now live on AddWall.
 
 Thanks,
 The AddWall Team`;
       await sendEmail({
-        email: company.userId.email,
+        email: updatedCompany.userId.email,
         subject: "Your Company has been Approved",
         message,
       });
@@ -230,7 +235,7 @@ The AddWall Team`;
     // The approval is the most important part.
     // Log the error for debugging purposes.
     console.error(
-      `Failed to send approval email for company ${company._id}:`,
+      `Failed to send approval email for company ${updatedCompany._id}:`,
       err
     );
   }
@@ -238,7 +243,7 @@ The AddWall Team`;
   res.status(200).json({
     status: "success",
     message: "تمت الموافقة على الشركة بنجاح",
-    data: company,
+    data: updatedCompany,
   });
 });
 
