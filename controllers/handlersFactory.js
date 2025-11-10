@@ -43,8 +43,11 @@ exports.createOne = (Model) =>
 
       // معالجة خطأ التكرار (Duplicate Key - MongoDB Error Code 11000)
       if (error.code === 11000 && error.keyValue) {
+        console.log('MongoDB Duplicate Key Error:', error);
+        console.log('error.keyValue:', error.keyValue); // Added for debugging
         let field = Object.keys(error.keyValue)[0];
-        let value = error.keyValue[field];
+        console.log('Extracted field:', field); // Added for debugging
+        let value = error.keyValue[field] === null || error.keyValue[field] === undefined ? "not provided" : error.keyValue[field];
 
         const message = `This ${field} '${value}' is already taken. Please use a different ${field}.`;
         return next(new ApiError(message, 400));

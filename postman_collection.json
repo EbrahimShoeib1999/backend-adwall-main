@@ -574,6 +574,31 @@
       ]
     },
     {
+      "name": "Coupon",
+      "item": [
+        {
+          "name": "POST /api/v1/coupon/apply",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/coupon/apply",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "coupon",
+                "apply"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
       "name": "Payment",
       "item": [
         {

@@ -23,7 +23,7 @@ const couponSchema = new mongoose.Schema(
     },
     maxUses: {
       type: Number,
-      default: null, // Null means unlimited uses, or set a default number
+      default: 0, // Null means unlimited uses, or set a default number
     },
     usedCount: {
       type: Number,
