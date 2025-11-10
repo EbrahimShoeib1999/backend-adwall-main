@@ -34,6 +34,11 @@ exports.createOne = (Model) =>
       const doc = await Model.create(req.body);
       res.status(201).json({ data: doc });
     } catch (error) {
+      console.log("Error in createOne:", error);
+      console.log("Request Body:", req.body);
+      if (error.code === 11000) {
+        console.log("Duplicate Key Error Details:", error.keyValue);
+      }
       if (error.code === 11000) {
         const field = Object.keys(error.keyValue)[0];
         const value = error.keyValue[field];
