@@ -29,9 +29,23 @@ exports.updateOne = (Model) =>
   });
 
 exports.createOne = (Model) =>
-  asyncHandler(async (req, res) => {
-    const doc = await Model.create(req.body);
-    res.status(201).json({ data: doc });
+  asyncHandler(async (req, res, next) => {
+    try {
+      const doc = await Model.create(req.body);
+      res.status(201).json({ data: doc });
+    } catch (error) {
+      if (error.code === 11000) {
+        const field = Object.keys(error.keyValue)[0];
+        const value = error.keyValue[field];
+        return next(
+          new ApiError(
+            `Duplicate value for ${field}: ${value}. Please use another value.`,
+            400
+          )
+        );
+      }
+      next(error);
+    }
   });
 
 exports.getOne = (Model, populationOpt) =>
