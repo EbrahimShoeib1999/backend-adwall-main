@@ -84,6 +84,11 @@ const companySchema = new mongoose.Schema(
   { timestamps: true, toJSON: { virtuals: true }, toObject: { virtuals: true } }
 );
 
+// Virtual property for isApproved
+companySchema.virtual('isApproved').get(function() {
+  return this.status === 'approved';
+});
+
 companySchema.pre("save", function (next) {
   if (this.isModified("companyName")) {
     this.slug = slugify(this.companyName, { lower: true });
