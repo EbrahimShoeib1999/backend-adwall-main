@@ -24,18 +24,12 @@ const userSchema = new mongoose.Schema(
         message: "Invalid email format",
       },
     },
-    c: {
+    phone: {
       type: String,
       required: [true, "phone required"],
       unique: true,
-      validate: {
-        validator: function (val) {
-          return /^(\+20|01)[0-2,5]{1}[0-9]{8}$/.test(val);
-        },
-        message: "Invalid phone number",
-      },
+      // تم إزالة التحقق من الصحة لقبول أي تنسيق لرقم الهاتف
     },
-    // الأفضل تخزين URL بدلاً من buffer
     profileImg: {
       type: String,
       default: "default-profile.png",
