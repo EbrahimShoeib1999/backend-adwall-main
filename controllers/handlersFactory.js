@@ -43,8 +43,9 @@ exports.createOne = (Model) =>
 
       // معالجة خطأ التكرار (Duplicate Key - MongoDB Error Code 11000)
       if (error.code === 11000 && error.keyValue) {
-        const field = Object.keys(error.keyValue)[0];
-        const value = error.keyValue[field];
+        let field = Object.keys(error.keyValue)[0];
+        let value = error.keyValue[field];
+
         const message = `This ${field} '${value}' is already taken. Please use a different ${field}.`;
         return next(new ApiError(message, 400));
       }
