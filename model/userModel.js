@@ -24,13 +24,13 @@ const userSchema = new mongoose.Schema(
         message: "Invalid email format",
       },
     },
-    phone: {
+    c: {
       type: String,
       required: [true, "phone required"],
       unique: true,
       validate: {
         validator: function (val) {
-          return /^01[0-2,5]{1}[0-9]{8}$/.test(val);
+          return /^(\+20|01)[0-2,5]{1}[0-9]{8}$/.test(val);
         },
         message: "Invalid phone number",
       },
