@@ -530,6 +530,27 @@
           "response": []
         },
         {
+          "name": "PATCH /api/v1/company/:id/reject",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/company/:id/reject",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "company",
+                ":id",
+                "reject"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
           "name": "PATCH /api/v1/company/:id/video",
           "request": {
             "method": "PATCH",
