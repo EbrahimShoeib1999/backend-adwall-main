@@ -4,12 +4,13 @@ const Plan = require('../model/planModel');
 const User = require('../model/userModel');
 const Subscription = require('../model/subscriptionModel');
 const ApiError = require('../utils/apiError');
+const Coupon = require('../model/couponModel');
 
 // @desc    Create a checkout session for a subscription
 // @route   POST /api/v1/payments/create-checkout-session
 // @access  Private/User
 exports.createCheckoutSession = asyncHandler(async (req, res, next) => {
-  const { planId } = req.body;
+  const { planId, couponCode } = req.body;
   const user = await User.findById(req.user._id);
 
   const plan = await Plan.findById(planId);
@@ -21,21 +22,68 @@ exports.createCheckoutSession = asyncHandler(async (req, res, next) => {
     return next(new ApiError('Stripe Price ID is not configured for this plan.', 500));
   }
 
+  let amountTotal = plan.price;
+  let couponId = null;
+
+  if (couponCode) {
+    const coupon = await Coupon.findOne({ couponCode });
+
+    if (!coupon) {
+      return next(new ApiError('Coupon not found', 404));
+    }
+
+    if (!coupon.isActive) {
+      return next(new ApiError('Coupon is not active', 400));
+    }
+
+    if (coupon.expiryDate < new Date()) {
+      return next(new ApiError('Coupon has expired', 400));
+    }
+
+    if (coupon.maxUses !== null && coupon.usedCount >= coupon.maxUses) {
+      return next(new ApiError('Coupon has reached its maximum uses', 400));
+    }
+
+    if (coupon.discountType === 'fixed') {
+      amountTotal = Math.max(0, plan.price - coupon.discountValue);
+    } else if (coupon.discountType === 'percentage') {
+      amountTotal = Math.max(0, plan.price * (1 - coupon.discountValue / 100));
+    } else if (coupon.discountType === 'free_shipping') {
+      // For free shipping, we assume the plan price doesn't include shipping
+      // and this coupon type might be handled differently or not applicable to plans.
+      // For now, we'll treat it as no discount on the plan price itself.
+      // If shipping is a separate line item, it would be handled there.
+      // For simplicity, if free_shipping is applied to a plan, it means no price discount.
+      amountTotal = plan.price;
+    }
+    couponId = coupon._id;
+  }
+
+  const lineItems = [
+    {
+      price_data: {
+        currency: 'usd',
+        product_data: {
+          name: plan.name,
+        },
+        unit_amount: amountTotal * 100, // Stripe expects amount in cents
+      },
+      quantity: 1,
+    },
+  ];
+
   const session = await stripe.checkout.sessions.create({
     payment_method_types: ['card'],
-    line_items: [
-      {
-        price: plan.stripePriceId,
-        quantity: 1,
-      },
-    ],
-    mode: 'subscription',
+    line_items: lineItems,
+    mode: 'payment', // Changed to 'payment' for one-time plan purchase with coupon
     success_url: `${process.env.FRONTEND_URL}/payment-success`,
     cancel_url: `${process.env.FRONTEND_URL}/payment-cancel`,
     customer_email: user.email,
     client_reference_id: plan.id,
     metadata: {
       userId: user._id.toString(),
+      planId: plan.id,
+      ...(couponId && { couponId: couponId.toString() }),
     },
   });
 
@@ -43,22 +91,30 @@ exports.createCheckoutSession = asyncHandler(async (req, res, next) => {
 });
 
 const createSubscription = async (session) => {
-    const plan = await Plan.findById(session.client_reference_id);
-    const user = await User.findOne({ email: session.customer_email });
+    const plan = await Plan.findById(session.metadata.planId);
+    const user = await User.findById(session.metadata.userId);
 
-    const stripeSubscription = await stripe.subscriptions.retrieve(
-      session.subscription
-    );
-
+    // If the session was for a one-time payment, there won't be a Stripe subscription ID directly.
+    // We are creating our internal subscription record.
     await Subscription.create({
       user: user._id,
       plan: plan._id,
-      stripeSubscriptionId: session.subscription,
+      // stripeSubscriptionId: session.subscription, // This might not be present for 'payment' mode
       status: 'active',
-      expiresAt: new Date(
-        stripeSubscription.current_period_end * 1000
-      ),
+      expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // Example: 30 days from now
     });
+
+    // Handle coupon usage
+    if (session.metadata.couponId) {
+      const coupon = await Coupon.findById(session.metadata.couponId);
+      if (coupon) {
+        coupon.usedCount += 1;
+        if (coupon.maxUses !== null && coupon.usedCount >= coupon.maxUses) {
+          coupon.isActive = false;
+        }
+        await coupon.save();
+      }
+    }
 };
 
 const renewSubscription = async (invoice) => {
