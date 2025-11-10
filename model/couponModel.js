@@ -21,6 +21,18 @@ const couponSchema = new mongoose.Schema(
       enum: ['fixed', 'percentage', 'free_shipping'],
       default: 'fixed',
     },
+    maxUses: {
+      type: Number,
+      default: null, // Null means unlimited uses, or set a default number
+    },
+    usedCount: {
+      type: Number,
+      default: 0,
+    },
+    isActive: {
+      type: Boolean,
+      default: true,
+    },
   },
   { timestamps: true }
 );
