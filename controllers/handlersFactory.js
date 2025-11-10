@@ -12,7 +12,7 @@ exports.deleteOne = (Model) =>
       return next(new ApiError(`No document for this id ${id}`, 404));
     }
 
-    res.status(204).send(); // No content
+    res.status(204).send();
   });
 
 exports.updateOne = (Model) =>
@@ -32,16 +32,19 @@ exports.updateOne = (Model) =>
 exports.createOne = (Model) =>
   asyncHandler(async (req, res, next) => {
     try {
-      // تنظيف req.body من الحقول غير الموجودة في السكيما
-      const schemaPaths = Object.keys(Model.schema.paths);
-      const allowedFields = new Set(schemaPaths);
-      const cleanedBody = {};
+      // تنظيف صارم: فقط الحقول الموجودة في السكيما
+      const schemaKeys = Object.keys(Model.schema.paths)
+        .filter((key) => !key.startsWith('_') && key !== 'id');
 
-      for (const key in req.body) {
-        if (allowedFields.has(key)) {
+      const cleanedBody = {};
+      schemaKeys.forEach((key) => {
+        if (req.body.hasOwnProperty(key)) {
           cleanedBody[key] = req.body[key];
         }
-      }
+      });
+
+      // تسجيل للتصحيح (يمكن إزالته في الإنتاج)
+      console.log(`Creating ${Model.modelName} with cleaned body:`, cleanedBody);
 
       const doc = await Model.create(cleanedBody);
 
@@ -50,39 +53,26 @@ exports.createOne = (Model) =>
         data: doc,
       });
     } catch (error) {
-      // تسجيل الأخطاء للتصحيح
       console.error("Error in createOne:", error.message);
-      console.error("Original Request Body:", JSON.stringify(req.body, null, 2));
-      console.error("Cleaned Body:", JSON.stringify(cleanedBody ?? {}, null, 2));
+      console.error("Original Body:", req.body);
 
-      // معالجة خطأ التكرار (Duplicate Key)
+      // خطأ تكرار المفتاح
       if (error.code === 11000 && error.keyValue) {
         const field = Object.keys(error.keyValue)[0];
-        let value = error.keyValue[field];
-
-        // تحسين عرض القيمة
-        if (value === null || value === undefined) {
-          value = "(empty)";
-        } else if (typeof value === "string") {
-          value = value.trim();
-        }
-
-        // تحسين اسم الحقل للعرض
+        const value = error.keyValue[field] ?? "(empty)";
         const prettyField =
           field === "couponCode"
-            ? "coupon code"
+            ? "Coupon code"
             : field === "email"
-            ? "email"
-            : field === "slug"
-            ? "slug"
-            : field;
+            ? "Email"
+            : field.charAt(0).toUpperCase() + field.slice(1);
 
-        const message = `${prettyField.charAt(0).toUpperCase() + prettyField.slice(1)} '${value}' is already in use. Please choose another.`;
-
-        return next(new ApiError(message, 400));
+        return next(
+          new ApiError(`${prettyField} '${value}' is already taken. Please use another value.`, 400)
+        );
       }
 
-      // أخطاء التحقق من الصحة
+      // خطأ التحقق من الصحة
       if (error.name === "ValidationError") {
         const messages = Object.values(error.errors)
           .map((err) => err.message)
@@ -90,7 +80,6 @@ exports.createOne = (Model) =>
         return next(new ApiError(messages, 400));
       }
 
-      // أي خطأ آخر
       return next(error);
     }
   });
@@ -114,7 +103,6 @@ exports.getAll = (Model, modelName = "", populateOptions = []) =>
   asyncHandler(async (req, res, next) => {
     try {
       let filter = req.filterObj || {};
-
       const documentsCounts = await Model.countDocuments(filter);
 
       const apiFeatures = new ApiFeatures(Model.find(filter), req.query)
@@ -137,10 +125,7 @@ exports.getAll = (Model, modelName = "", populateOptions = []) =>
       res.status(200).json({
         results: documents.length,
         paginationResult,
-        data:
-          Model.modelName === "User"
-            ? { users: documents }
-            : documents,
+        data: Model.modelName === "User" ? { users: documents } : documents,
       });
     } catch (error) {
       return next(new ApiError(`Error fetching data: ${error.message}`, 500));

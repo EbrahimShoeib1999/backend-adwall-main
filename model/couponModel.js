@@ -1,3 +1,4 @@
+// model/couponModel.js
 const mongoose = require('mongoose');
 
 const couponSchema = new mongoose.Schema(
@@ -7,6 +8,7 @@ const couponSchema = new mongoose.Schema(
       trim: true,
       required: [true, 'Coupon code required'],
       unique: true,
+      uppercase: true,
     },
     expiryDate: {
       type: Date,
@@ -15,6 +17,7 @@ const couponSchema = new mongoose.Schema(
     discountValue: {
       type: Number,
       required: [true, 'Coupon discount value required'],
+      min: [0, 'Discount value cannot be negative'],
     },
     discountType: {
       type: String,
@@ -23,11 +26,18 @@ const couponSchema = new mongoose.Schema(
     },
     maxUses: {
       type: Number,
-      default: 0, // Null means unlimited uses, or set a default number
+      default: null, // null = unlimited uses
+      validate: {
+        validator: function (v) {
+          return v === null || v > 0;
+        },
+        message: 'maxUses must be null or a positive number',
+      },
     },
     usedCount: {
       type: Number,
       default: 0,
+      min: 0,
     },
     isActive: {
       type: Boolean,
