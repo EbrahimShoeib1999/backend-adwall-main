@@ -32,38 +32,73 @@ exports.updateOne = (Model) =>
 
 exports.createOne = (Model) =>
   asyncHandler(async (req, res, next) => {
-    // تنظيف الـ body تمامًا من أي حقل مش مسموح في الموديل
-    const allowedFields = Object.keys(Model.schema.paths).filter(
-      (key) => !key.startsWith("_") && !["__v", "id"].includes(key)
-    );
-
-    const cleanedBody = {};
-    allowedFields.forEach((field) => {
-      if (req.body[field] !== undefined && req.body[field] !== null && req.body[field] !== "") {
-        cleanedBody[field] = req.body[field];
-      }
-    });
-
-    // حذف أي حقل name أو title أو slug لو فاضي (مهما كان الموديل)
-    delete cleanedBody.name;
-    delete cleanedBody.title;
-    delete cleanedBody.slug;
-
     try {
+      // تنظيف صارم: فقط الحقول الموجودة في السكيما
+      const schemaKeys = Object.keys(Model.schema.paths)
+        .filter((key) => !key.startsWith('_') && key !== 'id');
+
+      const cleanedBody = {};
+      schemaKeys.forEach((key) => {
+        if (req.body.hasOwnProperty(key)) {
+          cleanedBody[key] = req.body[key];
+        }
+        // Ensure couponCode is uppercased before validation/creation
+        if (Model.modelName === 'Coupon' && key === 'couponCode' && req.body[key]) {
+          cleanedBody[key] = req.body[key].toUpperCase();
+        }
+      });
+
+      // تسجيل للتصحيح (يمكن إزالته في الإنتاج)
+      console.log(`Creating ${Model.modelName} with cleaned body:`, cleanedBody);
+
       const doc = await Model.create(cleanedBody);
-      res.status(201).json({
+
+      return res.status(201).json({
         status: "success",
         data: doc,
       });
     } catch (error) {
-      if (error.code === 11000) {
-        return next(new ApiError("هناك بيانات مكررة أو غير صالحة. تأكد من الكود أو التاريخ.", 400));
+      console.error("Error in createOne:", error.message);
+      console.error("Original Body:", req.body);
+
+      // خطأ تكرار المفتاح
+      if (error.code === 11000 && error.keyValue) {
+        const field = Object.keys(error.keyValue)[0];
+        const value = error.keyValue[field] ?? "(empty)";
+        const prettyField =
+          field === "couponCode"
+            ? "Coupon code"
+            : field === "email"
+            ? "Email"
+            : field.charAt(0).toUpperCase() + field.slice(1);
+
+        // Custom handling for Coupon model's couponCode
+        if (Model.modelName === 'Coupon' && field === 'couponCode') {
+          const existingCoupon = await Model.findOne({ couponCode: value });
+          if (existingCoupon && !existingCoupon.isActive) {
+            return next(
+              new ApiError(
+                `Coupon code '${value}' already exists but is inactive. Consider reactivating it or using a different code.`,
+                400
+              )
+            );
+          }
+        }
+
+        return next(
+          new ApiError(`${prettyField} '${value}' is already taken. Please use another value.`, 400)
+        );
       }
+
+      // خطأ التحقق من الصحة
       if (error.name === "ValidationError") {
-        const messages = Object.values(error.errors).map(err => err.message).join(", ");
+        const messages = Object.values(error.errors)
+          .map((err) => err.message)
+          .join(", ");
         return next(new ApiError(messages, 400));
       }
-      next(error);
+
+      return next(error);
     }
   });
 exports.getOne = (Model, populationOpt) =>
