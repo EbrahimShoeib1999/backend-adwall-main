@@ -141,9 +141,21 @@ router.use("/companies", protectedCompanyRouter);
 // Coupons Routes
 //--------------------------------------------------
 const couponRouter = express.Router();
+
+// حماية كل مسارات الكوبونات
 couponRouter.use(authService.protect, authService.allowedTo("admin", "manager"));
-couponRouter.route("/").get(getCoupons).post(createCoupon);
-couponRouter.route("/:id").get(getCoupon).put(updateCoupon).delete(deleteCoupon);
+
+couponRouter
+  .route("/")
+  .get(getCoupons)
+  .post(createCoupon);   
+
+couponRouter
+  .route("/:id")
+  .get(getCoupon)
+  .put(updateCoupon)
+  .delete(deleteCoupon);
+
 router.use("/coupons", couponRouter);
 
 
