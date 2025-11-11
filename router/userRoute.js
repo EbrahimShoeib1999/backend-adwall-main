@@ -1,7 +1,8 @@
+console.log("--- LOADING UPDATED userRoute.js with /admins ROUTE ---");
 const express = require("express");
 const {
-  updateUserValidator,
-  deleteUserValidator,
+  getUserValidator,
+  createUserValidator,
   changeUserPasswordValidator,
   updateLoggedUserValidator,
   createAdminValidator,
