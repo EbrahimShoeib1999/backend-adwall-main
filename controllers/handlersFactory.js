@@ -41,6 +41,10 @@ exports.createOne = (Model) =>
         if (req.body.hasOwnProperty(key)) {
           cleanedBody[key] = req.body[key];
         }
+        // Ensure couponCode is uppercased before validation/creation
+        if (Model.modelName === 'Coupon' && key === 'couponCode' && req.body[key]) {
+          cleanedBody[key] = req.body[key].toUpperCase();
+        }
       });
 
       // تسجيل للتصحيح (يمكن إزالته في الإنتاج)
@@ -66,6 +70,19 @@ exports.createOne = (Model) =>
             : field === "email"
             ? "Email"
             : field.charAt(0).toUpperCase() + field.slice(1);
+
+        // Custom handling for Coupon model's couponCode
+        if (Model.modelName === 'Coupon' && field === 'couponCode') {
+          const existingCoupon = await Model.findOne({ couponCode: value });
+          if (existingCoupon && !existingCoupon.isActive) {
+            return next(
+              new ApiError(
+                `Coupon code '${value}' already exists but is inactive. Consider reactivating it or using a different code.`,
+                400
+              )
+            );
+          }
+        }
 
         return next(
           new ApiError(`${prettyField} '${value}' is already taken. Please use another value.`, 400)
