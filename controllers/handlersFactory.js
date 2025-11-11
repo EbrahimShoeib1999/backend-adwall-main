@@ -1,4 +1,5 @@
-// handlersFactory.js
+// controllers/handlersFactory.js
+
 const asyncHandler = require("express-async-handler");
 const ApiError = require("../utils/apiError");
 const ApiFeatures = require("../utils/apiFeatures");
@@ -32,23 +33,21 @@ exports.updateOne = (Model) =>
 exports.createOne = (Model) =>
   asyncHandler(async (req, res, next) => {
     try {
-      // تنظيف صارم: فقط الحقول الموجودة في السكيما
+      // تنظيف الـ body: فقط الحقول المسموحة في السكيما
       const schemaKeys = Object.keys(Model.schema.paths)
-        .filter((key) => !key.startsWith('_') && key !== 'id');
+        .filter((key) => !key.startsWith("_") && key !== "id" && key !== "__v");
 
       const cleanedBody = {};
       schemaKeys.forEach((key) => {
         if (req.body.hasOwnProperty(key)) {
           cleanedBody[key] = req.body[key];
         }
-        // Ensure couponCode is uppercased before validation/creation
-        if (Model.modelName === 'Coupon' && key === 'couponCode' && req.body[key]) {
-          cleanedBody[key] = req.body[key].toUpperCase();
-        }
       });
 
-      // تسجيل للتصحيح (يمكن إزالته في الإنتاج)
-      console.log(`Creating ${Model.modelName} with cleaned body:`, cleanedBody);
+      // حماية إضافية: حذف أي حقل خطير قد يسبب مشاكل (مثل name فارغ)
+      delete cleanedBody.name;
+      delete cleanedBody.title;
+      delete cleanedBody.client_reference_id;
 
       const doc = await Model.create(cleanedBody);
 
@@ -57,39 +56,34 @@ exports.createOne = (Model) =>
         data: doc,
       });
     } catch (error) {
-      console.error("Error in createOne:", error.message);
-      console.error("Original Body:", req.body);
+      console.error("CreateOne Error:", error.message);
 
-      // خطأ تكرار المفتاح
-      if (error.code === 11000 && error.keyValue) {
-        const field = Object.keys(error.keyValue)[0];
-        const value = error.keyValue[field] ?? "(empty)";
-        const prettyField =
-          field === "couponCode"
-            ? "Coupon code"
-            : field === "email"
-            ? "Email"
-            : field.charAt(0).toUpperCase() + field.slice(1);
+      // معالجة أخطاء التكرار (Duplicate Key) بشكل ذكي وواضح
+      if (error.code === 11000 && error.keyPattern && error.keyValue) {
+        const field = Object.keys(error.keyPattern)[0];
+        const value = error.keyValue[field];
 
-        // Custom handling for Coupon model's couponCode
-        if (Model.modelName === 'Coupon' && field === 'couponCode') {
-          const existingCoupon = await Model.findOne({ couponCode: value });
-          if (existingCoupon && !existingCoupon.isActive) {
-            return next(
-              new ApiError(
-                `Coupon code '${value}' already exists but is inactive. Consider reactivating it or using a different code.`,
-                400
-              )
-            );
-          }
-        }
+        let fieldName = field;
+        if (field === "couponCode") fieldName = "Coupon code";
+        else if (field === "email") fieldName = "Email";
+        else if (field === "slug") fieldName = "Slug";
+        else if (field === "name") fieldName = "Name";
+        else fieldName = field.charAt(0).toUpperCase() + field.slice(1);
+
+        const displayValue =
+          value === null || value === undefined || value === ""
+            ? "(empty value)"
+            : `'${value}'`;
 
         return next(
-          new ApiError(`${prettyField} '${value}' is already taken. Please use another value.`, 400)
+          new ApiError(
+            `${fieldName} ${displayValue} is already taken. Please choose another value.`,
+            400
+          )
         );
       }
 
-      // خطأ التحقق من الصحة
+      // أخطاء التحقق من الصحة (Validation)
       if (error.name === "ValidationError") {
         const messages = Object.values(error.errors)
           .map((err) => err.message)
@@ -97,7 +91,8 @@ exports.createOne = (Model) =>
         return next(new ApiError(messages, 400));
       }
 
-      return next(error);
+      // أي خطأ آخر
+      return next(new ApiError(error.message || "Something went wrong while creating the document", 400));
     }
   });
 
