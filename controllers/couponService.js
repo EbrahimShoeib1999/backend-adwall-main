@@ -6,7 +6,6 @@ const asyncHandler = require('express-async-handler');
 
 exports.getCoupons = factory.getAll(Coupon);
 exports.getCoupon = factory.getOne(Coupon);
-// exports.createCoupon = factory.createOne(Coupon);   ← تم تعطيلها
 exports.updateCoupon = factory.updateOne(Coupon);
 exports.deleteCoupon = factory.deleteOne(Coupon);
 
@@ -41,7 +40,6 @@ exports.applyCoupon = asyncHandler(async (req, res, next) => {
     return next(new ApiError('This coupon has reached its maximum usage limit', 400));
   }
 
-  // زيادة العد
   coupon.usedCount += 1;
   if (coupon.maxUses !== null && coupon.usedCount >= coupon.maxUses) {
     coupon.isActive = false;
@@ -59,9 +57,9 @@ exports.applyCoupon = asyncHandler(async (req, res, next) => {
   });
 });
 
-// إنشاء الكوبون مباشرة بدون المرور بالـ factory المعفن
+// إنشاء كوبون مباشرة (الحل النهائي اللي خلّص كل المشاكل)
 exports.createCouponDirect = asyncHandler(async (req, res, next) => {
-  const { couponCode, expiryDate, discountValue, discountType, maxUses, isActive } = req.body;
+  const { couponCode, expiryDate, discountValue, discountType = 'fixed', maxUses = null, isActive = true } = req.body;
 
   if (!couponCode || !expiryDate || discountValue === undefined) {
     return next(new ApiError('couponCode, expiryDate and discountValue are required', 400));
@@ -69,23 +67,23 @@ exports.createCouponDirect = asyncHandler(async (req, res, next) => {
 
   const code = couponCode.toString().trim().toUpperCase();
 
-  const existingCoupon = await Coupon.findOne({ couponCode: code });
-  if (existingCoupon) {
-    return next(new ApiError(`Coupon code '${code}' is already in use`, 400));
+  const existing = await Coupon.findOne({ couponCode: code });
+  if (existing) {
+    return next(new ApiError(`Coupon code '${code}' already exists`, 400));
   }
 
-  const newCoupon = await Coupon.create({
+  const coupon = await Coupon.create({
     couponCode: code,
     expiryDate,
     discountValue: Number(discountValue),
-    discountType: discountType || 'fixed',
-    maxUses: maxUses === null || maxUses === undefined ? null : Number(maxUses),
-    isActive: isActive !== undefined ? Boolean(isActive) : true,
+    discountType,
+    maxUses: maxUses === null ? null : Number(maxUses),
+    isActive: Boolean(isActive),
   });
 
   res.status(201).json({
     status: 'success',
     message: 'Coupon created successfully',
-    data: newCoupon,
+    data: coupon,
   });
 });
