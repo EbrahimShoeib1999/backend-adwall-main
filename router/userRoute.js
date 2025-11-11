@@ -1,11 +1,10 @@
 const express = require("express");
 const {
-  getUserValidator,
-  createUserValidator,
   updateUserValidator,
   deleteUserValidator,
   changeUserPasswordValidator,
   updateLoggedUserValidator,
+  createAdminValidator,
 } = require("../utils/validators/userValidator");
 
 const {
@@ -22,10 +21,12 @@ const {
   updateLoggedUserData,
   deleteLoggedUserData,
   getUsersStats,
+  createAdmin,
 } = require("../controllers/userService");
 
 const authService = require("../controllers/authService");
 const { allowedTo } = require("../middlewares/auth");
+
 
 const router = express.Router();
 
@@ -38,6 +39,15 @@ router.delete("/deleteMe", deleteLoggedUserData);
 
 // Admin
 router.get("/stats", allowedTo("admin"), getUsersStats);
+router.post(
+  "/admins",
+  allowedTo("admin"),
+  uploadUserImage,
+  resizeImage,
+  createAdminValidator,
+  createAdmin,
+  createUser
+);
 
 router.put(
   "/changePassword/:id",

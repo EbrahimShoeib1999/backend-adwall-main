@@ -92,6 +92,14 @@ exports.changeUserPassword = asyncHandler(async (req, res, next) => {
 // @access  Private/Admin
 exports.deleteUser = factory.deleteOne(User);
 
+// @desc    Set role to admin
+// @route   POST  /api/v1/users/admins
+// @access  Private/Admin
+exports.createAdmin = (req, res, next) => {
+  req.body.role = "admin";
+  next();
+};
+
 // @desc    Get Logged user data
 // @route   GET /api/v1/users/getMe
 // @access  Private/Protect

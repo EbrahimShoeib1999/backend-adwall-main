@@ -64,6 +64,72 @@ exports.createUserValidator = [
 ];
 
 /**
+ * @desc    Validator for creating a new admin
+ */
+exports.createAdminValidator = [
+  check('name')
+    .notEmpty()
+    .withMessage('اسم المستخدم مطلوب')
+    .isLength({ min: 3 })
+    .withMessage('الاسم قصير جدًا (الحد الأدنى 3 أحرف)')
+    .custom((val, { req }) => {
+      req.body.slug = slugify(val, { lower: true });
+      return true;
+    }),
+
+  check('email')
+    .notEmpty()
+    .withMessage('البريد الإلكتروني مطلوب')
+    .isEmail()
+    .withMessage('عنوان بريد إلكتروني غير صالح')
+    .custom((email) =>
+      User.findOne({ email }).then((user) => {
+        if (user) {
+          return Promise.reject(new Error('البريد الإلكتروني مُستخدم بالفعل'));
+        }
+      })
+    ),
+
+  check('password')
+    .notEmpty()
+    .withMessage('كلمة المرور مطلوبة')
+    .isLength({ min: 6 })
+    .withMessage('كلمة المرور يجب أن تكون 6 أحرف على الأقل')
+    .custom((password, { req }) => {
+      if (password !== req.body.passwordConfirm) {
+        throw new Error('تأكيد كلمة المرور غير متطابق');
+      }
+      return true;
+    }),
+
+  check('passwordConfirm')
+    .notEmpty()
+    .withMessage('تأكيد كلمة المرور مطلوب'),
+
+  check('phone')
+    .notEmpty()
+    .withMessage('رقم الهاتف مطلوب')
+    .matches(/^\+(?:[0-9] ?){6,14}[0-9]$/)
+    .withMessage('رقم هاتف غير صالح'),
+
+  check('addresses')
+    .optional()
+    .isArray()
+    .withMessage('العناوين يجب أن تكون مصفوفة')
+    .custom((addresses) => {
+      for (const address of addresses) {
+        if (!address.alias || !address.details || !address.phone || !address.city || !address.postalCode) {
+          throw new Error('كل عنوان يجب أن يحتوي على alias, details, phone, city, and postalCode');
+        }
+      }
+      return true;
+    }),
+
+  validatorMiddleware,
+];
+
+
+/**
  * @desc    Validator for getting a user by ID
  */
 exports.getUserValidator = [

@@ -772,6 +772,26 @@
           "response": []
         },
         {
+          "name": "POST /api/v1/user/admins",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/user/admins",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "user",
+                "admins"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
           "name": "PUT /api/v1/user/changePassword/:id",
           "request": {
             "method": "PUT",
