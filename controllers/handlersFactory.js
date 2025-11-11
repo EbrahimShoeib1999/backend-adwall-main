@@ -33,66 +33,56 @@ exports.updateOne = (Model) =>
 exports.createOne = (Model) =>
   asyncHandler(async (req, res, next) => {
     try {
-      // تنظيف الـ body: فقط الحقول المسموحة في السكيما
-      const schemaKeys = Object.keys(Model.schema.paths)
-        .filter((key) => !key.startsWith("_") && key !== "id" && key !== "__v");
+      // 1. تنظيف الـ body بعناية
+      const allowedFields = Object.keys(Model.schema.paths).filter(
+        (key) => !key.startsWith("_") && key !== "__v"
+      );
 
       const cleanedBody = {};
-      schemaKeys.forEach((key) => {
-        if (req.body.hasOwnProperty(key)) {
-          cleanedBody[key] = req.body[key];
+      allowedFields.forEach((field) => {
+        if (req.body.hasOwnProperty(field)) {
+          // لا نسمح أبدًا بحقل name فارغ مهما كان الموديل
+          if (field === "name" && (!req.body[field] || req.body[field].toString().trim() === "")) {
+            return; // نتجاهله تمامًا
+          }
+          cleanedBody[field] = req.body[field];
         }
       });
 
-      // حماية إضافية: حذف أي حقل خطير قد يسبب مشاكل (مثل name فارغ)
-      delete cleanedBody.name;
-      delete cleanedBody.title;
-      delete cleanedBody.client_reference_id;
+      // لو الموديل هو Coupon → نتأكد إن مفيش name خالص
+      if (Model.modelName === "Coupon") {
+        delete cleanedBody.name;
+        delete cleanedBody.title;
+      }
+
+      console.log(`Creating ${Model.modelName}:`, cleanedBody);
 
       const doc = await Model.create(cleanedBody);
 
-      return res.status(201).json({
+      res.status(201).json({
         status: "success",
         data: doc,
       });
     } catch (error) {
-      console.error("CreateOne Error:", error.message);
+      console.error("Create Error:", error.message, error.code);
 
-      // معالجة أخطاء التكرار (Duplicate Key) بشكل ذكي وواضح
-      if (error.code === 11000 && error.keyPattern && error.keyValue) {
-        const field = Object.keys(error.keyPattern)[0];
+      if (error.code === 11000) {
+        const field = Object.keys(error.keyValue || {})[0];
         const value = error.keyValue[field];
 
-        let fieldName = field;
-        if (field === "couponCode") fieldName = "Coupon code";
-        else if (field === "email") fieldName = "Email";
-        else if (field === "slug") fieldName = "Slug";
-        else if (field === "name") fieldName = "Name";
-        else fieldName = field.charAt(0).toUpperCase() + field.slice(1);
+        if (!value || value === "" || value === null) {
+          return next(new ApiError("You sent an empty or duplicate value for a unique field. Please check your data.", 400));
+        }
 
-        const displayValue =
-          value === null || value === undefined || value === ""
-            ? "(empty value)"
-            : `'${value}'`;
-
-        return next(
-          new ApiError(
-            `${fieldName} ${displayValue} is already taken. Please choose another value.`,
-            400
-          )
-        );
+        return next(new ApiError(`${field} '${value}' is already taken.`, 400));
       }
 
-      // أخطاء التحقق من الصحة (Validation)
       if (error.name === "ValidationError") {
-        const messages = Object.values(error.errors)
-          .map((err) => err.message)
-          .join(", ");
+        const messages = Object.values(error.errors).map((e) => e.message).join(", ");
         return next(new ApiError(messages, 400));
       }
 
-      // أي خطأ آخر
-      return next(new ApiError(error.message || "Something went wrong while creating the document", 400));
+      next(error);
     }
   });
 
