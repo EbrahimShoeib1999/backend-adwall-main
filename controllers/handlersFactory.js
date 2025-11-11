@@ -32,60 +32,40 @@ exports.updateOne = (Model) =>
 
 exports.createOne = (Model) =>
   asyncHandler(async (req, res, next) => {
-    try {
-      // 1. تنظيف الـ body بعناية
-      const allowedFields = Object.keys(Model.schema.paths).filter(
-        (key) => !key.startsWith("_") && key !== "__v"
-      );
+    // تنظيف الـ body تمامًا من أي حقل مش مسموح في الموديل
+    const allowedFields = Object.keys(Model.schema.paths).filter(
+      (key) => !key.startsWith("_") && !["__v", "id"].includes(key)
+    );
 
-      const cleanedBody = {};
-      allowedFields.forEach((field) => {
-        if (req.body.hasOwnProperty(field)) {
-          // لا نسمح أبدًا بحقل name فارغ مهما كان الموديل
-          if (field === "name" && (!req.body[field] || req.body[field].toString().trim() === "")) {
-            return; // نتجاهله تمامًا
-          }
-          cleanedBody[field] = req.body[field];
-        }
-      });
-
-      // لو الموديل هو Coupon → نتأكد إن مفيش name خالص
-      if (Model.modelName === "Coupon") {
-        delete cleanedBody.name;
-        delete cleanedBody.title;
+    const cleanedBody = {};
+    allowedFields.forEach((field) => {
+      if (req.body[field] !== undefined && req.body[field] !== null && req.body[field] !== "") {
+        cleanedBody[field] = req.body[field];
       }
+    });
 
-      console.log(`Creating ${Model.modelName}:`, cleanedBody);
+    // حذف أي حقل name أو title أو slug لو فاضي (مهما كان الموديل)
+    delete cleanedBody.name;
+    delete cleanedBody.title;
+    delete cleanedBody.slug;
 
+    try {
       const doc = await Model.create(cleanedBody);
-
       res.status(201).json({
         status: "success",
         data: doc,
       });
     } catch (error) {
-      console.error("Create Error:", error.message, error.code);
-
       if (error.code === 11000) {
-        const field = Object.keys(error.keyValue || {})[0];
-        const value = error.keyValue[field];
-
-        if (!value || value === "" || value === null) {
-          return next(new ApiError("You sent an empty or duplicate value for a unique field. Please check your data.", 400));
-        }
-
-        return next(new ApiError(`${field} '${value}' is already taken.`, 400));
+        return next(new ApiError("هناك بيانات مكررة أو غير صالحة. تأكد من الكود أو التاريخ.", 400));
       }
-
       if (error.name === "ValidationError") {
-        const messages = Object.values(error.errors).map((e) => e.message).join(", ");
+        const messages = Object.values(error.errors).map(err => err.message).join(", ");
         return next(new ApiError(messages, 400));
       }
-
       next(error);
     }
   });
-
 exports.getOne = (Model, populationOpt) =>
   asyncHandler(async (req, res, next) => {
     const { id } = req.params;
