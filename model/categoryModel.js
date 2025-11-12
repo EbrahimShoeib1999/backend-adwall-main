@@ -17,6 +17,12 @@ const categorySchema = new mongoose.Schema(
       minlength: [3, "Too short"],
       maxlength: [32, "Too long"],
     },
+    descriptionAr: {
+      type: String,
+    },
+    descriptionEn: {
+      type: String,
+    },
     color: {
       type: String,
       required: [true, "Color required"],

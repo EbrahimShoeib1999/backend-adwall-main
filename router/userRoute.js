@@ -30,6 +30,7 @@ const {
   deleteLoggedUserData,
   getUsersStats,
   createAdmin,
+  assignPlanToUser,
 } = require("../controllers/userService");
 
 // كل حاجة بتاعتة الـ Auth (protect + allowedTo) موجودة هنا في authService.js
@@ -73,6 +74,13 @@ router.put(
   authService.allowedTo("admin"),
   changeUserPasswordValidator,
   changeUserPassword
+);
+
+// Assign plan to user (for admin)
+router.post(
+  "/:userId/assign-plan",
+  authService.allowedTo("admin"),
+  assignPlanToUser
 );
 
 // CRUD للمستخدمين (للأدمن فقط)

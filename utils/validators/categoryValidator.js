@@ -26,6 +26,8 @@ exports.createCategoryValidator = [
       req.body.slug = slugify(val);
       return true;
     }),
+  check('descriptionAr').optional().isString(),
+  check('descriptionEn').optional().isString(),
   check('color').notEmpty().withMessage('Color required'),
   validatorMiddleware,
 ];
@@ -48,6 +50,8 @@ exports.updateCategoryValidator = [
       req.body.slug = slugify(val);
       return true;
     }),
+  check('descriptionAr').optional().isString(),
+  check('descriptionEn').optional().isString(),
   check('color').optional(),
   validatorMiddleware,
 ];

@@ -10,6 +10,7 @@ const ApiError = require("../utils/apiError");
 const { uploadSingleImage } = require("../middlewares/uploadImageMiddleware");
 const createToken = require("../utils/createToken");
 const User = require("../model/userModel");
+const Plan = require('../model/planModel');
 
 // Upload single image
 exports.uploadUserImage = uploadSingleImage("profileImg");
@@ -157,6 +158,52 @@ exports.deleteLoggedUserData = asyncHandler(async (req, res, next) => {
   await User.findByIdAndUpdate(req.user._id, { active: false });
 
   res.status(204).json({ status: "Success" });
+});
+
+exports.assignPlanToUser = asyncHandler(async (req, res, next) => {
+  const { userId } = req.params;
+  const { planId, optionId } = req.body;
+
+  // 1) Find the user
+  const user = await User.findById(userId);
+  if (!user) {
+    return next(new ApiError(`No user for this id ${userId}`, 404));
+  }
+
+  // 2) Find the plan
+  const plan = await Plan.findById(planId);
+  if (!plan) {
+    return next(new ApiError(`No plan for this id ${planId}`, 404));
+  }
+
+  // 3) Find the specific option in the plan
+  const planOption = plan.options.id(optionId);
+  if (!planOption) {
+    return next(new ApiError(`No plan option for this id ${optionId}`, 404));
+  }
+
+  // 4) Calculate subscription end date
+  const durationInMonths = parseInt(planOption.duration.split(' ')[0]);
+  const startDate = new Date();
+  const endDate = new Date(new Date().setMonth(startDate.getMonth() + durationInMonths));
+
+  // 5) Update user's subscription
+  user.subscription = {
+    plan: plan._id,
+    option: planOption._id,
+    startDate: new Date(),
+    endDate: endDate,
+    adsUsed: 0,
+    isActive: true,
+  };
+
+  await user.save();
+
+  res.status(200).json({
+    status: 'success',
+    message: `Plan '${plan.name}' - '${planOption.duration}' assigned to user '${user.name}' successfully.`,
+    data: user,
+  });
 });
 
 // @desc    Get users statistics

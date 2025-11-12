@@ -811,6 +811,27 @@
             }
           },
           "response": []
+        },
+        {
+          "name": "POST /api/v1/user/:userId/assign-plan",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/user/:userId/assign-plan",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "user",
+                ":userId",
+                "assign-plan"
+              ]
+            }
+          },
+          "response": []
         }
       ]
     }

@@ -1,5 +1,12 @@
 const express = require('express');
 const {
+  getPlanValidator,
+  createPlanValidator,
+  updatePlanValidator,
+  deletePlanValidator,
+} = require('../utils/validators/planValidator');
+
+const {
   getPlans,
   getPlan,
   createPlan,
@@ -12,12 +19,15 @@ const router = express.Router();
 
 // Public routes
 router.route('/').get(getPlans);
-router.route('/:id').get(getPlan);
+router.route('/:id').get(getPlanValidator, getPlan);
 
 // Admin only routes
 router.use(authService.protect, authService.allowedTo('admin'));
 
-router.route('/').post(createPlan);
-router.route('/:id').put(updatePlan).delete(deletePlan);
+router.route('/').post(createPlanValidator, createPlan);
+router
+  .route('/:id')
+  .put(updatePlanValidator, updatePlan)
+  .delete(deletePlanValidator, deletePlan);
 
 module.exports = router;

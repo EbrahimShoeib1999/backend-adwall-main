@@ -77,6 +77,25 @@ const userSchema = new mongoose.Schema(
       ],
       default: [],
     },
+    subscription: {
+      plan: {
+        type: mongoose.Schema.ObjectId,
+        ref: 'Plan',
+      },
+      option: {
+        type: mongoose.Schema.Types.ObjectId,
+      },
+      startDate: Date,
+      endDate: Date,
+      adsUsed: {
+        type: Number,
+        default: 0,
+      },
+      isActive: {
+        type: Boolean,
+        default: false,
+      }
+    },
   },
   { timestamps: true }
 );
