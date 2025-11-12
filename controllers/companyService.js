@@ -51,7 +51,7 @@ exports.getAllCompanies = asyncHandler(async (req, res, next) => {
     .lean();
 
   companies = companies.map(company => {
-    if (company.categoryId) {
+    if (company.categoryId && company.categoryId._id) {
       const { _id, ...rest } = company.categoryId;
       company.categoryId = { id: _id.toString(), ...rest };
     }
@@ -76,7 +76,7 @@ exports.getOneCompany = asyncHandler(async (req, res, next) => {
     return next(new ApiError(`No company for this id ${req.params.id}`, 404));
   }
 
-  if (company.categoryId) {
+  if (company.categoryId && company.categoryId._id) {
     const { _id, ...rest } = company.categoryId;
     company.categoryId = { id: _id.toString(), ...rest };
   }
@@ -104,7 +104,7 @@ exports.updateCompany = asyncHandler(async (req, res, next) => {
     .populate({ path: "categoryId", select: "nameAr nameEn color _id" })
     .lean();
 
-  if (updatedCompany.categoryId) {
+  if (updatedCompany.categoryId && updatedCompany.categoryId._id) {
     const { _id, ...rest } = updatedCompany.categoryId;
     updatedCompany.categoryId = { id: _id.toString(), ...rest };
   }
@@ -137,7 +137,7 @@ exports.getCompaniesByCategory = asyncHandler(async (req, res, next) => {
     .lean();
 
   companies = companies.map(company => {
-    if (company.categoryId) {
+    if (company.categoryId && company.categoryId._id) {
       const { _id, ...rest } = company.categoryId;
       company.categoryId = { id: _id.toString(), ...rest };
     }
@@ -173,7 +173,7 @@ exports.searchCompaniesByName = asyncHandler(async (req, res, next) => {
     .lean();
 
   companies = companies.map(company => {
-    if (company.categoryId) {
+    if (company.categoryId && company.categoryId._id) {
       const { _id, ...rest } = company.categoryId;
       company.categoryId = { id: _id.toString(), ...rest };
     }
@@ -194,7 +194,7 @@ exports.getPendingCompanies = asyncHandler(async (req, res, next) => {
     .lean();
 
   pendingCompanies = pendingCompanies.map(company => {
-    if (company.categoryId) {
+    if (company.categoryId && company.categoryId._id) {
       const { _id, ...rest } = company.categoryId;
       company.categoryId = { id: _id.toString(), ...rest };
     }
@@ -224,7 +224,7 @@ exports.searchCompaniesByLocation = asyncHandler(async (req, res, next) => {
     .lean();
 
   companies = companies.map(company => {
-    if (company.categoryId) {
+    if (company.categoryId && company.categoryId._id) {
       const { _id, ...rest } = company.categoryId;
       company.categoryId = { id: _id.toString(), ...rest };
     }
@@ -256,7 +256,7 @@ exports.searchCompaniesByCategoryAndLocation = asyncHandler(async (req, res, nex
     .lean();
 
   companies = companies.map(company => {
-    if (company.categoryId) {
+    if (company.categoryId && company.categoryId._id) {
       const { _id, ...rest } = company.categoryId;
       company.categoryId = { id: _id.toString(), ...rest };
     }
@@ -289,7 +289,7 @@ exports.approveCompany = asyncHandler(async (req, res, next) => {
     return next(new ApiError("تمت الموافقة على الشركة مسبقاً", 400));
   }
 
-  if (updatedCompany.categoryId) {
+  if (updatedCompany.categoryId && updatedCompany.categoryId._id) {
     const { _id, ...rest } = updatedCompany.categoryId;
     updatedCompany.categoryId = { id: _id.toString(), ...rest };
   }
@@ -331,11 +331,9 @@ exports.rejectCompany = asyncHandler(async (req, res, next) => {
   if (!company) return next(new ApiError("الشركة غير موجودة", 404));
   if (company.status === 'rejected') return next(new ApiError("تم رفض الشركة مسبقاً", 400));
 
-  company.status = 'rejected';
-  company.rejectionReason = reason;
   await Company.findByIdAndUpdate(id, { status: 'rejected', rejectionReason: reason });
 
-  if (company.categoryId) {
+  if (company.categoryId && company.categoryId._id) {
     const { _id, ...rest } = company.categoryId;
     company.categoryId = { id: _id.toString(), ...rest };
   }
@@ -374,7 +372,7 @@ exports.getUserCompanies = asyncHandler(async (req, res, next) => {
     .lean();
 
   companies = companies.map(company => {
-    if (company.categoryId) {
+    if (company.categoryId && company.categoryId._id) {
       const { _id, ...rest } = company.categoryId;
       company.categoryId = { id: _id.toString(), ...rest };
     }
@@ -404,7 +402,7 @@ exports.getUserCompany = asyncHandler(async (req, res, next) => {
     return next(new ApiError("الشركة غير موجودة أو لا تنتمي لك", 404));
   }
 
-  if (company.categoryId) {
+  if (company.categoryId && company.categoryId._id) {
     const { _id, ...rest } = company.categoryId;
     company.categoryId = { id: _id.toString(), ...rest };
   }
@@ -433,7 +431,7 @@ exports.getUserCompaniesByStatus = asyncHandler(async (req, res, next) => {
     .lean();
 
   companies = companies.map(company => {
-    if (company.categoryId) {
+    if (company.categoryId && company.categoryId._id) {
       const { _id, ...rest } = company.categoryId;
       company.categoryId = { id: _id.toString(), ...rest };
     }
@@ -506,7 +504,7 @@ exports.updateCompanyVideo = asyncHandler(async (req, res, next) => {
     return next(new ApiError(`No company for this id ${id}`, 404));
   }
 
-  if (company.categoryId) {
+  if (company.categoryId && company.categoryId._id) {
     const { _id, ...rest } = company.categoryId;
     company.categoryId = { id: _id.toString(), ...rest };
   }
