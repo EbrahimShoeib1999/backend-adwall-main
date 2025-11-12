@@ -7,27 +7,25 @@ const asyncHandler = require("express-async-handler");
 const Company = require("../model/companyModel");
 const User = require("../model/userModel");
 const ApiError = require("../utils/apiError");
-const factory = require("./handlersFactory");
 const sendEmail = require("../utils/sendEmail");
 const { uploadSingleImage } = require("../middlewares/uploadImageMiddleware");
+const { formatCategoryId, formatCompanies } = require("../utils/formatCategoryId");
 
 // Upload single image
 exports.uploadCompanyImage = uploadSingleImage("logo");
 
 // Image processing
 exports.resizeImage = asyncHandler(async (req, res, next) => {
+  if (!req.file) return next();
+
   const filename = `company-${uuidv4()}-${Date.now()}.jpeg`;
+  const processedImageBuffer = await sharp(req.file.buffer)
+    .resize(600, 600)
+    .toFormat("jpeg")
+    .jpeg({ quality: 95 })
+    .toBuffer();
 
-  if (req.file) {
-    const processedImageBuffer = await sharp(req.file.buffer)
-      .resize(600, 600)
-      .toFormat("jpeg")
-      .jpeg({ quality: 95 })
-      .toBuffer();
-
-    req.body.logo = processedImageBuffer;
-  }
-
+  req.body.logo = processedImageBuffer;
   next();
 });
 
@@ -37,26 +35,33 @@ exports.resizeImage = asyncHandler(async (req, res, next) => {
 exports.createCompany = asyncHandler(async (req, res, next) => {
   req.body.userId = req.user._id;
   const newDoc = await Company.create(req.body);
+
+  // Populate after creation
+  const populatedDoc = await Company.findById(newDoc._id)
+    .populate({ path: "userId", select: "name email" })
+    .populate({ path: "categoryId", select: "_id nameAr nameEn color" })
+    .lean();
+
+  if (!populatedDoc) {
+    return next(new ApiError("Failed to retrieve created company", 500));
+  }
+
+  formatCategoryId(populatedDoc);
+
   res.status(201).json({
     status: "success",
-    data: newDoc,
+    data: populatedDoc,
   });
 });
 
-// [الأدمن] جلب جميع الشركات المسجلة (مع إمكانية الفلترة)
+// [Admin] Get all registered companies
 exports.getAllCompanies = asyncHandler(async (req, res, next) => {
   let companies = await Company.find()
     .populate({ path: "userId", select: "name email" })
-    .populate({ path: "categoryId", select: "nameAr nameEn color _id" })
+    .populate({ path: "categoryId", select: "_id nameAr nameEn color" })
     .lean();
 
-  companies = companies.map(company => {
-    if (company.categoryId && company.categoryId._id) {
-      const { _id, ...rest } = company.categoryId;
-      company.categoryId = { id: _id.toString(), ...rest };
-    }
-    return company;
-  });
+  companies = formatCompanies(companies);
 
   res.status(200).json({
     status: "success",
@@ -65,21 +70,18 @@ exports.getAllCompanies = asyncHandler(async (req, res, next) => {
   });
 });
 
-// @desc Get one company (with categoryId.id)
+// @desc Get one company
 exports.getOneCompany = asyncHandler(async (req, res, next) => {
   let company = await Company.findById(req.params.id)
     .populate({ path: "userId", select: "name email" })
-    .populate({ path: "categoryId", select: "nameAr nameEn color _id" })
+    .populate({ path: "categoryId", select: "_id nameAr nameEn color" })
     .lean();
 
   if (!company) {
     return next(new ApiError(`No company for this id ${req.params.id}`, 404));
   }
 
-  if (company.categoryId && company.categoryId._id) {
-    const { _id, ...rest } = company.categoryId;
-    company.categoryId = { id: _id.toString(), ...rest };
-  }
+  formatCategoryId(company);
 
   res.status(200).json({
     status: "success",
@@ -101,13 +103,10 @@ exports.updateCompany = asyncHandler(async (req, res, next) => {
   }
 
   const updatedCompany = await Company.findByIdAndUpdate(id, req.body, { new: true })
-    .populate({ path: "categoryId", select: "nameAr nameEn color _id" })
+    .populate({ path: "categoryId", select: "_id nameAr nameEn color" })
     .lean();
 
-  if (updatedCompany.categoryId && updatedCompany.categoryId._id) {
-    const { _id, ...rest } = updatedCompany.categoryId;
-    updatedCompany.categoryId = { id: _id.toString(), ...rest };
-  }
+  formatCategoryId(updatedCompany);
 
   res.status(200).json({ status: "success", data: updatedCompany });
 });
@@ -133,16 +132,10 @@ exports.deleteCompany = asyncHandler(async (req, res, next) => {
 exports.getCompaniesByCategory = asyncHandler(async (req, res, next) => {
   const { categoryId } = req.params;
   let companies = await Company.find({ categoryId, status: "approved" })
-    .populate({ path: "categoryId", select: "nameAr nameEn color _id" })
+    .populate({ path: "categoryId", select: "_id nameAr nameEn color" })
     .lean();
 
-  companies = companies.map(company => {
-    if (company.categoryId && company.categoryId._id) {
-      const { _id, ...rest } = company.categoryId;
-      company.categoryId = { id: _id.toString(), ...rest };
-    }
-    return company;
-  });
+  companies = formatCompanies(companies);
 
   res.status(200).json({
     status: "success",
@@ -169,16 +162,10 @@ exports.searchCompaniesByName = asyncHandler(async (req, res, next) => {
   };
 
   let companies = await Company.find(searchConditions)
-    .populate({ path: "categoryId", select: "nameAr nameEn color _id" })
+    .populate({ path: "categoryId", select: "_id nameAr nameEn color" })
     .lean();
 
-  companies = companies.map(company => {
-    if (company.categoryId && company.categoryId._id) {
-      const { _id, ...rest } = company.categoryId;
-      company.categoryId = { id: _id.toString(), ...rest };
-    }
-    return company;
-  });
+  companies = formatCompanies(companies);
 
   res.status(200).json({
     status: "success",
@@ -190,16 +177,10 @@ exports.searchCompaniesByName = asyncHandler(async (req, res, next) => {
 // @desc Get all pending companies (admin only)
 exports.getPendingCompanies = asyncHandler(async (req, res, next) => {
   let pendingCompanies = await Company.find({ status: "pending" })
-    .populate({ path: "categoryId", select: "nameAr nameEn color _id" })
+    .populate({ path: "categoryId", select: "_id nameAr nameEn color" })
     .lean();
 
-  pendingCompanies = pendingCompanies.map(company => {
-    if (company.categoryId && company.categoryId._id) {
-      const { _id, ...rest } = company.categoryId;
-      company.categoryId = { id: _id.toString(), ...rest };
-    }
-    return company;
-  });
+  pendingCompanies = formatCompanies(pendingCompanies);
 
   res.status(200).json({
     status: "success",
@@ -220,16 +201,10 @@ exports.searchCompaniesByLocation = asyncHandler(async (req, res, next) => {
   if (country) query.country = { $regex: country, $options: "i" };
 
   let companies = await Company.find(query)
-    .populate({ path: "categoryId", select: "nameAr nameEn color _id" })
+    .populate({ path: "categoryId", select: "_id nameAr nameEn color" })
     .lean();
 
-  companies = companies.map(company => {
-    if (company.categoryId && company.categoryId._id) {
-      const { _id, ...rest } = company.categoryId;
-      company.categoryId = { id: _id.toString(), ...rest };
-    }
-    return company;
-  });
+  companies = formatCompanies(companies);
 
   res.status(200).json({
     status: "success",
@@ -252,16 +227,10 @@ exports.searchCompaniesByCategoryAndLocation = asyncHandler(async (req, res, nex
   if (country) query.country = { $regex: country, $options: "i" };
 
   let companies = await Company.find(query)
-    .populate({ path: "categoryId", select: "nameAr nameEn color _id" })
+    .populate({ path: "categoryId", select: "_id nameAr nameEn color" })
     .lean();
 
-  companies = companies.map(company => {
-    if (company.categoryId && company.categoryId._id) {
-      const { _id, ...rest } = company.categoryId;
-      company.categoryId = { id: _id.toString(), ...rest };
-    }
-    return company;
-  });
+  companies = formatCompanies(companies);
 
   res.status(200).json({
     status: "success",
@@ -280,7 +249,7 @@ exports.approveCompany = asyncHandler(async (req, res, next) => {
     { new: true }
   )
     .populate("userId", "name email")
-    .populate({ path: "categoryId", select: "nameAr nameEn color _id" })
+    .populate({ path: "categoryId", select: "_id nameAr nameEn color" })
     .lean();
 
   if (!updatedCompany) {
@@ -289,10 +258,7 @@ exports.approveCompany = asyncHandler(async (req, res, next) => {
     return next(new ApiError("تمت الموافقة على الشركة مسبقاً", 400));
   }
 
-  if (updatedCompany.categoryId && updatedCompany.categoryId._id) {
-    const { _id, ...rest } = updatedCompany.categoryId;
-    updatedCompany.categoryId = { id: _id.toString(), ...rest };
-  }
+  formatCategoryId(updatedCompany);
 
   try {
     if (updatedCompany.userId) {
@@ -325,7 +291,7 @@ exports.rejectCompany = asyncHandler(async (req, res, next) => {
 
   const company = await Company.findById(id)
     .populate('userId', 'name email')
-    .populate({ path: "categoryId", select: "nameAr nameEn color _id" })
+    .populate({ path: "categoryId", select: "_id nameAr nameEn color" })
     .lean();
 
   if (!company) return next(new ApiError("الشركة غير موجودة", 404));
@@ -333,10 +299,7 @@ exports.rejectCompany = asyncHandler(async (req, res, next) => {
 
   await Company.findByIdAndUpdate(id, { status: 'rejected', rejectionReason: reason });
 
-  if (company.categoryId && company.categoryId._id) {
-    const { _id, ...rest } = company.categoryId;
-    company.categoryId = { id: _id.toString(), ...rest };
-  }
+  formatCategoryId(company);
 
   try {
     if (company.userId) {
@@ -367,17 +330,11 @@ exports.getUserCompanies = asyncHandler(async (req, res, next) => {
   }
 
   let companies = await Company.find({ userId })
-    .populate({ path: "categoryId", select: "nameAr nameEn color _id" })
+    .populate({ path: "categoryId", select: "_id nameAr nameEn color" })
     .sort({ createdAt: -1 })
     .lean();
 
-  companies = companies.map(company => {
-    if (company.categoryId && company.categoryId._id) {
-      const { _id, ...rest } = company.categoryId;
-      company.categoryId = { id: _id.toString(), ...rest };
-    }
-    return company;
-  });
+  companies = formatCompanies(companies);
 
   res.status(200).json({
     status: "success",
@@ -395,17 +352,14 @@ exports.getUserCompany = asyncHandler(async (req, res, next) => {
   }
 
   let company = await Company.findOne({ _id: companyId, userId })
-    .populate({ path: "categoryId", select: "nameAr nameEn color _id" })
+    .populate({ path: "categoryId", select: "_id nameAr nameEn color" })
     .lean();
 
   if (!company) {
     return next(new ApiError("الشركة غير موجودة أو لا تنتمي لك", 404));
   }
 
-  if (company.categoryId && company.categoryId._id) {
-    const { _id, ...rest } = company.categoryId;
-    company.categoryId = { id: _id.toString(), ...rest };
-  }
+  formatCategoryId(company);
 
   res.status(200).json({
     status: "success",
@@ -426,17 +380,11 @@ exports.getUserCompaniesByStatus = asyncHandler(async (req, res, next) => {
   }
 
   let companies = await Company.find({ userId, status })
-    .populate({ path: "categoryId", select: "nameAr nameEn color _id" })
+    .populate({ path: "categoryId", select: "_id nameAr nameEn color" })
     .sort({ createdAt: -1 })
     .lean();
 
-  companies = companies.map(company => {
-    if (company.categoryId && company.categoryId._id) {
-      const { _id, ...rest } = company.categoryId;
-      company.categoryId = { id: _id.toString(), ...rest };
-    }
-    return company;
-  });
+  companies = formatCompanies(companies);
 
   res.status(200).json({
     status: "success",
@@ -489,6 +437,7 @@ exports.processVideo = asyncHandler(async (req, res, next) => {
   next();
 });
 
+// @desc Update company video
 exports.updateCompanyVideo = asyncHandler(async (req, res, next) => {
   const { id } = req.params;
 
@@ -497,17 +446,14 @@ exports.updateCompanyVideo = asyncHandler(async (req, res, next) => {
     { video: req.body.video },
     { new: true }
   )
-    .populate({ path: "categoryId", select: "nameAr nameEn color _id" })
+    .populate({ path: "categoryId", select: "_id nameAr nameEn color" })
     .lean();
 
   if (!company) {
     return next(new ApiError(`No company for this id ${id}`, 404));
   }
 
-  if (company.categoryId && company.categoryId._id) {
-    const { _id, ...rest } = company.categoryId;
-    company.categoryId = { id: _id.toString(), ...rest };
-  }
+  formatCategoryId(company);
 
   res.status(200).json({ status: 'success', data: company });
 });
