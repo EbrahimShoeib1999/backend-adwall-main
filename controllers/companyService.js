@@ -10,6 +10,7 @@ const ApiError = require("../utils/apiError");
 const factory = require("./handlersFactory");
 const sendEmail = require("../utils/sendEmail");
 const { uploadSingleImage } = require("../middlewares/uploadImageMiddleware");
+
 // Upload single image
 exports.uploadCompanyImage = uploadSingleImage("logo");
 
@@ -29,35 +30,64 @@ exports.resizeImage = asyncHandler(async (req, res, next) => {
 
   next();
 });
-// @desc    Create a new company (subscription request)
-// @route   POST /api/companies
-// @access  Public
-exports.createCompany = asyncHandler(async (req, res, next) => {
-  // Set the userId from the logged-in user
-  req.body.userId = req.user._id;
 
+// @desc Create a new company (subscription request)
+// @route POST /api/companies
+// @access Public
+exports.createCompany = asyncHandler(async (req, res, next) => {
+  req.body.userId = req.user._id;
   const newDoc = await Company.create(req.body);
   res.status(201).json({
     status: "success",
     data: newDoc,
   });
 });
-// [الأدمن] جلب جميع الشركات المسجلة (مع إمكانية الفلترة)
-// @route   GET /api/companies
-// @desc    يعرض جميع الشركات ويمكن الفلترة حسب الموافقة (?isApproved=false)
-exports.getAllCompanies = factory.getAll(
-  Company,
-  "Company",
-  [
-    { path: "userId", select: "name email" },
-    { path: "categoryId", select: "nameAr nameEn color" },
-  ]
-);
-exports.getOneCompany = factory.getOne(Company);
 
-// @desc    Search companies by name
-// @route   PUT /api/companies/update/:id
-// @access  protcted
+// [الأدمن] جلب جميع الشركات المسجلة (مع إمكانية الفلترة)
+exports.getAllCompanies = asyncHandler(async (req, res, next) => {
+  let companies = await Company.find()
+    .populate({ path: "userId", select: "name email" })
+    .populate({ path: "categoryId", select: "nameAr nameEn color _id" })
+    .lean();
+
+  companies = companies.map(company => {
+    if (company.categoryId) {
+      const { _id, ...rest } = company.categoryId;
+      company.categoryId = { id: _id.toString(), ...rest };
+    }
+    return company;
+  });
+
+  res.status(200).json({
+    status: "success",
+    results: companies.length,
+    data: companies,
+  });
+});
+
+// @desc Get one company (with categoryId.id)
+exports.getOneCompany = asyncHandler(async (req, res, next) => {
+  let company = await Company.findById(req.params.id)
+    .populate({ path: "userId", select: "name email" })
+    .populate({ path: "categoryId", select: "nameAr nameEn color _id" })
+    .lean();
+
+  if (!company) {
+    return next(new ApiError(`No company for this id ${req.params.id}`, 404));
+  }
+
+  if (company.categoryId) {
+    const { _id, ...rest } = company.categoryId;
+    company.categoryId = { id: _id.toString(), ...rest };
+  }
+
+  res.status(200).json({
+    status: "success",
+    data: company,
+  });
+});
+
+// @desc Update company
 exports.updateCompany = asyncHandler(async (req, res, next) => {
   const { id } = req.params;
   const company = await Company.findById(id);
@@ -66,18 +96,23 @@ exports.updateCompany = asyncHandler(async (req, res, next) => {
     return next(new ApiError(`No company for this id ${id}`, 404));
   }
 
-  // Check if the user owns the company or is an admin
   if (company.userId.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
     return next(new ApiError('You are not allowed to update this company', 403));
   }
 
-  const updatedCompany = await Company.findByIdAndUpdate(id, req.body, { new: true });
+  const updatedCompany = await Company.findByIdAndUpdate(id, req.body, { new: true })
+    .populate({ path: "categoryId", select: "nameAr nameEn color _id" })
+    .lean();
+
+  if (updatedCompany.categoryId) {
+    const { _id, ...rest } = updatedCompany.categoryId;
+    updatedCompany.categoryId = { id: _id.toString(), ...rest };
+  }
 
   res.status(200).json({ status: "success", data: updatedCompany });
 });
-// @desc    Delete a company
-// @route   DELETE /api/v1/companies/:id
-// @access  Protected (User who owns the company or Admin)
+
+// @desc Delete company
 exports.deleteCompany = asyncHandler(async (req, res, next) => {
   const { id } = req.params;
   const company = await Company.findById(id);
@@ -86,26 +121,29 @@ exports.deleteCompany = asyncHandler(async (req, res, next) => {
     return next(new ApiError(`No company for this id ${id}`, 404));
   }
 
-  // Check if the user owns the company or is an admin
-  if (
-    company.userId.toString() !== req.user._id.toString() &&
-    req.user.role !== "admin"
-  ) {
-    return next(
-      new ApiError("You are not allowed to delete this company", 403)
-    );
+  if (company.userId.toString() !== req.user._id.toString() && req.user.role !== "admin") {
+    return next(new ApiError("You are not allowed to delete this company", 403));
   }
 
   await Company.findByIdAndDelete(id);
-
   res.status(204).send();
 });
-// @desc    Get companies by category
-// @route   GET /api/companies/category/:categoryId
-// @access  Public
+
+// @desc Get companies by category
 exports.getCompaniesByCategory = asyncHandler(async (req, res, next) => {
   const { categoryId } = req.params;
-  const companies = await Company.find({ categoryId, status: "approved" });
+  let companies = await Company.find({ categoryId, status: "approved" })
+    .populate({ path: "categoryId", select: "nameAr nameEn color _id" })
+    .lean();
+
+  companies = companies.map(company => {
+    if (company.categoryId) {
+      const { _id, ...rest } = company.categoryId;
+      company.categoryId = { id: _id.toString(), ...rest };
+    }
+    return company;
+  });
+
   res.status(200).json({
     status: "success",
     results: companies.length,
@@ -113,25 +151,34 @@ exports.getCompaniesByCategory = asyncHandler(async (req, res, next) => {
   });
 });
 
-// @desc    Search companies by name
-// @route   GET /api/companies/search?name=اسم_الشركة
-// @access  Public
+// @desc Search companies by name
 exports.searchCompaniesByName = asyncHandler(async (req, res, next) => {
   const { name } = req.query;
   if (!name) {
     return next(new ApiError("يرجى إدخال اسم الشركة للبحث", 400));
   }
+
   const searchConditions = {
     $or: [
       { companyName: { $regex: name, $options: "i" } },
-      { companyNameEn: { $regex: name, $options: "i" } }, // For English
+      { companyNameEn: { $regex: name, $options: "i" } },
       { description: { $regex: name, $options: "i" } },
-      { descriptionEn: { $regex: name, $options: "i" } }, // For English
+      { descriptionEn: { $regex: name, $options: "i" } },
     ],
     status: "approved",
   };
 
-  const companies = await Company.find(searchConditions);
+  let companies = await Company.find(searchConditions)
+    .populate({ path: "categoryId", select: "nameAr nameEn color _id" })
+    .lean();
+
+  companies = companies.map(company => {
+    if (company.categoryId) {
+      const { _id, ...rest } = company.categoryId;
+      company.categoryId = { id: _id.toString(), ...rest };
+    }
+    return company;
+  });
 
   res.status(200).json({
     status: "success",
@@ -140,11 +187,20 @@ exports.searchCompaniesByName = asyncHandler(async (req, res, next) => {
   });
 });
 
-// @desc    Get all pending companies (admin only)
-// @route   GET /api/companies/pending
-// @access  Admin
+// @desc Get all pending companies (admin only)
 exports.getPendingCompanies = asyncHandler(async (req, res, next) => {
-  const pendingCompanies = await Company.find({ status: "pending" });
+  let pendingCompanies = await Company.find({ status: "pending" })
+    .populate({ path: "categoryId", select: "nameAr nameEn color _id" })
+    .lean();
+
+  pendingCompanies = pendingCompanies.map(company => {
+    if (company.categoryId) {
+      const { _id, ...rest } = company.categoryId;
+      company.categoryId = { id: _id.toString(), ...rest };
+    }
+    return company;
+  });
+
   res.status(200).json({
     status: "success",
     results: pendingCompanies.length,
@@ -152,19 +208,29 @@ exports.getPendingCompanies = asyncHandler(async (req, res, next) => {
   });
 });
 
-// @desc    Search companies by city and country
-// @route   GET /api/companies/search-location?city=...&country=...
-// @access  Public
+// @desc Search companies by city and country
 exports.searchCompaniesByLocation = asyncHandler(async (req, res, next) => {
   const { city, country } = req.query;
   if (!city && !country) {
     return next(new ApiError("يرجى إدخال المدينة أو الدولة للبحث", 400));
   }
+
   const query = { status: "approved" };
   if (city) query.city = { $regex: city, $options: "i" };
   if (country) query.country = { $regex: country, $options: "i" };
 
-  const companies = await Company.find(query);
+  let companies = await Company.find(query)
+    .populate({ path: "categoryId", select: "nameAr nameEn color _id" })
+    .lean();
+
+  companies = companies.map(company => {
+    if (company.categoryId) {
+      const { _id, ...rest } = company.categoryId;
+      company.categoryId = { id: _id.toString(), ...rest };
+    }
+    return company;
+  });
+
   res.status(200).json({
     status: "success",
     results: companies.length,
@@ -172,32 +238,39 @@ exports.searchCompaniesByLocation = asyncHandler(async (req, res, next) => {
   });
 });
 
-// @desc    Search companies by category and (city or country)
-// @route   GET /api/companies/category/:categoryId/search-location?city=...&country=...
-// @access  Public
-exports.searchCompaniesByCategoryAndLocation = asyncHandler(
-  async (req, res, next) => {
-    const { city, country } = req.query;
-    const { categoryId } = req.params;
-    if (!categoryId) {
-      return next(new ApiError("يرجى تحديد الفئة", 400));
-    }
-    const query = { categoryId, status: "approved" };
-    if (city) query.city = { $regex: city, $options: "i" };
-    if (country) query.country = { $regex: country, $options: "i" };
-    // إذا لم يتم تمرير city أو country، يرجع كل الشركات ضمن الفئة
-    const companies = await Company.find(query);
-    res.status(200).json({
-      status: "success",
-      results: companies.length,
-      data: companies,
-    });
-  }
-);
+// @desc Search companies by category and location
+exports.searchCompaniesByCategoryAndLocation = asyncHandler(async (req, res, next) => {
+  const { city, country } = req.query;
+  const { categoryId } = req.params;
 
-// @desc    Admin approve company
-// @route   PATCH /api/companies/:id/approve
-// @access  Admin
+  if (!categoryId) {
+    return next(new ApiError("يرجى تحديد الفئة", 400));
+  }
+
+  const query = { categoryId, status: "approved" };
+  if (city) query.city = { $regex: city, $options: "i" };
+  if (country) query.country = { $regex: country, $options: "i" };
+
+  let companies = await Company.find(query)
+    .populate({ path: "categoryId", select: "nameAr nameEn color _id" })
+    .lean();
+
+  companies = companies.map(company => {
+    if (company.categoryId) {
+      const { _id, ...rest } = company.categoryId;
+      company.categoryId = { id: _id.toString(), ...rest };
+    }
+    return company;
+  });
+
+  res.status(200).json({
+    status: "success",
+    results: companies.length,
+    data: companies,
+  });
+});
+
+// @desc Admin approve company
 exports.approveCompany = asyncHandler(async (req, res, next) => {
   const { id } = req.params;
 
@@ -205,25 +278,25 @@ exports.approveCompany = asyncHandler(async (req, res, next) => {
     { _id: id, status: { $ne: "approved" } },
     { status: "approved" },
     { new: true }
-  ).populate("userId", "name email");
+  )
+    .populate("userId", "name email")
+    .populate({ path: "categoryId", select: "nameAr nameEn color _id" })
+    .lean();
 
   if (!updatedCompany) {
     const company = await Company.findById(id);
-    if (!company) {
-      return next(new ApiError("الشركة غير موجودة", 404));
-    }
+    if (!company) return next(new ApiError("الشركة غير موجودة", 404));
     return next(new ApiError("تمت الموافقة على الشركة مسبقاً", 400));
   }
 
-  // Send notification email to the user
+  if (updatedCompany.categoryId) {
+    const { _id, ...rest } = updatedCompany.categoryId;
+    updatedCompany.categoryId = { id: _id.toString(), ...rest };
+  }
+
   try {
     if (updatedCompany.userId) {
-      const message = `Hi ${updatedCompany.userId.name},
-
-Congratulations! Your company "${updatedCompany.companyName}" has been approved and is now live on AddWall.
-
-Thanks,
-The AddWall Team`;
+      const message = `Hi ${updatedCompany.userId.name},\n\nCongratulations! Your company "${updatedCompany.companyName}" has been approved and is now live on AddWall.\n\nThanks,\nThe AddWall Team`;
       await sendEmail({
         email: updatedCompany.userId.email,
         subject: "Your Company has been Approved",
@@ -231,13 +304,7 @@ The AddWall Team`;
       });
     }
   } catch (err) {
-    // We don't want to fail the request if the email fails.
-    // The approval is the most important part.
-    // Log the error for debugging purposes.
-    console.error(
-      `Failed to send approval email for company ${updatedCompany._id}:`,
-      err
-    );
+    console.error(`Failed to send approval email:`, err);
   }
 
   res.status(200).json({
@@ -247,43 +314,35 @@ The AddWall Team`;
   });
 });
 
-// @desc    Admin reject company
-// @route   PATCH /api/companies/:id/reject
-// @access  Admin
+// @desc Admin reject company
 exports.rejectCompany = asyncHandler(async (req, res, next) => {
   const { id } = req.params;
-  const { reason } = req.body; // Reason for rejection
+  const { reason } = req.body;
 
   if (!reason) {
     return next(new ApiError("يرجى تقديم سبب الرفض", 400));
   }
 
-  const company = await Company.findById(id).populate('userId', 'name email');
+  const company = await Company.findById(id)
+    .populate('userId', 'name email')
+    .populate({ path: "categoryId", select: "nameAr nameEn color _id" })
+    .lean();
 
-  if (!company) {
-    return next(new ApiError("الشركة غير موجودة", 404));
-  }
-
-  if (company.status === 'rejected') {
-    return next(new ApiError("تم رفض الشركة مسبقاً", 400));
-  }
+  if (!company) return next(new ApiError("الشركة غير موجودة", 404));
+  if (company.status === 'rejected') return next(new ApiError("تم رفض الشركة مسبقاً", 400));
 
   company.status = 'rejected';
   company.rejectionReason = reason;
-  await company.save();
+  await Company.findByIdAndUpdate(id, { status: 'rejected', rejectionReason: reason });
 
-  // Send notification email to the user
+  if (company.categoryId) {
+    const { _id, ...rest } = company.categoryId;
+    company.categoryId = { id: _id.toString(), ...rest };
+  }
+
   try {
     if (company.userId) {
-      const message = `Hi ${company.userId.name},
-
-We regret to inform you that your company submission "${company.companyName}" has been rejected for the following reason:
-${reason}
-
-If you have any questions, please contact our support team.
-
-Thanks,
-The AddWall Team`;
+      const message = `Hi ${company.userId.name},\n\nWe regret to inform you that your company submission "${company.companyName}" has been rejected for the following reason:\n${reason}\n\nIf you have any questions, please contact our support team.\n\nThanks,\nThe AddWall Team`;
       await sendEmail({
         email: company.userId.email,
         subject: "Your Company Submission Status",
@@ -291,11 +350,7 @@ The AddWall Team`;
       });
     }
   } catch (err) {
-    // Log the error for debugging purposes, but don't fail the request
-    console.error(
-      `Failed to send rejection email for company ${company._id}:`,
-      err
-    );
+    console.error(`Failed to send rejection email:`, err);
   }
 
   res.status(200).json({
@@ -305,20 +360,26 @@ The AddWall Team`;
   });
 });
 
-// @desc    Get all companies for a specific user
-// @route   GET /api/companies/user/:userId
-// @access  Private (User can only access their own companies)
+// @desc Get all companies for a specific user
 exports.getUserCompanies = asyncHandler(async (req, res, next) => {
   const { userId } = req.params;
 
-  // Check if user is requesting their own companies or is admin
   if (req.user._id.toString() !== userId && req.user.role !== "admin") {
     return next(new ApiError("غير مصرح لك بالوصول إلى هذه الشركات", 403));
   }
 
-  const companies = await Company.find({ userId })
-    .populate("categoryId", "nameAr nameEn color _id")
-    .sort({ createdAt: -1 });
+  let companies = await Company.find({ userId })
+    .populate({ path: "categoryId", select: "nameAr nameEn color _id" })
+    .sort({ createdAt: -1 })
+    .lean();
+
+  companies = companies.map(company => {
+    if (company.categoryId) {
+      const { _id, ...rest } = company.categoryId;
+      company.categoryId = { id: _id.toString(), ...rest };
+    }
+    return company;
+  });
 
   res.status(200).json({
     status: "success",
@@ -327,24 +388,25 @@ exports.getUserCompanies = asyncHandler(async (req, res, next) => {
   });
 });
 
-// @desc    Get a specific company for a specific user
-// @route   GET /api/companies/user/:userId/company/:companyId
-// @access  Private (User can only access their own companies)
+// @desc Get a specific company for a specific user
 exports.getUserCompany = asyncHandler(async (req, res, next) => {
   const { userId, companyId } = req.params;
 
-  // Check if user is requesting their own company or is admin
   if (req.user._id.toString() !== userId && req.user.role !== "admin") {
     return next(new ApiError("غير مصرح لك بالوصول إلى هذه الشركة", 403));
   }
 
-  const company = await Company.findOne({ _id: companyId, userId }).populate(
-    "categoryId",
-    "nameAr nameEn color _id"
-  );
+  let company = await Company.findOne({ _id: companyId, userId })
+    .populate({ path: "categoryId", select: "nameAr nameEn color _id" })
+    .lean();
 
   if (!company) {
     return next(new ApiError("الشركة غير موجودة أو لا تنتمي لك", 404));
+  }
+
+  if (company.categoryId) {
+    const { _id, ...rest } = company.categoryId;
+    company.categoryId = { id: _id.toString(), ...rest };
   }
 
   res.status(200).json({
@@ -353,27 +415,30 @@ exports.getUserCompany = asyncHandler(async (req, res, next) => {
   });
 });
 
-// @desc    Get user's companies by status (approved/pending)
-// @route   GET /api/companies/user/:userId/status/:status
-// @access  Private (User can only access their own companies)
+// @desc Get user's companies by status
 exports.getUserCompaniesByStatus = asyncHandler(async (req, res, next) => {
   const { userId, status } = req.params;
 
-  // Check if user is requesting their own companies or is admin
   if (req.user._id.toString() !== userId && req.user.role !== "admin") {
     return next(new ApiError("غير مصرح لك بالوصول إلى هذه الشركات", 403));
   }
 
-  // Validate status parameter
   if (!["approved", "pending", "rejected"].includes(status)) {
-    return next(
-      new ApiError("حالة غير صحيحة. يرجى استخدام approved, pending, or rejected", 400)
-    );
+    return next(new ApiError("حالة غير صحيحة", 400));
   }
 
-  const companies = await Company.find({ userId, status })
-    .populate("categoryId", "nameAr nameEn color _id")
-    .sort({ createdAt: -1 });
+  let companies = await Company.find({ userId, status })
+    .populate({ path: "categoryId", select: "nameAr nameEn color _id" })
+    .sort({ createdAt: -1 })
+    .lean();
+
+  companies = companies.map(company => {
+    if (company.categoryId) {
+      const { _id, ...rest } = company.categoryId;
+      company.categoryId = { id: _id.toString(), ...rest };
+    }
+    return company;
+  });
 
   res.status(200).json({
     status: "success",
@@ -382,16 +447,14 @@ exports.getUserCompaniesByStatus = asyncHandler(async (req, res, next) => {
   });
 });
 
-// @desc    Increment view count for a company
-// @route   PATCH /api/v1/companies/:id/view
-// @access  Public
+// @desc Increment view count
 exports.incrementCompanyView = asyncHandler(async (req, res, next) => {
   const { id } = req.params;
   const company = await Company.findByIdAndUpdate(
     id,
     { $inc: { views: 1 } },
     { new: true }
-  );
+  ).lean();
 
   if (!company) {
     return next(new ApiError(`No company for this id ${id}`, 404));
@@ -400,17 +463,12 @@ exports.incrementCompanyView = asyncHandler(async (req, res, next) => {
   res.status(200).json({ status: 'success', message: 'View count incremented' });
 });
 
-// @desc    Upload and process video for a VIP company ad
-// @route   PATCH /api/v1/companies/:id/video
-// @access  Private/Admin
+// @desc Process video upload
 exports.processVideo = asyncHandler(async (req, res, next) => {
-  if (!req.file) {
-    return next();
-  }
+  if (!req.file) return next();
 
   const filename = `company-video-${uuidv4()}-${Date.now()}.mp4`;
   const outputPath = `uploads/videos/${filename}`;
-
   const readableStream = new stream.PassThrough();
   readableStream.end(req.file.buffer);
 
@@ -418,13 +476,13 @@ exports.processVideo = asyncHandler(async (req, res, next) => {
     ffmpeg(readableStream)
       .toFormat('mp4')
       .outputOptions([
-        '-c:v libx264', // Video codec for good compression
-        '-preset slow', // Compression preset for better quality/size ratio
-        '-crf 28',      // Constant Rate Factor for quality (18-28 is a good range)
-        '-c:a aac',     // Audio codec
-        '-b:a 128k',    // Audio bitrate
+        '-c:v libx264',
+        '-preset slow',
+        '-crf 28',
+        '-c:a aac',
+        '-b:a 128k',
       ])
-      .on('end', () => resolve())
+      .on('end', resolve)
       .on('error', (err) => reject(new ApiError(`Video processing failed: ${err.message}`, 500)))
       .save(outputPath);
   });
@@ -440,10 +498,17 @@ exports.updateCompanyVideo = asyncHandler(async (req, res, next) => {
     id,
     { video: req.body.video },
     { new: true }
-  );
+  )
+    .populate({ path: "categoryId", select: "nameAr nameEn color _id" })
+    .lean();
 
   if (!company) {
     return next(new ApiError(`No company for this id ${id}`, 404));
+  }
+
+  if (company.categoryId) {
+    const { _id, ...rest } = company.categoryId;
+    company.categoryId = { id: _id.toString(), ...rest };
   }
 
   res.status(200).json({ status: 'success', data: company });
