@@ -317,7 +317,7 @@ exports.getUserCompanies = asyncHandler(async (req, res, next) => {
   }
 
   const companies = await Company.find({ userId })
-    .populate("categoryId", "nameAr nameEn slug")
+    .populate("categoryId", "nameAr nameEn slug _id")
     .sort({ createdAt: -1 });
 
   res.status(200).json({
@@ -340,7 +340,7 @@ exports.getUserCompany = asyncHandler(async (req, res, next) => {
 
   const company = await Company.findOne({ _id: companyId, userId }).populate(
     "categoryId",
-    "nameAr nameEn slug"
+    "nameAr nameEn slug _id"
   );
 
   if (!company) {
@@ -372,7 +372,7 @@ exports.getUserCompaniesByStatus = asyncHandler(async (req, res, next) => {
   }
 
   const companies = await Company.find({ userId, status })
-    .populate("categoryId", "nameAr nameEn slug")
+    .populate("categoryId", "nameAr nameEn slug _id")
     .sort({ createdAt: -1 });
 
   res.status(200).json({
