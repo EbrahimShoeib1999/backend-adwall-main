@@ -10,6 +10,7 @@ const sitemapRoute = require("./sitemapRoute");
 const campaignRoute = require("./campaignRoute");
 const miaRoute = require("./miaRoute");
 const paymentRoute = require("./paymentRoute");
+const subscriptionRoute = require('./subscriptionRoute');
 
 const router = express.Router();
 
@@ -23,6 +24,7 @@ router.use("/plans", planRoute);
 router.use("/campaigns", campaignRoute);
 router.use("/mias", miaRoute);
 router.use("/payments", paymentRoute);
+router.use('/subscriptions', subscriptionRoute);
 router.use("/", sitemapRoute);
 
 module.exports = router;

@@ -26,6 +26,8 @@ const {
 
 const { createCompanyValidator } = require("../utils/validators/companyValidator");
 
+const { canCreateAd } = require('../middlewares/subscriptionMiddleware');
+
 const auth = require("../controllers/authService");
 
 const router = express.Router();
@@ -48,6 +50,7 @@ router.post(
   "/",
   uploadSingleImage("logo"),
   resizeImage,
+  canCreateAd, // Check if user can create an ad
   createCompanyValidator,
   createCompany
 );

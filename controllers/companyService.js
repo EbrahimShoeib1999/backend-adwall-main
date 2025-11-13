@@ -36,6 +36,11 @@ exports.createCompany = asyncHandler(async (req, res, next) => {
   req.body.userId = req.user._id;
   const newDoc = await Company.create(req.body);
 
+  // Increment the user's ad count
+  await User.findByIdAndUpdate(req.user._id, {
+    $inc: { 'subscription.adsUsed': 1 },
+  });
+
   // Populate after creation
   const populatedDoc = await Company.findById(newDoc._id)
     .populate({ path: "userId", select: "name email" })

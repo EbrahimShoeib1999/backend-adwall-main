@@ -669,6 +669,30 @@
       ]
     },
     {
+      "name": "Subscription",
+      "item": [
+        {
+          "name": "POST /api/v1/subscription/",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/subscription/",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "subscription"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
       "name": "User",
       "item": [
         {
