@@ -1,8 +1,3 @@
-// router/userRoute.js
-// النسخة النهائية المضمونة 100% - شغالة على السيرفر واللوكال دلوقتي
-
-console.log("--- LOADING UPDATED userRoute.js with /admins ROUTE ---");
-
 const express = require("express");
 
 const {
@@ -11,7 +6,7 @@ const {
   changeUserPasswordValidator,
   updateLoggedUserValidator,
   createAdminValidator,
-  updateUserValidator,     // لو موجود عندك في validators
+  updateUserValidator,
   deleteUserValidator,
 } = require("../utils/validators/userValidator");
 
@@ -33,12 +28,11 @@ const {
   assignPlanToUser,
 } = require("../controllers/userService");
 
-// كل حاجة بتاعتة الـ Auth (protect + allowedTo) موجودة هنا في authService.js
 const authService = require("../controllers/authService");
 
 const router = express.Router();
 
-// === جميع الـ Routes دي محتاجة تسجيل دخول ===
+// === جميع الـ Routes محتاجة تسجيل دخول ===
 router.use(authService.protect);
 
 // ╔══════════════════════════════════════════════════╗
@@ -57,7 +51,7 @@ router.delete("/deleteMe", deleteLoggedUserData);
 // إحصائيات المستخدمين
 router.get("/stats", authService.allowedTo("admin"), getUsersStats);
 
-// إنشاء أدمن جديد (الراوت اللي كنت عايزه من زمان)
+// إنشاء أدمن جديد
 router.post(
   "/admins",
   authService.allowedTo("admin"),
@@ -68,7 +62,7 @@ router.post(
   createUser
 );
 
-// تغيير كلمة مرور مستخدم (للأدمن)
+// تغيير كلمة مرور مستخدم
 router.put(
   "/changePassword/:id",
   authService.allowedTo("admin"),
@@ -76,14 +70,14 @@ router.put(
   changeUserPassword
 );
 
-// Assign plan to user (for admin)
+// Assign plan to user
 router.post(
   "/:userId/assign-plan",
   authService.allowedTo("admin"),
   assignPlanToUser
 );
 
-// CRUD للمستخدمين (للأدمن فقط)
+// CRUD للمستخدمين
 router
   .route("/")
   .get(authService.allowedTo("admin"), getUsers)
@@ -105,6 +99,10 @@ router
     updateUserValidator,
     updateUser
   )
-  .delete(authService.allowedTo("admin"), deleteUserValidator, deleteUser);
+  .delete(
+    authService.allowedTo("admin"), 
+    deleteUserValidator, 
+    deleteUser
+  );
 
 module.exports = router;

@@ -1,4 +1,3 @@
-// routes/couponRoute.js
 const express = require("express");
 const {
   getCoupon,
@@ -13,10 +12,10 @@ const authService = require("../controllers/authService");
 
 const router = express.Router();
 
-// أي مستخدم مسجل دخول يقدر يطبّق كوبون
+// Apply coupon - protected route for logged in users
 router.post("/apply", authService.protect, applyCoupon);
 
-// باقي المسارات للـ admin و manager فقط
+// Admin and manager routes
 router.use(authService.protect, authService.allowedTo("admin", "manager"));
 
 router.route("/")

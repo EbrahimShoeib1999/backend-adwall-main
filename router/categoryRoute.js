@@ -1,4 +1,3 @@
-// routes/categoryRoute.js
 const express = require("express");
 const {
   getCategoryValidator,
@@ -18,7 +17,6 @@ const {
 } = require("../controllers/categoryService");
 
 const authService = require("../controllers/authService");
-const { allowedTo } = require("../middlewares/auth");
 
 const router = express.Router();
 
@@ -27,7 +25,7 @@ router
   .get(getCategories)
   .post(
     authService.protect,
-    allowedTo("admin", "manager"),
+    authService.allowedTo("admin", "manager"),
     uploadCategoryImage,
     resizeImage,
     createCategoryValidator,
@@ -39,7 +37,7 @@ router
   .get(getCategoryValidator, getCategory)
   .put(
     authService.protect,
-    allowedTo("admin", "manager"),
+    authService.allowedTo("admin", "manager"),
     uploadCategoryImage,
     resizeImage,
     updateCategoryValidator,
@@ -47,7 +45,7 @@ router
   )
   .delete(
     authService.protect,
-    allowedTo("admin"),
+    authService.allowedTo("admin"),
     deleteCategoryValidator,
     deleteCategory
   );

@@ -4,10 +4,10 @@ const { createSubscription } = require('../controllers/subscriptionController');
 
 const router = express.Router();
 
-// All routes below are protected
+// All routes are protected
 router.use(authService.protect);
 
-// Route for a user to create a subscription (i.e., subscribe to a plan)
+// Create subscription
 router.post('/', createSubscription);
 
 module.exports = router;

@@ -19,7 +19,7 @@ const userSchema = new mongoose.Schema(
       unique: true,
       validate: {
         validator: function (val) {
-          return /^\S+@\S+.\S+$/.test(val);
+          return /^\S+@\S+\.\S+$/.test(val);
         },
         message: "Invalid email format",
       },
@@ -28,7 +28,6 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: [true, "phone required"],
       unique: true,
-      // تم إزالة التحقق من الصحة لقبول أي تنسيق لرقم الهاتف
     },
     profileImg: {
       type: String,
@@ -39,7 +38,7 @@ const userSchema = new mongoose.Schema(
     password: {
       type: String,
       minlength: [6, "Too short password"],
-      select: false, // ✅ لا تُرجع في الاستعلامات
+      select: false,
     },
     passwordChangedAt: Date,
     passwordResetCode: String,
@@ -107,7 +106,6 @@ userSchema.pre("save", async function (next) {
 
   if (!this.isModified("password")) return next();
 
-  // Hashing user password
   this.password = await bcrypt.hash(this.password, 12);
   this.passwordChangedAt = Date.now();
   next();

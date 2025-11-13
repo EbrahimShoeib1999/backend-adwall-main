@@ -1,3 +1,4 @@
+// paymentController.js
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const asyncHandler = require('express-async-handler');
 const Plan = require('../model/planModel');
@@ -5,6 +6,7 @@ const User = require('../model/userModel');
 const Subscription = require('../model/subscriptionModel');
 const ApiError = require('../utils/apiError');
 const Coupon = require('../model/couponModel');
+const { sendSuccessResponse, statusCodes } = require('../utils/responseHandler');
 
 // @desc    Create a checkout session for a one-time plan purchase (with optional coupon)
 // @route   POST /api/v1/payments/create-checkout-session
@@ -14,22 +16,21 @@ exports.createCheckoutSession = asyncHandler(async (req, res, next) => {
   const user = await User.findById(req.user._id);
 
   if (!planId) {
-    return next(new ApiError('Plan ID is required', 400));
+    return next(new ApiError('معرف الباقة مطلوب', statusCodes.BAD_REQUEST));
   }
 
   const plan = await Plan.findById(planId);
   if (!plan) {
-    return next(new ApiError('Plan not found', 404));
+    return next(new ApiError('الباقة غير موجودة', statusCodes.NOT_FOUND));
   }
 
   if (!plan.stripePriceId) {
-    return next(new ApiError('This plan is not available for purchase yet.', 400));
+    return next(new ApiError('هذه الباقة غير متاحة للشراء حالياً', statusCodes.BAD_REQUEST));
   }
 
   let finalAmount = plan.price;
   let appliedCoupon = null;
 
-  // ==== تطبيق الكوبون إذا وُجد ====
   if (couponCode) {
     const coupon = await Coupon.findOne({
       couponCode: couponCode.toUpperCase().trim(),
@@ -38,30 +39,27 @@ exports.createCheckoutSession = asyncHandler(async (req, res, next) => {
     });
 
     if (!coupon) {
-      return next(new ApiError('Invalid, expired, or inactive coupon code', 400));
+      return next(new ApiError('كود الكوبون غير صالح أو منتهي الصلاحية', statusCodes.BAD_REQUEST));
     }
 
     if (coupon.maxUses !== null && coupon.usedCount >= coupon.maxUses) {
-      return next(new ApiError('This coupon has reached its maximum usage limit', 400));
+      return next(new ApiError('هذا الكوبون وصل إلى الحد الأقصى للاستخدام', statusCodes.BAD_REQUEST));
     }
 
-    // تطبيق الخصم
     if (coupon.discountType === 'fixed') {
       finalAmount = Math.max(0, plan.price - coupon.discountValue);
     } else if (coupon.discountType === 'percentage') {
       finalAmount = Math.max(0, plan.price * (1 - coupon.discountValue / 100));
     }
-    // free_shipping: لا خصم على سعر الباقة (يمكن استخدامه للشحن لاحقًا)
 
     appliedCoupon = coupon;
   }
 
-  // تحويل المبلغ للسنتات (Stripe يتعامل بالسنت)
   const amountInCents = Math.round(finalAmount * 100);
 
   const session = await stripe.checkout.sessions.create({
     payment_method_types: ['card'],
-    mode: 'payment', // دفعة واحدة (لأنك تبيع باقات لمدة محددة)
+    mode: 'payment',
     line_items: [
       {
         price_data: {
@@ -80,8 +78,6 @@ exports.createCheckoutSession = asyncHandler(async (req, res, next) => {
     success_url: `${process.env.FRONTEND_URL}/payment-success?session_id={CHECKOUT_SESSION_ID}`,
     cancel_url: `${process.env.FRONTEND_URL}/payment-cancel`,
     customer_email: user.email,
-    // تم حذف client_reference_id تمامًا لأنه هو السبب الرئيسي في المشكلة
-    // Stripe لا يسمح بتكرار client_reference_id في mode: 'payment'
     metadata: {
       userId: user._id.toString(),
       planId: plan._id.toString(),
@@ -91,13 +87,11 @@ exports.createCheckoutSession = asyncHandler(async (req, res, next) => {
     },
   });
 
-  res.status(200).json({
-    status: 'success',
+  sendSuccessResponse(res, statusCodes.OK, 'تم إنشاء جلسة الدفع بنجاح', {
     session,
   });
 });
 
-// دالة إنشاء الاشتراك بعد نجاح الدفع
 const createSubscription = async (session) => {
   const userId = session.metadata.userId;
   const planId = session.metadata.planId;
@@ -111,16 +105,14 @@ const createSubscription = async (session) => {
     return;
   }
 
-  // إنشاء الاشتراك في قاعدة البيانات
   await Subscription.create({
     user: user._id,
     plan: plan._id,
     status: 'active',
-    expiresAt: new Date(Date.now() + plan.duration * 24 * 60 * 60 * 1000), // حسب عدد الأيام في الباقة
+    expiresAt: new Date(Date.now() + plan.duration * 24 * 60 * 60 * 1000),
     paymentStatus: 'paid',
   });
 
-  // تحديث عدد استخدامات الكوبون (مرة واحدة فقط هنا، وليس في applyCoupon)
   if (couponId) {
     const coupon = await Coupon.findById(couponId);
     if (coupon) {
@@ -133,7 +125,6 @@ const createSubscription = async (session) => {
   }
 };
 
-// Webhook لاستقبال أحداث Stripe
 exports.stripeWebhook = asyncHandler(async (req, res) => {
   const sig = req.headers['stripe-signature'];
 
@@ -153,8 +144,6 @@ exports.stripeWebhook = asyncHandler(async (req, res) => {
     const session = event.data.object;
     await createSubscription(session);
   }
-
-  // يمكن إضافة المزيد من الأحداث لاحقًا (مثل invoice.payment_failed إلخ)
 
   res.json({ received: true });
 });

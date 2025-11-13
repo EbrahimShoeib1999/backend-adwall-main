@@ -4,6 +4,7 @@ const sharp = require("sharp");
 const bcrypt = require("bcryptjs");
 const slugify = require("slugify");
 const fs = require('fs');
+const path = require('path');
 
 const factory = require("./handlersFactory");
 const ApiError = require("../utils/apiError");
@@ -11,45 +12,54 @@ const { uploadSingleImage } = require("../middlewares/uploadImageMiddleware");
 const createToken = require("../utils/createToken");
 const User = require("../model/userModel");
 const Plan = require('../model/planModel');
+const { sendSuccessResponse, statusCodes } = require("../utils/responseHandler");
+const { deleteImage } = require('../utils/fileHelper');
 
-// Upload single image
 exports.uploadUserImage = uploadSingleImage("profileImg");
 
-// Image processing
 exports.resizeImage = asyncHandler(async (req, res, next) => {
   if (!req.file) return next();
 
-  const filename = `user-${uuidv4()}-${Date.now()}.jpeg`;
+  const uploadsDir = path.join('uploads', 'users');
+  if (!fs.existsSync(uploadsDir)) {
+    fs.mkdirSync(uploadsDir, { recursive: true });
+  }
 
-  await sharp(req.file.buffer)
+  const filename = `user-${uuidv4()}-${Date.now()}.jpeg`;
+  const outputPath = path.join(uploadsDir, filename);
+
+  await sharp(req.file.path)
     .resize(600, 600)
     .toFormat("jpeg")
     .jpeg({ quality: 95 })
-    .toFile(`uploads/users/${filename}`);
+    .toFile(outputPath);
+
+  // حذف الملف المؤقت
+  fs.unlinkSync(req.file.path);
 
   req.body.profileImg = filename;
   next();
 });
 
-// @desc    Get list of users
-// @route   GET /api/v1/users
-// @access  Private/Admin
 exports.getUsers = factory.getAll(User);
-
-// @desc    Get specific user by id
-// @route   GET /api/v1/users/:id
-// @access  Private/Admin
 exports.getUser = factory.getOne(User);
-
-// @desc    Create user
-// @route   POST  /api/v1/users
-// @access  Private/Admin
 exports.createUser = factory.createOne(User);
 
 // @desc    Update specific user
 // @route   PUT /api/v1/users/:id
 // @access  Private/Admin
 exports.updateUser = asyncHandler(async (req, res, next) => {
+  const user = await User.findById(req.params.id);
+  
+  if (!user) {
+    return next(new ApiError(`لا يوجد مستخدم بهذا المعرف ${req.params.id}`, statusCodes.NOT_FOUND));
+  }
+
+  // إذا كان هناك صورة جديدة، احذف القديمة
+  if (req.body.profileImg && user.profileImg && user.profileImg !== 'default-profile.png') {
+    await deleteImage('users', user.profileImg);
+  }
+
   const document = await User.findByIdAndUpdate(
     req.params.id,
     {
@@ -64,10 +74,9 @@ exports.updateUser = asyncHandler(async (req, res, next) => {
     }
   );
 
-  if (!document) {
-    return next(new ApiError(`No document for this id ${req.params.id}`, 404));
-  }
-  res.status(200).json({ data: document });
+  sendSuccessResponse(res, statusCodes.OK, 'تم تحديث بيانات المستخدم بنجاح', {
+    data: document,
+  });
 });
 
 exports.changeUserPassword = asyncHandler(async (req, res, next) => {
@@ -83,15 +92,30 @@ exports.changeUserPassword = asyncHandler(async (req, res, next) => {
   );
 
   if (!document) {
-    return next(new ApiError(`No document for this id ${req.params.id}`, 404));
+    return next(new ApiError(`لا يوجد مستخدم بهذا المعرف ${req.params.id}`, statusCodes.NOT_FOUND));
   }
-  res.status(200).json({ data: document });
+
+  sendSuccessResponse(res, statusCodes.OK, 'تم تغيير كلمة المرور بنجاح', {
+    data: document,
+  });
 });
 
-// @desc    Delete specific user
-// @route   DELETE /api/v1/users/:id
-// @access  Private/Admin
-exports.deleteUser = factory.deleteOne(User);
+exports.deleteUser = asyncHandler(async (req, res, next) => {
+  const user = await User.findById(req.params.id);
+  
+  if (!user) {
+    return next(new ApiError(`لا يوجد مستخدم بهذا المعرف ${req.params.id}`, statusCodes.NOT_FOUND));
+  }
+
+  // حذف الصورة المرتبطة إذا وجدت
+  if (user.profileImg && user.profileImg !== 'default-profile.png') {
+    await deleteImage('users', user.profileImg);
+  }
+
+  await User.findByIdAndDelete(req.params.id);
+  
+  sendSuccessResponse(res, statusCodes.NO_CONTENT);
+});
 
 // @desc    Set role to admin
 // @route   POST  /api/v1/users/admins
@@ -113,7 +137,6 @@ exports.getLoggedUserData = asyncHandler(async (req, res, next) => {
 // @route   PUT /api/v1/users/updateMyPassword
 // @access  Private/Protect
 exports.updateLoggedUserPassword = asyncHandler(async (req, res, next) => {
-  // 1) Update user password based user payload (req.user._id)
   const user = await User.findByIdAndUpdate(
     req.user._id,
     {
@@ -125,10 +148,12 @@ exports.updateLoggedUserPassword = asyncHandler(async (req, res, next) => {
     }
   );
 
-  // 2) Generate token
   const token = createToken(user._id);
 
-  res.status(200).json({ data: user, token });
+  sendSuccessResponse(res, statusCodes.OK, 'تم تحديث كلمة المرور بنجاح', {
+    data: user,
+    token,
+  });
 });
 
 // @desc    Update logged user data (without password, role)
@@ -148,7 +173,9 @@ exports.updateLoggedUserData = asyncHandler(async (req, res, next) => {
     new: true,
   });
 
-  res.status(200).json({ data: updatedUser });
+  sendSuccessResponse(res, statusCodes.OK, 'تم تحديث بياناتك بنجاح', {
+    data: updatedUser,
+  });
 });
 
 // @desc    Deactivate logged user
@@ -157,37 +184,32 @@ exports.updateLoggedUserData = asyncHandler(async (req, res, next) => {
 exports.deleteLoggedUserData = asyncHandler(async (req, res, next) => {
   await User.findByIdAndUpdate(req.user._id, { active: false });
 
-  res.status(204).json({ status: "Success" });
+  sendSuccessResponse(res, statusCodes.NO_CONTENT);
 });
 
 exports.assignPlanToUser = asyncHandler(async (req, res, next) => {
   const { userId } = req.params;
   const { planId, optionId } = req.body;
 
-  // 1) Find the user
   const user = await User.findById(userId);
   if (!user) {
-    return next(new ApiError(`No user for this id ${userId}`, 404));
+    return next(new ApiError(`لا يوجد مستخدم بهذا المعرف ${userId}`, statusCodes.NOT_FOUND));
   }
 
-  // 2) Find the plan
   const plan = await Plan.findById(planId);
   if (!plan) {
-    return next(new ApiError(`No plan for this id ${planId}`, 404));
+    return next(new ApiError(`لا توجد باقة بهذا المعرف ${planId}`, statusCodes.NOT_FOUND));
   }
 
-  // 3) Find the specific option in the plan
   const planOption = plan.options.id(optionId);
   if (!planOption) {
-    return next(new ApiError(`No plan option for this id ${optionId}`, 404));
+    return next(new ApiError(`لا يوجد خيار باقة بهذا المعرف ${optionId}`, statusCodes.NOT_FOUND));
   }
 
-  // 4) Calculate subscription end date
   const durationInMonths = parseInt(planOption.duration.split(' ')[0]);
   const startDate = new Date();
   const endDate = new Date(new Date().setMonth(startDate.getMonth() + durationInMonths));
 
-  // 5) Update user's subscription
   user.subscription = {
     plan: plan._id,
     option: planOption._id,
@@ -199,9 +221,7 @@ exports.assignPlanToUser = asyncHandler(async (req, res, next) => {
 
   await user.save();
 
-  res.status(200).json({
-    status: 'success',
-    message: `Plan '${plan.name}' - '${planOption.duration}' assigned to user '${user.name}' successfully.`,
+  sendSuccessResponse(res, statusCodes.OK, `تم تعيين الباقة '${plan.name}' - '${planOption.duration}' للمستخدم '${user.name}' بنجاح`, {
     data: user,
   });
 });
@@ -211,15 +231,10 @@ exports.assignPlanToUser = asyncHandler(async (req, res, next) => {
 // @access  Private/Admin
 exports.getUsersStats = asyncHandler(async (req, res, next) => {
   try {
-    // حساب إحصائيات المستخدمين مباشرة
     const totalUsers = await User.countDocuments();
-    console.log("Total users:", totalUsers);
-
-    // حساب الإحصائيات
     const adminsCount = await User.countDocuments({ role: "admin" });
     const regularUsersCount = await User.countDocuments({ role: "user" });
 
-    // المستخدمون النشطون في آخر 7 أيام
     const sevenDaysAgo = new Date();
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
@@ -230,19 +245,11 @@ exports.getUsersStats = asyncHandler(async (req, res, next) => {
       ],
     });
 
-    console.log("Stats:");
-    console.log("- Total users:", totalUsers);
-    console.log("- Admins count:", adminsCount);
-    console.log("- Regular users count:", regularUsersCount);
-    console.log("- Active this week:", activeThisWeek);
-
-    // إحصائيات إضافية
     const stats = {
       totalUsers,
       adminsCount,
       regularUsersCount,
       activeThisWeek,
-      // نسب مئوية
       adminPercentage:
         totalUsers > 0 ? ((adminsCount / totalUsers) * 100).toFixed(1) : 0,
       regularUserPercentage:
@@ -253,17 +260,12 @@ exports.getUsersStats = asyncHandler(async (req, res, next) => {
         totalUsers > 0 ? ((activeThisWeek / totalUsers) * 100).toFixed(1) : 0,
     };
 
-    console.log("Stats calculated successfully:", stats);
-
-    res.status(200).json({
-      status: "success",
+    sendSuccessResponse(res, statusCodes.OK, 'تم جلب إحصائيات المستخدمين بنجاح', {
       data: stats,
     });
   } catch (error) {
-    console.error("Error in getUsersStats:", error);
-    console.error("Stack trace:", error.stack);
     return next(
-      new ApiError(`خطأ في جلب إحصائيات المستخدمين: ${error.message}`, 500)
+      new ApiError(`خطأ في جلب إحصائيات المستخدمين: ${error.message}`, statusCodes.INTERNAL_SERVER_ERROR)
     );
   }
 });

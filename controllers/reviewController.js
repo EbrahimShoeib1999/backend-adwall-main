@@ -1,10 +1,10 @@
+// reviewController.js
 const asyncHandler = require('express-async-handler');
 const Review = require('../model/reviewModel');
 const factory = require('./handlersFactory');
 const ApiError = require('../utils/apiError');
+const { sendSuccessResponse, statusCodes } = require('../utils/responseHandler');
 
-// Nested route
-// GET /api/v1/companies/:companyId/reviews
 exports.createFilterObj = (req, res, next) => {
   let filterObject = {};
   if (req.params.companyId) {
@@ -23,7 +23,9 @@ exports.createReview = asyncHandler(async (req, res, next) => {
 
   const newReview = await Review.create(req.body);
 
-  res.status(201).json({ data: newReview });
+  sendSuccessResponse(res, statusCodes.CREATED, 'تم إنشاء التقييم بنجاح', {
+    data: newReview,
+  });
 });
 
 // @desc    Get all reviews
@@ -49,11 +51,13 @@ exports.approveReview = asyncHandler(async (req, res, next) => {
   const review = await Review.findById(id);
 
   if (!review) {
-    return next(new ApiError(`No review for this id ${id}`, 404));
+    return next(new ApiError(`لا يوجد تقييم بهذا المعرف ${id}`, statusCodes.NOT_FOUND));
   }
 
   review.approved = true;
   await review.save();
 
-  res.status(200).json({ status: 'success', data: review });
+  sendSuccessResponse(res, statusCodes.OK, 'تم الموافقة على التقييم بنجاح', {
+    data: review,
+  });
 });

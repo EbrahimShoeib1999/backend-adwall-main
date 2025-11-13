@@ -5,6 +5,7 @@ const passport = require("passport");
 
 // Middlewares
 const cachingMiddleware = require("./middlewares/cachingMiddleware");
+const { canCreateAd } = require("./middlewares/subscriptionMiddleware");
 const { uploadSingleVideo } = require("./middlewares/uploadVideoMiddleware");
 const { uploadSingleImage } = require("./middlewares/uploadImageMiddleware");
 
@@ -103,7 +104,7 @@ reviewRouter.route('/:id/approve').patch(authService.protect, authService.allowe
 const protectedCompanyRouter = express.Router();
 protectedCompanyRouter.use('/:companyId/reviews', reviewRouter);
 
-protectedCompanyRouter.post("/", authService.protect, uploadSingleImage("logo"), resizeCompanyImage, createCompanyValidator, createCompanyService);
+protectedCompanyRouter.post("/", authService.protect, canCreateAd, uploadSingleImage("logo"), resizeCompanyImage, createCompanyValidator, createCompanyService);
 protectedCompanyRouter.put("/:id", authService.protect, uploadSingleImage("logo"), resizeCompanyImage, updateCompany);
 protectedCompanyRouter.delete("/:id", authService.protect, deleteCompany);
 
@@ -123,4 +124,6 @@ router.use("/companies", protectedCompanyRouter);
 router.post('/payments/create-checkout-session', authService.protect, createCheckoutSession);
 router.get('/sitemap.xml', generateSitemap);
 
-module.exports = router;
+module.exports = (app) => {
+  app.use('/api/v1', router);
+};

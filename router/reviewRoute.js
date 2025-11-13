@@ -23,8 +23,18 @@ router
 router
   .route('/:id')
   .get(getReview)
-  .delete(authService.protect, authService.allowedTo('admin'), deleteReview);
+  .delete(
+    authService.protect, 
+    authService.allowedTo('admin'), 
+    deleteReview
+  );
 
-router.route('/:id/approve').patch(authService.protect, authService.allowedTo('admin'), approveReview);
+router
+  .route('/:id/approve')
+  .patch(
+    authService.protect, 
+    authService.allowedTo('admin'), 
+    approveReview
+  );
 
 module.exports = router;

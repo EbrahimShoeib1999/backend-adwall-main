@@ -1,7 +1,6 @@
 const mongoose = require("mongoose");
 const slugify = require("slugify");
 
-// نموذج الشركة
 const companySchema = new mongoose.Schema(
   {
     companyName: {
@@ -25,7 +24,7 @@ const companySchema = new mongoose.Schema(
       type: String,
       required: [true, "Please enter company description"],
     },
-    logo: Buffer,
+    logo: String, // تغيير من Buffer إلى String
     country: {
       type: String,
       required: [true, "يرجى إدخال الدولة"],
@@ -55,7 +54,7 @@ const companySchema = new mongoose.Schema(
       default: "normal",
     },
     video: {
-      type: String, // URL to the video, managed by admin for VIP ads
+      type: String,
     },
     ratingsAverage: {
       type: Number,
@@ -84,7 +83,6 @@ const companySchema = new mongoose.Schema(
   { timestamps: true, toJSON: { virtuals: true }, toObject: { virtuals: true } }
 );
 
-// Virtual property for isApproved
 companySchema.virtual('isApproved').get(function() {
   return this.status === 'approved';
 });

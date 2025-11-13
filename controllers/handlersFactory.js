@@ -1,8 +1,7 @@
-// controllers/handlersFactory.js
-
 const asyncHandler = require("express-async-handler");
 const ApiError = require("../utils/apiError");
 const ApiFeatures = require("../utils/apiFeatures");
+const { sendSuccessResponse, sendErrorResponse, statusCodes } = require("../utils/responseHandler");
 
 exports.deleteOne = (Model) =>
   asyncHandler(async (req, res, next) => {
@@ -10,10 +9,10 @@ exports.deleteOne = (Model) =>
     const document = await Model.findByIdAndDelete(id);
 
     if (!document) {
-      return next(new ApiError(`No document for this id ${id}`, 404));
+      return next(new ApiError(`لا يوجد مستند بهذا المعرف ${id}`, statusCodes.NOT_FOUND));
     }
 
-    res.status(204).send();
+    sendSuccessResponse(res, statusCodes.NO_CONTENT, 'تم حذف المستند بنجاح');
   });
 
 exports.updateOne = (Model) =>
@@ -24,16 +23,15 @@ exports.updateOne = (Model) =>
     });
 
     if (!document) {
-      return next(new ApiError(`No document for this id ${req.params.id}`, 404));
+      return next(new ApiError(`لا يوجد مستند بهذا المعرف ${req.params.id}`, statusCodes.NOT_FOUND));
     }
 
-    res.status(200).json({ data: document });
+    sendSuccessResponse(res, statusCodes.OK, 'تم تحديث المستند بنجاح', { data: document });
   });
 
 exports.createOne = (Model) =>
   asyncHandler(async (req, res, next) => {
     try {
-      // تنظيف صارم: فقط الحقول الموجودة في السكيما
       const schemaKeys = Object.keys(Model.schema.paths)
         .filter((key) => !key.startsWith('_') && key !== 'id');
 
@@ -42,65 +40,58 @@ exports.createOne = (Model) =>
         if (req.body.hasOwnProperty(key)) {
           cleanedBody[key] = req.body[key];
         }
-        // Ensure couponCode is uppercased before validation/creation
         if (Model.modelName === 'Coupon' && key === 'couponCode' && req.body[key]) {
           cleanedBody[key] = req.body[key].toUpperCase();
         }
       });
 
-      // تسجيل للتصحيح (يمكن إزالته في الإنتاج)
       console.log(`Creating ${Model.modelName} with cleaned body:`, cleanedBody);
 
       const doc = await Model.create(cleanedBody);
 
-      return res.status(201).json({
-        status: "success",
-        data: doc,
-      });
+      sendSuccessResponse(res, statusCodes.CREATED, 'تم إنشاء المستند بنجاح', { data: doc });
     } catch (error) {
       console.error("Error in createOne:", error.message);
       console.error("Original Body:", req.body);
 
-      // خطأ تكرار المفتاح
       if (error.code === 11000 && error.keyValue) {
         const field = Object.keys(error.keyValue)[0];
         const value = error.keyValue[field] ?? "(empty)";
         const prettyField =
           field === "couponCode"
-            ? "Coupon code"
+            ? "كود الكوبون"
             : field === "email"
-            ? "Email"
+            ? "البريد الإلكتروني"
             : field.charAt(0).toUpperCase() + field.slice(1);
 
-        // Custom handling for Coupon model's couponCode
         if (Model.modelName === 'Coupon' && field === 'couponCode') {
           const existingCoupon = await Model.findOne({ couponCode: value });
           if (existingCoupon && !existingCoupon.isActive) {
             return next(
               new ApiError(
-                `Coupon code '${value}' already exists but is inactive. Consider reactivating it or using a different code.`,
-                400
+                `كود الكوبون '${value}' موجود بالفعل ولكنه غير نشط. يمكنك إعادة تفعيله أو استخدام كود مختلف.`,
+                statusCodes.BAD_REQUEST
               )
             );
           }
         }
 
         return next(
-          new ApiError(`${prettyField} '${value}' is already taken. Please use another value.`, 400)
+          new ApiError(`'${value}' ${prettyField} مستخدم بالفعل. يرجى استخدام قيمة أخرى.`, statusCodes.BAD_REQUEST)
         );
       }
 
-      // خطأ التحقق من الصحة
       if (error.name === "ValidationError") {
         const messages = Object.values(error.errors)
           .map((err) => err.message)
           .join(", ");
-        return next(new ApiError(messages, 400));
+        return next(new ApiError(messages, statusCodes.BAD_REQUEST));
       }
 
       return next(error);
     }
   });
+
 exports.getOne = (Model, populationOpt) =>
   asyncHandler(async (req, res, next) => {
     const { id } = req.params;
@@ -110,10 +101,10 @@ exports.getOne = (Model, populationOpt) =>
     const document = await query;
 
     if (!document) {
-      return next(new ApiError(`No document for this id ${id}`, 404));
+      return next(new ApiError(`لا يوجد مستند بهذا المعرف ${id}`, statusCodes.NOT_FOUND));
     }
 
-    res.status(200).json({ data: document });
+    sendSuccessResponse(res, statusCodes.OK, 'تم جلب المستند بنجاح', { data: document });
   });
 
 exports.getAll = (Model, modelName = "", populateOptions = []) =>
@@ -139,12 +130,14 @@ exports.getAll = (Model, modelName = "", populateOptions = []) =>
       const { mongooseQuery, paginationResult } = apiFeatures;
       const documents = await mongooseQuery;
 
-      res.status(200).json({
+      const responseData = {
         results: documents.length,
         paginationResult,
         data: Model.modelName === "User" ? { users: documents } : documents,
-      });
+      };
+
+      sendSuccessResponse(res, statusCodes.OK, 'تم جلب المستندات بنجاح', responseData);
     } catch (error) {
-      return next(new ApiError(`Error fetching data: ${error.message}`, 500));
+      return next(new ApiError(`خطأ في جلب البيانات: ${error.message}`, statusCodes.INTERNAL_SERVER_ERROR));
     }
   });

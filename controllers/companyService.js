@@ -1,7 +1,10 @@
 const sharp = require("sharp");
 const { v4: uuidv4 } = require("uuid");
 const ffmpeg = require('fluent-ffmpeg');
-const stream = require('stream');
+const ffmpegPath = require('@ffmpeg-installer/ffmpeg').path;
+ffmpeg.setFfmpegPath(ffmpegPath);
+const fs = require('fs');
+const path = require('path');
 const asyncHandler = require("express-async-handler");
 
 const Company = require("../model/companyModel");
@@ -10,22 +13,32 @@ const ApiError = require("../utils/apiError");
 const sendEmail = require("../utils/sendEmail");
 const { uploadSingleImage } = require("../middlewares/uploadImageMiddleware");
 const { formatCategoryId, formatCompanies } = require("../utils/formatCategoryId");
+const { sendSuccessResponse, statusCodes } = require("../utils/responseHandler");
+const { deleteImage } = require('../utils/fileHelper');
 
-// Upload single image
 exports.uploadCompanyImage = uploadSingleImage("logo");
 
-// Image processing
 exports.resizeImage = asyncHandler(async (req, res, next) => {
   if (!req.file) return next();
 
+  const uploadsDir = path.join('uploads', 'companies');
+  if (!fs.existsSync(uploadsDir)) {
+    fs.mkdirSync(uploadsDir, { recursive: true });
+  }
+
   const filename = `company-${uuidv4()}-${Date.now()}.jpeg`;
-  const processedImageBuffer = await sharp(req.file.buffer)
+  const outputPath = path.join(uploadsDir, filename);
+
+  await sharp(req.file.path)
     .resize(600, 600)
     .toFormat("jpeg")
     .jpeg({ quality: 95 })
-    .toBuffer();
+    .toFile(outputPath);
 
-  req.body.logo = processedImageBuffer;
+  // حذف الملف المؤقت
+  fs.unlinkSync(req.file.path);
+
+  req.body.logo = filename;
   next();
 });
 
@@ -36,26 +49,23 @@ exports.createCompany = asyncHandler(async (req, res, next) => {
   req.body.userId = req.user._id;
   const newDoc = await Company.create(req.body);
 
-  // Increment the user's ad count
   await User.findByIdAndUpdate(req.user._id, {
     $inc: { 'subscription.adsUsed': 1 },
   });
 
-  // Populate after creation
   const populatedDoc = await Company.findById(newDoc._id)
     .populate({ path: "userId", select: "name email" })
     .populate({ path: "categoryId", select: "_id nameAr nameEn color" })
     .lean();
 
   if (!populatedDoc) {
-    return next(new ApiError("Failed to retrieve created company", 500));
+    return next(new ApiError("فشل في استرجاع بيانات الشركة المنشأة", statusCodes.INTERNAL_SERVER_ERROR));
   }
 
-  formatCategoryId(populatedDoc);
+  const formattedDoc = formatCompanies([populatedDoc]);
 
-  res.status(201).json({
-    status: "success",
-    data: populatedDoc,
+  sendSuccessResponse(res, statusCodes.CREATED, 'تم إنشاء الشركة بنجاح', { 
+    data: formattedDoc[0] 
   });
 });
 
@@ -68,8 +78,7 @@ exports.getAllCompanies = asyncHandler(async (req, res, next) => {
 
   companies = formatCompanies(companies);
 
-  res.status(200).json({
-    status: "success",
+  sendSuccessResponse(res, statusCodes.OK, 'تم جلب جميع الشركات بنجاح', {
     results: companies.length,
     data: companies,
   });
@@ -83,14 +92,13 @@ exports.getOneCompany = asyncHandler(async (req, res, next) => {
     .lean();
 
   if (!company) {
-    return next(new ApiError(`No company for this id ${req.params.id}`, 404));
+    return next(new ApiError(`لا توجد شركة بهذا المعرف ${req.params.id}`, statusCodes.NOT_FOUND));
   }
 
-  formatCategoryId(company);
+  const formattedCompany = formatCompanies([company]);
 
-  res.status(200).json({
-    status: "success",
-    data: company,
+  sendSuccessResponse(res, statusCodes.OK, 'تم جلب بيانات الشركة بنجاح', {
+    data: formattedCompany[0],
   });
 });
 
@@ -100,20 +108,27 @@ exports.updateCompany = asyncHandler(async (req, res, next) => {
   const company = await Company.findById(id);
 
   if (!company) {
-    return next(new ApiError(`No company for this id ${id}`, 404));
+    return next(new ApiError(`لا توجد شركة بهذا المعرف ${id}`, statusCodes.NOT_FOUND));
   }
 
   if (company.userId.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
-    return next(new ApiError('You are not allowed to update this company', 403));
+    return next(new ApiError('غير مصرح لك بتحديث هذه الشركة', statusCodes.FORBIDDEN));
+  }
+
+  // إذا كان هناك صورة جديدة، احذف القديمة
+  if (req.body.logo && company.logo) {
+    await deleteImage('companies', company.logo);
   }
 
   const updatedCompany = await Company.findByIdAndUpdate(id, req.body, { new: true })
     .populate({ path: "categoryId", select: "_id nameAr nameEn color" })
     .lean();
 
-  formatCategoryId(updatedCompany);
+  const formattedCompany = formatCompanies([updatedCompany]);
 
-  res.status(200).json({ status: "success", data: updatedCompany });
+  sendSuccessResponse(res, statusCodes.OK, 'تم تحديث بيانات الشركة بنجاح', {
+    data: formattedCompany[0],
+  });
 });
 
 // @desc Delete company
@@ -122,15 +137,20 @@ exports.deleteCompany = asyncHandler(async (req, res, next) => {
   const company = await Company.findById(id);
 
   if (!company) {
-    return next(new ApiError(`No company for this id ${id}`, 404));
+    return next(new ApiError(`لا توجد شركة بهذا المعرف ${id}`, statusCodes.NOT_FOUND));
   }
 
   if (company.userId.toString() !== req.user._id.toString() && req.user.role !== "admin") {
-    return next(new ApiError("You are not allowed to delete this company", 403));
+    return next(new ApiError("غير مصرح لك بحذف هذه الشركة", statusCodes.FORBIDDEN));
+  }
+
+  // حذف الصورة المرتبطة إذا وجدت
+  if (company.logo) {
+    await deleteImage('companies', company.logo);
   }
 
   await Company.findByIdAndDelete(id);
-  res.status(204).send();
+  sendSuccessResponse(res, statusCodes.NO_CONTENT);
 });
 
 // @desc Get companies by category
@@ -142,8 +162,7 @@ exports.getCompaniesByCategory = asyncHandler(async (req, res, next) => {
 
   companies = formatCompanies(companies);
 
-  res.status(200).json({
-    status: "success",
+  sendSuccessResponse(res, statusCodes.OK, 'تم جلب الشركات حسب الفئة بنجاح', {
     results: companies.length,
     data: companies,
   });
@@ -153,7 +172,7 @@ exports.getCompaniesByCategory = asyncHandler(async (req, res, next) => {
 exports.searchCompaniesByName = asyncHandler(async (req, res, next) => {
   const { name } = req.query;
   if (!name) {
-    return next(new ApiError("يرجى إدخال اسم الشركة للبحث", 400));
+    return next(new ApiError("يرجى إدخال اسم الشركة للبحث", statusCodes.BAD_REQUEST));
   }
 
   const searchConditions = {
@@ -172,8 +191,7 @@ exports.searchCompaniesByName = asyncHandler(async (req, res, next) => {
 
   companies = formatCompanies(companies);
 
-  res.status(200).json({
-    status: "success",
+  sendSuccessResponse(res, statusCodes.OK, 'تم البحث في الشركات بنجاح', {
     results: companies.length,
     data: companies,
   });
@@ -187,8 +205,7 @@ exports.getPendingCompanies = asyncHandler(async (req, res, next) => {
 
   pendingCompanies = formatCompanies(pendingCompanies);
 
-  res.status(200).json({
-    status: "success",
+  sendSuccessResponse(res, statusCodes.OK, 'تم جلب الشركات المعلقة بنجاح', {
     results: pendingCompanies.length,
     data: pendingCompanies,
   });
@@ -198,7 +215,7 @@ exports.getPendingCompanies = asyncHandler(async (req, res, next) => {
 exports.searchCompaniesByLocation = asyncHandler(async (req, res, next) => {
   const { city, country } = req.query;
   if (!city && !country) {
-    return next(new ApiError("يرجى إدخال المدينة أو الدولة للبحث", 400));
+    return next(new ApiError("يرجى إدخال المدينة أو الدولة للبحث", statusCodes.BAD_REQUEST));
   }
 
   const query = { status: "approved" };
@@ -211,8 +228,7 @@ exports.searchCompaniesByLocation = asyncHandler(async (req, res, next) => {
 
   companies = formatCompanies(companies);
 
-  res.status(200).json({
-    status: "success",
+  sendSuccessResponse(res, statusCodes.OK, 'تم البحث في الشركات حسب الموقع بنجاح', {
     results: companies.length,
     data: companies,
   });
@@ -224,7 +240,7 @@ exports.searchCompaniesByCategoryAndLocation = asyncHandler(async (req, res, nex
   const { categoryId } = req.params;
 
   if (!categoryId) {
-    return next(new ApiError("يرجى تحديد الفئة", 400));
+    return next(new ApiError("يرجى تحديد الفئة", statusCodes.BAD_REQUEST));
   }
 
   const query = { categoryId, status: "approved" };
@@ -237,8 +253,7 @@ exports.searchCompaniesByCategoryAndLocation = asyncHandler(async (req, res, nex
 
   companies = formatCompanies(companies);
 
-  res.status(200).json({
-    status: "success",
+  sendSuccessResponse(res, statusCodes.OK, 'تم البحث في الشركات حسب الفئة والموقع بنجاح', {
     results: companies.length,
     data: companies,
   });
@@ -259,17 +274,17 @@ exports.approveCompany = asyncHandler(async (req, res, next) => {
 
   if (!updatedCompany) {
     const company = await Company.findById(id);
-    if (!company) return next(new ApiError("الشركة غير موجودة", 404));
-    return next(new ApiError("تمت الموافقة على الشركة مسبقاً", 400));
+    if (!company) return next(new ApiError("الشركة غير موجودة", statusCodes.NOT_FOUND));
+    return next(new ApiError("تمت الموافقة على الشركة مسبقاً", statusCodes.BAD_REQUEST));
   }
 
-  formatCategoryId(updatedCompany);
+  const formattedCompany = formatCompanies([updatedCompany]);
 
   try {
-    if (updatedCompany.userId) {
-      const message = `Hi ${updatedCompany.userId.name},\n\nCongratulations! Your company "${updatedCompany.companyName}" has been approved and is now live on AddWall.\n\nThanks,\nThe AddWall Team`;
+    if (formattedCompany[0].userId) {
+      const message = `Hi ${formattedCompany[0].userId.name},\n\nCongratulations! Your company "${formattedCompany[0].companyName}" has been approved and is now live on AddWall.\n\nThanks,\nThe AddWall Team`;
       await sendEmail({
-        email: updatedCompany.userId.email,
+        email: formattedCompany[0].userId.email,
         subject: "Your Company has been Approved",
         message,
       });
@@ -278,10 +293,8 @@ exports.approveCompany = asyncHandler(async (req, res, next) => {
     console.error(`Failed to send approval email:`, err);
   }
 
-  res.status(200).json({
-    status: "success",
-    message: "تمت الموافقة على الشركة بنجاح",
-    data: updatedCompany,
+  sendSuccessResponse(res, statusCodes.OK, 'تمت الموافقة على الشركة بنجاح', {
+    data: formattedCompany[0],
   });
 });
 
@@ -291,7 +304,7 @@ exports.rejectCompany = asyncHandler(async (req, res, next) => {
   const { reason } = req.body;
 
   if (!reason) {
-    return next(new ApiError("يرجى تقديم سبب الرفض", 400));
+    return next(new ApiError("يرجى تقديم سبب الرفض", statusCodes.BAD_REQUEST));
   }
 
   const company = await Company.findById(id)
@@ -299,18 +312,21 @@ exports.rejectCompany = asyncHandler(async (req, res, next) => {
     .populate({ path: "categoryId", select: "_id nameAr nameEn color" })
     .lean();
 
-  if (!company) return next(new ApiError("الشركة غير موجودة", 404));
-  if (company.status === 'rejected') return next(new ApiError("تم رفض الشركة مسبقاً", 400));
+  if (!company) return next(new ApiError("الشركة غير موجودة", statusCodes.NOT_FOUND));
+  if (company.status === 'rejected') return next(new ApiError("تم رفض الشركة مسبقاً", statusCodes.BAD_REQUEST));
 
-  await Company.findByIdAndUpdate(id, { status: 'rejected', rejectionReason: reason });
+  const updatedCompany = await Company.findByIdAndUpdate(id, { status: 'rejected', rejectionReason: reason }, { new: true })
+    .populate('userId', 'name email')
+    .populate({ path: "categoryId", select: "_id nameAr nameEn color" })
+    .lean();
 
-  formatCategoryId(company);
+  const formattedCompany = formatCompanies([updatedCompany]);
 
   try {
-    if (company.userId) {
-      const message = `Hi ${company.userId.name},\n\nWe regret to inform you that your company submission "${company.companyName}" has been rejected for the following reason:\n${reason}\n\nIf you have any questions, please contact our support team.\n\nThanks,\nThe AddWall Team`;
+    if (formattedCompany[0].userId) {
+      const message = `Hi ${formattedCompany[0].userId.name},\n\nWe regret to inform you that your company submission "${formattedCompany[0].companyName}" has been rejected for the following reason:\n${reason}\n\nIf you have any questions, please contact our support team.\n\nThanks,\nThe AddWall Team`;
       await sendEmail({
-        email: company.userId.email,
+        email: formattedCompany[0].userId.email,
         subject: "Your Company Submission Status",
         message,
       });
@@ -319,10 +335,8 @@ exports.rejectCompany = asyncHandler(async (req, res, next) => {
     console.error(`Failed to send rejection email:`, err);
   }
 
-  res.status(200).json({
-    status: "success",
-    message: "تم رفض الشركة بنجاح",
-    data: company,
+  sendSuccessResponse(res, statusCodes.OK, 'تم رفض الشركة بنجاح', {
+    data: formattedCompany[0],
   });
 });
 
@@ -331,7 +345,7 @@ exports.getUserCompanies = asyncHandler(async (req, res, next) => {
   const { userId } = req.params;
 
   if (req.user._id.toString() !== userId && req.user.role !== "admin") {
-    return next(new ApiError("غير مصرح لك بالوصول إلى هذه الشركات", 403));
+    return next(new ApiError("غير مصرح لك بالوصول إلى هذه الشركات", statusCodes.FORBIDDEN));
   }
 
   let companies = await Company.find({ userId })
@@ -341,8 +355,7 @@ exports.getUserCompanies = asyncHandler(async (req, res, next) => {
 
   companies = formatCompanies(companies);
 
-  res.status(200).json({
-    status: "success",
+  sendSuccessResponse(res, statusCodes.OK, 'تم جلب شركات المستخدم بنجاح', {
     results: companies.length,
     data: companies,
   });
@@ -353,7 +366,7 @@ exports.getUserCompany = asyncHandler(async (req, res, next) => {
   const { userId, companyId } = req.params;
 
   if (req.user._id.toString() !== userId && req.user.role !== "admin") {
-    return next(new ApiError("غير مصرح لك بالوصول إلى هذه الشركة", 403));
+    return next(new ApiError("غير مصرح لك بالوصول إلى هذه الشركة", statusCodes.FORBIDDEN));
   }
 
   let company = await Company.findOne({ _id: companyId, userId })
@@ -361,14 +374,13 @@ exports.getUserCompany = asyncHandler(async (req, res, next) => {
     .lean();
 
   if (!company) {
-    return next(new ApiError("الشركة غير موجودة أو لا تنتمي لك", 404));
+    return next(new ApiError("الشركة غير موجودة أو لا تنتمي لك", statusCodes.NOT_FOUND));
   }
 
-  formatCategoryId(company);
+  const formattedCompany = formatCompanies([company]);
 
-  res.status(200).json({
-    status: "success",
-    data: company,
+  sendSuccessResponse(res, statusCodes.OK, 'تم جلب بيانات الشركة بنجاح', {
+    data: formattedCompany[0],
   });
 });
 
@@ -377,11 +389,11 @@ exports.getUserCompaniesByStatus = asyncHandler(async (req, res, next) => {
   const { userId, status } = req.params;
 
   if (req.user._id.toString() !== userId && req.user.role !== "admin") {
-    return next(new ApiError("غير مصرح لك بالوصول إلى هذه الشركات", 403));
+    return next(new ApiError("غير مصرح لك بالوصول إلى هذه الشركات", statusCodes.FORBIDDEN));
   }
 
   if (!["approved", "pending", "rejected"].includes(status)) {
-    return next(new ApiError("حالة غير صحيحة", 400));
+    return next(new ApiError("حالة غير صحيحة", statusCodes.BAD_REQUEST));
   }
 
   let companies = await Company.find({ userId, status })
@@ -391,8 +403,7 @@ exports.getUserCompaniesByStatus = asyncHandler(async (req, res, next) => {
 
   companies = formatCompanies(companies);
 
-  res.status(200).json({
-    status: "success",
+  sendSuccessResponse(res, statusCodes.OK, `تم جلب الشركات بحالة ${status} بنجاح`, {
     results: companies.length,
     data: companies,
   });
@@ -408,23 +419,26 @@ exports.incrementCompanyView = asyncHandler(async (req, res, next) => {
   ).lean();
 
   if (!company) {
-    return next(new ApiError(`No company for this id ${id}`, 404));
+    return next(new ApiError(`لا توجد شركة بهذا المعرف ${id}`, statusCodes.NOT_FOUND));
   }
 
-  res.status(200).json({ status: 'success', message: 'View count incremented' });
+  sendSuccessResponse(res, statusCodes.OK, 'تم زيادة عدد المشاهدات بنجاح');
 });
 
 // @desc Process video upload
 exports.processVideo = asyncHandler(async (req, res, next) => {
   if (!req.file) return next();
 
+  const uploadsDir = path.join('uploads', 'videos');
+  if (!fs.existsSync(uploadsDir)) {
+    fs.mkdirSync(uploadsDir, { recursive: true });
+  }
+
   const filename = `company-video-${uuidv4()}-${Date.now()}.mp4`;
-  const outputPath = `uploads/videos/${filename}`;
-  const readableStream = new stream.PassThrough();
-  readableStream.end(req.file.buffer);
+  const outputPath = path.join(uploadsDir, filename);
 
   await new Promise((resolve, reject) => {
-    ffmpeg(readableStream)
+    ffmpeg(req.file.path)
       .toFormat('mp4')
       .outputOptions([
         '-c:v libx264',
@@ -433,8 +447,16 @@ exports.processVideo = asyncHandler(async (req, res, next) => {
         '-c:a aac',
         '-b:a 128k',
       ])
-      .on('end', resolve)
-      .on('error', (err) => reject(new ApiError(`Video processing failed: ${err.message}`, 500)))
+      .on('end', () => {
+        // Delete the temporary file
+        fs.unlinkSync(req.file.path);
+        resolve();
+      })
+      .on('error', (err) => {
+        // Delete the temporary file
+        fs.unlinkSync(req.file.path);
+        reject(new ApiError(`فشل في معالجة الفيديو: ${err.message}`, statusCodes.INTERNAL_SERVER_ERROR));
+      })
       .save(outputPath);
   });
 
@@ -455,10 +477,12 @@ exports.updateCompanyVideo = asyncHandler(async (req, res, next) => {
     .lean();
 
   if (!company) {
-    return next(new ApiError(`No company for this id ${id}`, 404));
+    return next(new ApiError(`لا توجد شركة بهذا المعرف ${id}`, statusCodes.NOT_FOUND));
   }
 
-  formatCategoryId(company);
+  const formattedCompany = formatCompanies([company]);
 
-  res.status(200).json({ status: 'success', data: company });
+  sendSuccessResponse(res, statusCodes.OK, 'تم تحديث الفيديو بنجاح', {
+    data: formattedCompany[0],
+  });
 });

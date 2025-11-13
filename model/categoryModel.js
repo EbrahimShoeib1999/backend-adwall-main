@@ -1,4 +1,3 @@
-// model/categoryModel.js
 const mongoose = require("mongoose");
 
 const categorySchema = new mongoose.Schema(
@@ -28,7 +27,7 @@ const categorySchema = new mongoose.Schema(
       required: [true, "Color required"],
     },
     slug: { type: String, lowercase: true },
-    image: Buffer,
+    image: String, // تغيير من Buffer إلى String
   },
   { timestamps: true }
 );

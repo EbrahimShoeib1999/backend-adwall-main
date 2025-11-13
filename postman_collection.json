@@ -279,12 +279,12 @@
           "response": []
         },
         {
-          "name": "GET /api/v1/company/search",
+          "name": "GET /api/v1/company/search/name",
           "request": {
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/v1/company/search",
+              "raw": "{{baseUrl}}/api/v1/company/search/name",
               "host": [
                 "{{baseUrl}}"
               ],
@@ -292,7 +292,8 @@
                 "api",
                 "v1",
                 "company",
-                "search"
+                "search",
+                "name"
               ]
             }
           },
@@ -489,68 +490,6 @@
           "response": []
         },
         {
-          "name": "GET /api/v1/company/pending",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/api/v1/company/pending",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "company",
-                "pending"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "PATCH /api/v1/company/:id/approve",
-          "request": {
-            "method": "PATCH",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/api/v1/company/:id/approve",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "company",
-                ":id",
-                "approve"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "PATCH /api/v1/company/:id/reject",
-          "request": {
-            "method": "PATCH",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/api/v1/company/:id/reject",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "company",
-                ":id",
-                "reject"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
           "name": "PATCH /api/v1/company/:id/video",
           "request": {
             "method": "PATCH",
@@ -566,6 +505,71 @@
                 "company",
                 ":id",
                 "video"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET /api/v1/company/admin/pending",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/company/admin/pending",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "company",
+                "admin",
+                "pending"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "PATCH /api/v1/company/admin/:id/approve",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/company/admin/:id/approve",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "company",
+                "admin",
+                ":id",
+                "approve"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "PATCH /api/v1/company/admin/:id/reject",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/company/admin/:id/reject",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "company",
+                "admin",
+                ":id",
+                "reject"
               ]
             }
           },

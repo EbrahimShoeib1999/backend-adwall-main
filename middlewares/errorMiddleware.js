@@ -1,24 +1,20 @@
 const ApiError = require('../utils/apiError');
+const { sendErrorResponse, statusCodes } = require('../utils/responseHandler');
 
 const sendErrorForDev = (err, res) =>
-  res.status(err.statusCode).json({
-    status: err.status,
+  sendErrorResponse(res, err.statusCode, err.message, {
     error: err,
-    message: err.message,
     stack: err.stack,
   });
 
 const sendErrorForProd = (err, res) =>
-  res.status(err.statusCode).json({
-    status: err.status,
-    message: err.message,
-  });
+  sendErrorResponse(res, err.statusCode, err.message);
 
 const handleJwtInvalidSignature = () =>
-  new ApiError('Invalid token, please login again..', 401);
+  new ApiError('Invalid token, please login again..', statusCodes.UNAUTHORIZED);
 
 const handleJwtExpired = () =>
-  new ApiError('Expired token, please login again..', 401);
+  new ApiError('Expired token, please login again..', statusCodes.UNAUTHORIZED);
 
 const globalError = (err, req, res, next) => {
   if (err instanceof ApiError) {

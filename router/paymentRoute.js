@@ -4,9 +4,10 @@ const authService = require('../controllers/authService');
 
 const router = express.Router();
 
-// This webhook must be before express.json(), so we define it before the general middleware
+// Webhook must be before express.json()
 router.post('/webhook', express.raw({ type: 'application/json' }), stripeWebhook);
 
+// Protected routes
 router.post('/create-checkout-session', authService.protect, createCheckoutSession);
 
 module.exports = router;

@@ -1,3 +1,4 @@
+// sitemapService.js
 const { SitemapStream, streamToPromise } = require('sitemap');
 const { Readable } = require('stream');
 const asyncHandler = require('express-async-handler');
@@ -10,19 +11,16 @@ const Category = require('../model/categoryModel');
 exports.generateSitemap = asyncHandler(async (req, res, next) => {
   const links = [];
 
-  // Add static pages
   links.push({ url: '/', changefreq: 'daily', priority: 1.0 });
   links.push({ url: '/about-us', changefreq: 'monthly', priority: 0.7 });
   links.push({ url: '/privacy-policy', changefreq: 'monthly', priority: 0.7 });
   links.push({ url: '/faq', changefreq: 'monthly', priority: 0.7 });
 
-  // Add categories
   const categories = await Category.find({});
   categories.forEach((category) => {
     links.push({ url: `/category/${category.slug}`, changefreq: 'weekly', priority: 0.9 });
   });
 
-  // Add companies
   const companies = await Company.find({ isApproved: true });
   companies.forEach((company) => {
     links.push({ url: `/company/${company.slug}`, changefreq: 'daily', priority: 0.8 });
