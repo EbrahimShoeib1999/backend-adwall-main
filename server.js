@@ -35,11 +35,6 @@ app.use(compression());
 // Stripe webhook (must be before express.json)
 app.post('/api/v1/payments/webhook', express.raw({ type: 'application/json' }), stripeWebhook);
 
-// Test route
-app.get('/api/v1/test', (req, res) => {
-  res.status(200).json({ message: 'Test route works!' });
-});
-
 // Passport
 app.use(passport.initialize());
 
