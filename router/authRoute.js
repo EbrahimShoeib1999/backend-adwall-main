@@ -11,6 +11,7 @@ const {
   forgotPassword,
   verifyPassResetCode,
   resetPassword,
+  googleCallback, // Import googleCallback
 } = require('../controllers/authService');
 
 const router = express.Router();
@@ -27,10 +28,7 @@ router.get('/google', passport.authenticate('google', { scope: ['profile', 'emai
 router.get(
   '/google/callback',
   passport.authenticate('google', { session: false }),
-  (req, res) => {
-    // On success, redirect to frontend with token
-    res.redirect(`${process.env.FRONTEND_URL}/login-success?token=${req.user.token}`);
-  }
+  googleCallback // Use the new googleCallback function
 );
 
 router.get('/facebook', passport.authenticate('facebook', { scope: ['email'] }));

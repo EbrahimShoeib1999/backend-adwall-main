@@ -167,3 +167,15 @@ exports.allowedTo = (...roles) =>
     }
     next();
   });
+
+// @desc    Google OAuth Callback Handler
+// @route   GET /api/v1/auth/google/callback
+// @access  Public (handled by Passport)
+exports.googleCallback = asyncHandler(async (req, res, next) => {
+  if (req.user && req.user.token) {
+    res.redirect(`${process.env.FRONTEND_URL}/login-success?token=${req.user.token}`);
+  } else {
+    // Handle cases where authentication failed or token is missing
+    res.redirect(`${process.env.FRONTEND_URL}/login-failure`); // Redirect to a failure page
+  }
+});
