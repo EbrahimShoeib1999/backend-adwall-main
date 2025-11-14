@@ -33,6 +33,7 @@ const planRouter     = require("./router/planRoute");
 const campaignRouter = require("./router/campaignRoute");
 const miaRouter      = require("./router/miaRoute");
 const subscriptionRouter = require("./router/subscriptionRoute"); // Add this line
+const testRouter     = require("./router/testRoute"); // Add this line
 
 // Main router instance
 const router = express.Router();
@@ -78,6 +79,7 @@ router.use("/plans", planRouter);
 router.use("/campaigns", campaignRouter);
 router.use("/mias", miaRouter);
 router.use("/subscriptions", subscriptionRouter); // Add this line
+router.use("/test", testRouter); // Add this line
 
 // ========================================
 // Protected Category Routes
