@@ -693,6 +693,50 @@
             }
           },
           "response": []
+        },
+        {
+          "name": "GET /api/v1/subscription/my-subscriptions",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/subscription/my-subscriptions",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "subscription",
+                "my-subscriptions"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Test",
+      "item": [
+        {
+          "name": "GET /api/v1/test/",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/test/",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "test"
+              ]
+            }
+          },
+          "response": []
         }
       ]
     },

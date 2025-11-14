@@ -3,11 +3,10 @@ require('./generatePostmanCollection.js');
 const path = require("path");
 const fs = require("fs");
 
-
 const morgan = require("morgan");
 const compression = require("compression");
 const passport = require("passport");
-const express = require("express"); // Keep express import for express.raw
+const express = require("express");
 
 // Load environment variables
 const envPath = fs.existsSync(path.join(__dirname, 'env.txt')) ? 'env.txt' : '.env';
@@ -48,8 +47,8 @@ if (process.env.NODE_ENV === "development") {
 
   const PORT = process.env.PORT || 8000;
   const serverInstance = app.listen(PORT, '0.0.0.0', () => {
-    console.log(`App running on http://0.0.0.0:${PORT}`);
-    console.log(`External URL: http://72.60.178.180:${PORT}`);
+    console.log(`App running on https://www.adwallpro.com`);
+    console.log(`Internal URL: http://0.0.0.0:${PORT}`);
   });
 
   // Handle unhandled rejections
