@@ -69,3 +69,16 @@ exports.createSubscription = asyncHandler(async (req, res, next) => {
     },
   });
 });
+
+// @desc    Get all subscriptions for the logged-in user
+// @route   GET /api/v1/subscriptions/my-subscriptions
+// @access  Private (Logged-in User)
+exports.getMySubscriptions = asyncHandler(async (req, res, next) => {
+  const userId = req.user._id;
+
+  const subscriptions = await Subscription.find({ user: userId }).populate('plan');
+
+  sendSuccessResponse(res, statusCodes.OK, 'تم استرجاع الاشتراكات بنجاح', {
+    data: subscriptions,
+  });
+});
