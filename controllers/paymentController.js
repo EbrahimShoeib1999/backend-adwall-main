@@ -6,6 +6,7 @@ const User = require('../model/userModel');
 const Subscription = require('../model/subscriptionModel');
 const ApiError = require('../utils/apiError');
 const Coupon = require('../model/couponModel');
+const sendEmail = require('../utils/sendEmail');
 const { sendSuccessResponse, statusCodes } = require('../utils/responseHandler');
 
 // @desc    Create a checkout session for a one-time plan purchase (with optional coupon)
@@ -105,13 +106,27 @@ const createSubscription = async (session) => {
     return;
   }
 
+  const expiresAt = new Date(Date.now() + plan.duration * 24 * 60 * 60 * 1000);
+
   await Subscription.create({
     user: user._id,
     plan: plan._id,
     status: 'active',
-    expiresAt: new Date(Date.now() + plan.duration * 24 * 60 * 60 * 1000),
+    expiresAt,
     paymentStatus: 'paid',
   });
+
+  // Send activation email
+  try {
+    const message = `Hi ${user.name},\n\nYour subscription to the "${plan.name}" plan has been successfully activated!\n\nYour plan is valid until: ${expiresAt.toLocaleDateString()}.\n\nThanks,\nThe AddWall Team`;
+    await sendEmail({
+      email: user.email,
+      subject: 'Your Plan has been Activated!',
+      message,
+    });
+  } catch (err) {
+    console.error(`Failed to send plan activation email to ${user.email}:`, err);
+  }
 
   if (couponId) {
     const coupon = await Coupon.findById(couponId);

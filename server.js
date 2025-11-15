@@ -21,6 +21,7 @@ const passport = require("passport");
 const dbConnection = require("./config/database");
 const { stripeWebhook } = require('./controllers/paymentController');
 const ensureAdminUser = require('./utils/seedAdmin');
+const { startExpirationNotifier } = require('./jobs/expirationNotifier');
 
 // Passport config
 require('./config/passport');
@@ -61,6 +62,7 @@ if (process.env.NODE_ENV === "development") {
 (async () => {
   try {
     await ensureAdminUser();
+    startExpirationNotifier();
 
     const PORT = process.env.PORT || 8000;
     const serverInstance = app.listen(PORT, '0.0.0.0', () => {

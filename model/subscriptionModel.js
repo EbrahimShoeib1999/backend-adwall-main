@@ -26,6 +26,15 @@ const subscriptionSchema = new mongoose.Schema(
       type: Date,
       required: true,
     },
+    paymentStatus: {
+      type: String,
+      enum: ['paid', 'unpaid'],
+      default: 'paid',
+    },
+    expirationNotified: {
+      type: Boolean,
+      default: false,
+    },
   },
   { timestamps: true }
 );
