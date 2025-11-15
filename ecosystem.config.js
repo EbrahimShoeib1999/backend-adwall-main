@@ -9,8 +9,8 @@ module.exports = {
       max_memory_restart: "1G",
       env: {
         NODE_ENV: "development",
-        PORT: 80,
-        FRONTEND_URL: "https://www.adwallpro.com",
+      PORT: 3000,
+              FRONTEND_URL: "https://www.adwallpro.com",
         BASE_URL: "https://www.adwallpro.com",
 
         DB_URI: "mongodb+srv://adwall:alA3LcGR3G8yXXkp@cluster0.tzc2ylz.mongodb.net/?appName=Cluster0",
