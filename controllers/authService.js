@@ -5,6 +5,7 @@ const jwt = require("jsonwebtoken");
 const User = require("../model/userModel");
 const ApiError = require("../utils/apiError");
 const createToken = require("../utils/createToken");
+const sendEmail = require('../utils/sendEmail');
 const { sendSuccessResponse, statusCodes } = require("../utils/responseHandler");
 
 // @desc    Signup
@@ -65,6 +66,20 @@ exports.forgotPassword = asyncHandler(async (req, res, next) => {
   user.passwordResetVerified = false;
 
   await user.save();
+
+  try {
+    await sendEmail({
+      email: user.email,
+      subject: 'رمز إعادة تعيين كلمة المرور (صالح لمدة 10 دقائق)',
+      message: `مرحبًا ${user.name},\n\nلقد تلقينا طلبًا لإعادة تعيين كلمة المرور لحسابك.\n\nأدخل هذا الرمز لإكمال إعادة التعيين:\n\n${resetCode}\n\nشكرًا لك,\nفريق E-shop`,
+    });
+  } catch (err) {
+    user.passwordResetCode = undefined;
+    user.passwordResetExpires = undefined;
+    user.passwordResetVerified = undefined;
+    await user.save();
+    return next(new ApiError('حدث خطأ أثناء إرسال البريد الإلكتروني. يرجى المحاولة مرة أخرى لاحقًا.', statusCodes.INTERNAL_SERVER_ERROR));
+  }
 
   sendSuccessResponse(res, statusCodes.OK, 'تم إرسال رمز إعادة التعيين إلى بريدك الإلكتروني');
 });
