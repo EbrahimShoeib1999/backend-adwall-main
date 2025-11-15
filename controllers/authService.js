@@ -8,7 +8,7 @@ const createToken = require("../utils/createToken");
 const { sendSuccessResponse, statusCodes } = require("../utils/responseHandler");
 
 // @desc    Signup
-// @route   POST /api/v1/auth/signup
+// @route   POST /api/auth/signup
 // @access  Public
 exports.signup = asyncHandler(async (req, res, next) => {
   const user = await User.create({
@@ -27,7 +27,7 @@ exports.signup = asyncHandler(async (req, res, next) => {
 });
 
 // @desc    Login
-// @route   POST /api/v1/auth/login
+// @route   POST /api/auth/login
 // @access  Public
 exports.login = asyncHandler(async (req, res, next) => {
   const { email, password } = req.body;
@@ -51,7 +51,7 @@ exports.login = asyncHandler(async (req, res, next) => {
 });
 
 // @desc    Forgot password
-// @route   POST /api/v1/auth/forgotPassword
+// @route   POST /api/auth/forgotPassword
 // @access  Public
 exports.forgotPassword = asyncHandler(async (req, res, next) => {
   const user = await User.findOne({ email: req.body.email });
@@ -70,7 +70,7 @@ exports.forgotPassword = asyncHandler(async (req, res, next) => {
 });
 
 // @desc    Verify password reset code
-// @route   POST /api/v1/auth/verifyResetCode
+// @route   POST /api/auth/verifyResetCode
 // @access  Public
 exports.verifyPassResetCode = asyncHandler(async (req, res, next) => {
   const user = await User.findOne({
@@ -89,7 +89,7 @@ exports.verifyPassResetCode = asyncHandler(async (req, res, next) => {
 });
 
 // @desc    Reset password
-// @route   POST /api/v1/auth/resetPassword
+// @route   POST /api/auth/resetPassword
 // @access  Public
 exports.resetPassword = asyncHandler(async (req, res, next) => {
   const user = await User.findOne({ email: req.body.email });
@@ -169,7 +169,7 @@ exports.allowedTo = (...roles) =>
   });
 
 // @desc    Google OAuth Callback Handler
-// @route   GET /api/v1/auth/google/callback
+// @route   GET /api/auth/google/callback
 // @access  Public (handled by Passport)
 exports.googleCallback = asyncHandler(async (req, res, next) => {
   if (req.user && req.user.token) {

@@ -129,5 +129,5 @@ router.post('/payments/create-checkout-session', authService.protect, createChec
 router.get('/sitemap.xml', generateSitemap);
 
 module.exports = (app) => {
-  app.use('/api/v1', router);
+  app.use('/api', router);
 };
