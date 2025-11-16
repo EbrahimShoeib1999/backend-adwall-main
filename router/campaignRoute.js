@@ -9,6 +9,7 @@ const {
 } = require('../controllers/campaignService');
 
 const authService = require('../controllers/authService');
+const { canCreateAd } = require('../middlewares/subscriptionMiddleware');
 
 const router = express.Router();
 
@@ -17,7 +18,8 @@ router
     .get(getCampaigns)
     .post(
         authService.protect,
-        authService.allowedTo('admin', 'manager'),
+        authService.allowedTo('admin', 'manager', 'user'), // Allow all authenticated users
+        canCreateAd, // Check if user can create an ad
         createCampaign
     );
 

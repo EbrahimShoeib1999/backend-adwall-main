@@ -12,6 +12,14 @@ const subscriptionSchema = new mongoose.Schema(
       ref: 'Plan',
       required: true,
     },
+    option: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Plan.options',
+    },
+    remainingAds: {
+      type: Number,
+      default: 0,
+    },
     stripeSubscriptionId: {
       type: String,
       unique: true,

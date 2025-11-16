@@ -1,5 +1,8 @@
+const asyncHandler = require('express-async-handler');
 const factory = require('./handlersFactory');
 const Campaign = require('../model/campaignModel');
+const { decrementAdCount } = require('../middlewares/subscriptionMiddleware');
+const { sendSuccessResponse, statusCodes } = require('../utils/responseHandler');
 
 // @desc    Get list of campaigns
 // @route   GET /api/v1/campaigns
@@ -13,8 +16,18 @@ exports.getCampaign = factory.getOne(Campaign);
 
 // @desc    Create campaign
 // @route   POST  /api/v1/campaigns
-// @access  Private/Admin-Manager
-exports.createCampaign = factory.createOne(Campaign);
+// @access  Private/User with Subscription
+exports.createCampaign = asyncHandler(async (req, res, next) => {
+    // Set the advertiser ID from the authenticated user
+    req.body.advertiser = req.user._id;
+
+    const doc = await Campaign.create(req.body);
+
+    // Decrement the ad count for the user's subscription
+    await decrementAdCount(req, res, () => {}); // Pass a dummy next function
+
+    sendSuccessResponse(res, statusCodes.CREATED, 'تم إنشاء الحملة بنجاح', { data: doc });
+});
 
 // @desc    Update specific campaign
 // @route   PUT /api/v1/campaigns/:id

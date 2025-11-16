@@ -70,6 +70,85 @@ exports.createSubscription = asyncHandler(async (req, res, next) => {
   });
 });
 
+// @desc    Admin create a new subscription for a specific user
+// @route   POST /api/v1/subscriptions/admin-create
+// @access  Private (Admin)
+exports.adminCreateSubscriptionForUser = asyncHandler(async (req, res, next) => {
+  const { planId, optionId, userId } = req.body;
+
+  if (!planId || !optionId || !userId) {
+    return next(new ApiError('يرجى تقديم معرف المستخدم، معرف الباقة، ومعرف الخيار', statusCodes.BAD_REQUEST));
+  }
+
+  const plan = await Plan.findById(planId);
+  if (!plan) {
+    return next(new ApiError(`لا توجد باقة بهذا المعرف: ${planId}`, statusCodes.NOT_FOUND));
+  }
+
+  const selectedOption = plan.options.find(opt => opt._id.toString() === optionId);
+  if (!selectedOption) {
+    return next(new ApiError(`لا يوجد خيار بهذا المعرف في هذه الباقة`, statusCodes.NOT_FOUND));
+  }
+
+  const user = await User.findById(userId);
+  if (!user) {
+    return next(new ApiError(`لا يوجد مستخدم بهذا المعرف: ${userId}`, statusCodes.NOT_FOUND));
+  }
+
+  // Cancel any existing active subscription for the user
+  await Subscription.findOneAndUpdate(
+    { user: userId, status: 'active' },
+    { status: 'canceled' }
+  );
+
+  const now = new Date();
+  let endDate;
+  if (selectedOption.duration.toLowerCase() === 'monthly') {
+    endDate = new Date(now.setMonth(now.getMonth() + 1));
+  } else if (selectedOption.duration.toLowerCase() === 'yearly') {
+    endDate = new Date(now.setFullYear(now.getFullYear() + 1));
+  } else {
+    // Assuming duration can also be a number of days
+    const days = parseInt(selectedOption.duration, 10);
+    if (!isNaN(days)) {
+        endDate = new Date(now.setDate(now.getDate() + days));
+    } else {
+        return next(new ApiError('مدة الباقة غير صالحة', statusCodes.BAD_REQUEST));
+    }
+  }
+
+  const newSubscription = await Subscription.create({
+    user: userId,
+    plan: planId,
+    option: optionId,
+    status: 'active',
+    expiresAt: endDate,
+    remainingAds: selectedOption.adsCount,
+  });
+
+  // Optionally, you can remove the subscription details from the user model
+  // to keep it clean and rely on the Subscription model as the single source of truth.
+  // For now, we'll clear the old one to avoid confusion.
+  user.subscription = {}; 
+  await user.save();
+
+  // Send notification email to the user
+  try {
+    await sendEmail({
+      email: user.email,
+      subject: 'تم تفعيل اشتراكك الجديد!',
+      message: `مرحبًا ${user.name},\n\nلقد قام المشرف بتفعيل اشتراك جديد لك.\n\nتفاصيل الباقة:\n- اسم الباقة: ${plan.name}\n- عدد الإعلانات: ${selectedOption.adsCount}\n- تنتهي في: ${endDate.toLocaleDateString()}\n\nيمكنك الآن الاستفادة من مميزات باقتك.\n\nشكرًا لك.`
+    });
+  } catch (err) {
+    // Log the error but don't block the response
+    console.error('Failed to send subscription notification email:', err);
+  }
+
+  sendSuccessResponse(res, statusCodes.CREATED, 'تم إنشاء الاشتراك للمستخدم بنجاح', {
+    data: newSubscription,
+  });
+});
+
 // @desc    Get all subscriptions for the logged-in user
 // @route   GET /api/v1/subscriptions/my-subscriptions
 // @access  Private (Logged-in User)
