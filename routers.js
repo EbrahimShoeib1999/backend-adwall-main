@@ -32,8 +32,9 @@ const couponRouter   = require("./router/couponRoute");
 const planRouter     = require("./router/planRoute");
 const campaignRouter = require("./router/campaignRoute");
 const miaRouter      = require("./router/miaRoute");
-const subscriptionRouter = require("./router/subscriptionRoute"); // Add this line
-const testRouter     = require("./router/testRoute"); // Add this line
+const subscriptionRouter = require("./router/subscriptionRoute");
+const testRouter     = require("./router/testRoute");
+const notificationRouter = require("./router/notificationRoute"); // Add this line
 
 // Main router instance
 const router = express.Router();
@@ -49,10 +50,6 @@ router.put('/auth/resetPassword', resetPasswordValidator, authService.resetPassw
 
 router.get('/auth/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
 router.get('/auth/google/callback', passport.authenticate('google', { session: false }), (req, res) => {
-  res.redirect(`${process.env.FRONTEND_URL}/login-success?token=${req.user.token}`);
-});
-router.get('/auth/facebook', passport.authenticate('facebook', { scope: ['email'] }));
-router.get('/auth/facebook/callback', passport.authenticate('facebook', { session: false }), (req, res) => {
   res.redirect(`${process.env.FRONTEND_URL}/login-success?token=${req.user.token}`);
 });
 
@@ -73,13 +70,14 @@ router.patch("/companies/:id/view", incrementCompanyView);
 // ========================================
 // Mounted Routers
 // ========================================
-router.use("/users", userRouter);         // شغال 1000%
+router.use("/users", userRouter);
 router.use("/coupons", couponRouter);
 router.use("/plans", planRouter);
 router.use("/campaigns", campaignRouter);
 router.use("/mias", miaRouter);
-router.use("/subscriptions", subscriptionRouter); // Add this line
-router.use("/test", testRouter); // Add this line
+router.use("/subscriptions", subscriptionRouter);
+router.use("/test", testRouter);
+router.use("/notifications", notificationRouter); // Add this line
 
 // ========================================
 // Protected Category Routes

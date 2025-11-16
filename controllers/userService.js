@@ -129,8 +129,46 @@ exports.createAdmin = (req, res, next) => {
 // @route   GET /api/v1/users/getMe
 // @access  Private/Protect
 exports.getLoggedUserData = asyncHandler(async (req, res, next) => {
-  req.params.id = req.user._id;
-  next();
+  const user = await User.findById(req.user._id).populate({
+    path: 'subscription.plan',
+    select: 'name planType options', // Select relevant fields from the plan
+  });
+
+  if (!user) {
+    return next(new ApiError('User not found', statusCodes.NOT_FOUND));
+  }
+
+  let planDetails = {};
+  if (user.subscription && user.subscription.plan && user.subscription.option) {
+    const populatedPlan = user.subscription.plan;
+    const currentOption = populatedPlan.options.id(user.subscription.option);
+
+    if (currentOption) {
+      const totalAds = currentOption.adsCount;
+      const adsUsed = user.subscription.adsUsed;
+      const adsRemaining = totalAds - adsUsed;
+
+      planDetails = {
+        planName: populatedPlan.name,
+        planType: populatedPlan.planType,
+        planDuration: currentOption.duration,
+        planPrice: currentOption.finalPriceUSD,
+        totalAds: totalAds,
+        adsUsed: adsUsed,
+        adsRemaining: adsRemaining,
+        startDate: user.subscription.startDate,
+        endDate: user.subscription.endDate,
+        isActive: user.subscription.isActive,
+      };
+    }
+  }
+
+  sendSuccessResponse(res, statusCodes.OK, 'User data retrieved successfully', {
+    user: {
+      ...user.toObject(), // Convert mongoose document to JS object
+      planDetails: planDetails,
+    },
+  });
 });
 
 // @desc    Update logged user password
