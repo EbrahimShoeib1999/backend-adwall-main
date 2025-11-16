@@ -128,6 +128,4 @@ router.use("/companies", protectedCompanyRouter);
 router.post('/payments/create-checkout-session', authService.protect, createCheckoutSession);
 router.get('/sitemap.xml', generateSitemap);
 
-module.exports = (app) => {
-  app.use('/api', router);
-};
+module.exports = router;

@@ -21,7 +21,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Mount Routes
-mountRoutes(app);
+app.use('/api/v1', mountRoutes);
 
 // Route for health check
 app.get('/health', (req, res) => {
