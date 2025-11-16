@@ -9,26 +9,26 @@ module.exports = {
       max_memory_restart: "1G",
       env: {
         NODE_ENV: "development",
-      PORT: 8000,
-              FRONTEND_URL: "https://www.adwallpro.com",
+        PORT: 8000,
+        FRONTEND_URL: "https://www.adwallpro.com",
         BASE_URL: "https://www.adwallpro.com",
 
-        DB_URI: "mongodb+srv://adwall:alA3LcGR3G8yXXkp@cluster0.tzc2ylz.mongodb.net/?appName=Cluster0",
+        DB_URI:
+          "mongodb+srv://adwall:alA3LcGR3G8yXXkp@cluster0.tzc2ylz.mongodb.net/?appName=Cluster0",
 
         JWT_SECRET_KEY: "change_this_to_a_long_random_secret_!@#123ABCxyz789",
         JWT_EXPIRES_IN: "30d",
-
-        EMAIL_HOST: "smtp.gmail.com",
-        EMAIL_PORT: 587,
-        EMAIL_USER: "your_email@gmail.com",
-        EMAIL_PASSWORD: "your_app_specific_password_or_api_key",
-        EMAIL_FROM: "noreply@adwall.com",
+        EMAIL_USER: "adwallproadman10@gmail.com",
+        EMAIL_PASSWORD: "gwcjsrqelbacgtrn", // app password من Gmail
+        EMAIL_FROM: "adwallproadman10@gmail.com",
 
         ENABLE_EMAIL: true,
 
-        GOOGLE_CLIENT_ID: "1098732852870-2835f3lk11h1c9htjvugnh58k2mvpj63.apps.googleusercontent.com",
+        GOOGLE_CLIENT_ID:
+          "1098732852870-2835f3lk11h1c9htjvugnh58k2mvpj63.apps.googleusercontent.com",
         GOOGLE_CLIENT_SECRET: "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",
-        GOOGLE_CALLBACK_URL: "https://www.adwallpro.com/api/auth/google/callback",
+        GOOGLE_CALLBACK_URL:
+          "https://www.adwallpro.com/api/auth/google/callback",
       },
     },
   ],

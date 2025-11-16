@@ -31,15 +31,6 @@ router.get(
   googleCallback // Use the new googleCallback function
 );
 
-router.get('/facebook', passport.authenticate('facebook', { scope: ['email'] }));
 
-router.get(
-    '/facebook/callback',
-    passport.authenticate('facebook', { session: false }),
-  (req, res) => {
-    // On success, redirect to frontend with token
-    res.redirect(`${process.env.FRONTEND_URL}/login-success?token=${req.user.token}`);
-  }
-);
 
 module.exports = router;

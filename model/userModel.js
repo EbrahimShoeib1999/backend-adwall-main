@@ -17,6 +17,8 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: [true, "email required"],
       unique: true,
+      trim: true,
+      lowercase: true,
       validate: {
         validator: function (val) {
           return /^\S+@\S+\.\S+$/.test(val);
@@ -34,7 +36,6 @@ const userSchema = new mongoose.Schema(
       default: "default-profile.png",
     },
     googleId: String,
-    facebookId: String,
     password: {
       type: String,
       minlength: [6, "Too short password"],

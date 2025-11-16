@@ -192,47 +192,6 @@
             }
           },
           "response": []
-        },
-        {
-          "name": "GET /api/v1/auth/facebook",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/api/v1/auth/facebook",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "auth",
-                "facebook"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "GET /api/v1/auth/facebook/callback",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/api/v1/auth/facebook/callback",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "auth",
-                "facebook",
-                "callback"
-              ]
-            }
-          },
-          "response": []
         }
       ]
     },

@@ -14,7 +14,7 @@ const { sendSuccessResponse, statusCodes } = require("../utils/responseHandler")
 exports.signup = asyncHandler(async (req, res, next) => {
   const user = await User.create({
     name: req.body.name,
-    email: req.body.email,
+    email: req.body.email.trim().toLowerCase(),
     phone: req.body.phone,
     password: req.body.password,
   });
@@ -31,7 +31,8 @@ exports.signup = asyncHandler(async (req, res, next) => {
 // @route   POST /api/auth/login
 // @access  Public
 exports.login = asyncHandler(async (req, res, next) => {
-  const { email, password } = req.body;
+  const email = req.body.email?.trim().toLowerCase();
+  const { password } = req.body;
   
   if (!email || !password) {
     return next(new ApiError('البريد الإلكتروني وكلمة المرور مطلوبان', statusCodes.BAD_REQUEST));
@@ -55,14 +56,19 @@ exports.login = asyncHandler(async (req, res, next) => {
 // @route   POST /api/auth/forgotPassword
 // @access  Public
 exports.forgotPassword = asyncHandler(async (req, res, next) => {
-  const user = await User.findOne({ email: req.body.email });
+  const email = req.body.email?.trim().toLowerCase();
+
+  const user = await User.findOne({ email }); // findOne لإرجاع مستند واحد
+  console.log(user);
+
   if (!user) {
     return next(new ApiError('لا يوجد مستخدم مسجل بهذا البريد الإلكتروني', statusCodes.NOT_FOUND));
   }
 
+  // إنشاء رمز إعادة التعيين
   const resetCode = Math.floor(100000 + Math.random() * 900000).toString();
   user.passwordResetCode = resetCode;
-  user.passwordResetExpires = Date.now() + 10 * 60 * 1000;
+  user.passwordResetExpires = Date.now() + 10 * 60 * 1000; // 10 دقائق
   user.passwordResetVerified = false;
 
   await user.save();
@@ -71,25 +77,28 @@ exports.forgotPassword = asyncHandler(async (req, res, next) => {
     await sendEmail({
       email: user.email,
       subject: 'رمز إعادة تعيين كلمة المرور (صالح لمدة 10 دقائق)',
-      message: `مرحبًا ${user.name},\n\nلقد تلقينا طلبًا لإعادة تعيين كلمة المرور لحسابك.\n\nأدخل هذا الرمز لإكمال إعادة التعيين:\n\n${resetCode}\n\nشكرًا لك,\nفريق E-shop`,
+      message: `مرحبًا ${user.name},\n\nلقد تلقينا طلبًا لإعادة تعيين كلمة المرور.\n\nأدخل هذا الرمز لإكمال العملية:\n\n${resetCode}\n\nشكرًا لك,\nفريق Ad-Wall`,
     });
   } catch (err) {
+    // إعادة تعيين القيم إذا فشل الإرسال
     user.passwordResetCode = undefined;
     user.passwordResetExpires = undefined;
     user.passwordResetVerified = undefined;
     await user.save();
-    return next(new ApiError('حدث خطأ أثناء إرسال البريد الإلكتروني. يرجى المحاولة مرة أخرى لاحقًا.', statusCodes.INTERNAL_SERVER_ERROR));
+    return next(new ApiError('حدث خطأ أثناء إرسال البريد الإلكتروني. يرجى المحاولة لاحقًا.', statusCodes.INTERNAL_SERVER_ERROR));
   }
 
   sendSuccessResponse(res, statusCodes.OK, 'تم إرسال رمز إعادة التعيين إلى بريدك الإلكتروني');
 });
 
+
 // @desc    Verify password reset code
 // @route   POST /api/auth/verifyResetCode
 // @access  Public
 exports.verifyPassResetCode = asyncHandler(async (req, res, next) => {
+  const resetCode = req.body.resetCode?.trim();
   const user = await User.findOne({
-    passwordResetCode: req.body.resetCode,
+    passwordResetCode: resetCode,
     passwordResetExpires: { $gt: Date.now() },
   });
 
@@ -107,7 +116,8 @@ exports.verifyPassResetCode = asyncHandler(async (req, res, next) => {
 // @route   POST /api/auth/resetPassword
 // @access  Public
 exports.resetPassword = asyncHandler(async (req, res, next) => {
-  const user = await User.findOne({ email: req.body.email });
+  const email = req.body.email?.trim().toLowerCase();
+  const user = await User.findOne({ email });
   if (!user) {
     return next(new ApiError('لا يوجد مستخدم مسجل بهذا البريد الإلكتروني', statusCodes.NOT_FOUND));
   }
@@ -130,12 +140,10 @@ exports.resetPassword = asyncHandler(async (req, res, next) => {
   });
 });
 
+// Middleware لحماية المسارات
 exports.protect = asyncHandler(async (req, res, next) => {
   let token;
-  if (
-    req.headers.authorization &&
-    req.headers.authorization.startsWith("Bearer")
-  ) {
+  if (req.headers.authorization && req.headers.authorization.startsWith("Bearer")) {
     token = req.headers.authorization.split(" ")[1];
   }
   if (!token) {
@@ -146,26 +154,13 @@ exports.protect = asyncHandler(async (req, res, next) => {
 
   const currentUser = await User.findById(decoded.userId);
   if (!currentUser) {
-    return next(
-      new ApiError(
-        "المستخدم المرتبط بهذا الرمز لم يعد موجوداً",
-        statusCodes.UNAUTHORIZED
-      )
-    );
+    return next(new ApiError("المستخدم المرتبط بهذا الرمز لم يعد موجوداً", statusCodes.UNAUTHORIZED));
   }
 
   if (currentUser.passwordChangedAt) {
-    const passswordChangedTimestamp = parseInt(
-      currentUser.passwordChangedAt.getTime() / 1000,
-      10
-    );
-    if (passswordChangedTimestamp > decoded.iat) {
-      return next(
-        new ApiError(
-          "قام المستخدم بتغيير كلمة المرور مؤخراً، يرجى تسجيل الدخول مرة أخرى",
-          statusCodes.UNAUTHORIZED
-        )
-      );
+    const passChangedTimestamp = parseInt(currentUser.passwordChangedAt.getTime() / 1000, 10);
+    if (passChangedTimestamp > decoded.iat) {
+      return next(new ApiError("قام المستخدم بتغيير كلمة المرور مؤخراً، يرجى تسجيل الدخول مرة أخرى", statusCodes.UNAUTHORIZED));
     }
   }
 
@@ -173,24 +168,19 @@ exports.protect = asyncHandler(async (req, res, next) => {
   next();
 });
 
-exports.allowedTo = (...roles) =>
-  asyncHandler(async (req, res, next) => {
-    if (!roles.includes(req.user.role)) {
-      return next(
-        new ApiError("غير مصرح لك بتنفيذ هذا الإجراء", statusCodes.FORBIDDEN)
-      );
-    }
-    next();
-  });
+// Middleware لتحديد الأدوار المسموح لها
+exports.allowedTo = (...roles) => asyncHandler(async (req, res, next) => {
+  if (!roles.includes(req.user.role)) {
+    return next(new ApiError("غير مصرح لك بتنفيذ هذا الإجراء", statusCodes.FORBIDDEN));
+  }
+  next();
+});
 
-// @desc    Google OAuth Callback Handler
-// @route   GET /api/auth/google/callback
-// @access  Public (handled by Passport)
+// Google OAuth Callback
 exports.googleCallback = asyncHandler(async (req, res, next) => {
   if (req.user && req.user.token) {
     res.redirect(`${process.env.FRONTEND_URL}/login-success?token=${req.user.token}`);
   } else {
-    // Handle cases where authentication failed or token is missing
-    res.redirect(`${process.env.FRONTEND_URL}/login-failure`); // Redirect to a failure page
+    res.redirect(`${process.env.FRONTEND_URL}/login-failure`);
   }
 });
