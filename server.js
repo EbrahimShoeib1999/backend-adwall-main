@@ -64,7 +64,7 @@ if (process.env.NODE_ENV === "development") {
     await ensureAdminUser();
     startExpirationNotifier();
 
-    const PORT = process.env.PORT || 8000 || 3000;
+    const PORT = process.env.PORT || 8000 ;
     const serverInstance = app.listen(PORT, '0.0.0.0', () => {
       console.log(`App running on ${process.env.BASE_URL || 'http://0.0.0.0:' + PORT}`);
       console.log(`Internal URL: http://0.0.0.0:${PORT}`);
