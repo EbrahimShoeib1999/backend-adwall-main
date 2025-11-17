@@ -13,14 +13,17 @@ const analyticsMiddleware = (req, res, next) => {
     const action = `${method} ${originalUrl}`;
 
     const analyticsData = {
-      user: user ? user._id : null,
-      role: user ? user.role : null,
       action,
       path: originalUrl,
       method,
       status: statusCode,
       ip,
     };
+
+    if (user) {
+      analyticsData.user = user._id;
+      analyticsData.role = user.role;
+    }
 
     createAnalyticsRecord(analyticsData).catch(err => {
       console.error('Failed to save analytics data:', err);

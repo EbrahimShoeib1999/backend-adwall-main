@@ -81,11 +81,6 @@ router.use("/test", testRouter);
 router.use("/notifications", notificationRouter); // Add this line
 router.use("/analytics", analyticsRouter);
 
-// Test Route
-router.get('/test-route', (req, res) => {
-  res.status(200).json({ message: 'Test route is working!' });
-});
-
 // ========================================
 // Protected Category Routes
 // ========================================
