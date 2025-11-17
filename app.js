@@ -17,6 +17,10 @@ app.use(cors());
 app.use(express.json({ limit: '20kb' }));
 app.use(express.urlencoded({ extended: true }));
 
+// Analytics Middleware
+const analyticsMiddleware = require('./middlewares/analyticsMiddleware');
+app.use(analyticsMiddleware);
+
 // خدمة الملفات الثابتة
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 

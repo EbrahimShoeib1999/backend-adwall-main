@@ -11,6 +11,7 @@ const campaignRoute = require("./campaignRoute");
 const miaRoute = require("./miaRoute");
 const paymentRoute = require("./paymentRoute");
 const subscriptionRoute = require('./subscriptionRoute');
+const analyticsRoute = require('./analyticsRoute');
 
 const router = express.Router();
 
@@ -25,6 +26,7 @@ router.use("/campaigns", campaignRoute);
 router.use("/mias", miaRoute);
 router.use("/payments", paymentRoute);
 router.use('/subscriptions', subscriptionRoute);
+router.use('/analytics', analyticsRoute);
 router.use("/", sitemapRoute);
 
 module.exports = router;
