@@ -267,6 +267,53 @@ exports.assignPlanToUser = asyncHandler(async (req, res, next) => {
 // @desc    Get users statistics
 // @route   GET /api/v1/users/stats
 // @access  Private/Admin
+const Company = require('../model/companyModel');
+
+// @desc    Get analytics for the logged-in user
+// @route   GET /api/v1/users/my-analytics
+// @access  Private/Protect
+exports.getUserAnalytics = asyncHandler(async (req, res, next) => {
+  const userId = req.user._id;
+
+  const [
+    totalAds,
+    pendingAds,
+    approvedAds,
+    rejectedAds,
+    totalViewsResult,
+    activeAdsList,
+  ] = await Promise.all([
+    Company.countDocuments({ userId }),
+    Company.countDocuments({ userId, status: 'pending' }),
+    Company.countDocuments({ userId, status: 'approved' }),
+    Company.countDocuments({ userId, status: 'rejected' }),
+    Company.aggregate([
+      { $match: { userId } },
+      { $group: { _id: null, totalViews: { $sum: '$views' } } },
+    ]),
+    Company.find({ userId, status: 'approved' }),
+  ]);
+
+  const totalViews = totalViewsResult.length > 0 ? totalViewsResult[0].totalViews : 0;
+
+  const chartData = {
+    labels: ['Pending', 'Approved', 'Rejected'],
+    data: [pendingAds, approvedAds, rejectedAds],
+  };
+
+  sendSuccessResponse(res, statusCodes.OK, 'User analytics retrieved successfully', {
+    data: {
+      totalAds,
+      pendingAds,
+      approvedAds,
+      rejectedAds,
+      totalViews,
+      activeAdsList,
+      chartData,
+    },
+  });
+});
+
 exports.getUsersStats = asyncHandler(async (req, res, next) => {
   try {
     const totalUsers = await User.countDocuments();

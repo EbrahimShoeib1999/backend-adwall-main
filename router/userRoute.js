@@ -26,6 +26,7 @@ const {
   getUsersStats,
   createAdmin,
   assignPlanToUser,
+  getUserAnalytics,
 } = require("../controllers/userService");
 
 const authService = require("../controllers/authService");
@@ -43,6 +44,9 @@ router.get("/getMe", getLoggedUserData, getUser);
 router.put("/changeMyPassword", updateLoggedUserPassword);
 router.put("/updateMe", updateLoggedUserValidator, updateLoggedUserData);
 router.delete("/deleteMe", deleteLoggedUserData);
+
+// User Analytics
+router.get("/my-analytics", getUserAnalytics);
 
 // ╔══════════════════════════════════════════════════╗
 // ║                   Admin Routes                   ║

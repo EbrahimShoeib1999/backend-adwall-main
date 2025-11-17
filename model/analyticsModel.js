@@ -9,6 +9,13 @@ const analyticsSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  eventType: {
+    type: String,
+    default: 'Other',
+  },
+  userName: {
+    type: String,
+  },
   role: {
     type: String,
     enum: ['user', 'admin', 'manager'],

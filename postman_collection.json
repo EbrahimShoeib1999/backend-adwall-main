@@ -803,6 +803,26 @@
           "response": []
         },
         {
+          "name": "GET /api/v1/user/my-analytics",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/user/my-analytics",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "user",
+                "my-analytics"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
           "name": "GET /api/v1/user/stats",
           "request": {
             "method": "GET",

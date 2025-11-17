@@ -5,24 +5,29 @@ const asyncHandler = require('express-async-handler');
 const { sendSuccessResponse, statusCodes } = require('../utils/responseHandler');
 
 // @desc    Get all analytics records
-// @route   GET /api/analytics
+// @route   GET /api/v1/analytics
 // @access  Private (Admin)
 exports.getAnalytics = asyncHandler(async (req, res, next) => {
+  const range = req.query.range || 'week'; // Default to 'week'
+  const days = range === 'month' ? 30 : 7;
+
   const [
     userCount,
     adminCount,
+    managerCount,
     activeCampaignsCount,
     latestActivities,
     dailyCounts,
   ] = await Promise.all([
     User.countDocuments({ role: 'user' }),
     User.countDocuments({ role: 'admin' }),
+    User.countDocuments({ role: 'manager' }),
     Campaign.countDocuments({ status: 'active' }),
     Analytics.find().sort({ timestamp: -1 }).limit(10),
     Analytics.aggregate([
       {
         $match: {
-          timestamp: { $gte: new Date(new Date() - 7 * 24 * 60 * 60 * 1000) },
+          timestamp: { $gte: new Date(new Date() - days * 24 * 60 * 60 * 1000) },
         },
       },
       {
@@ -46,6 +51,7 @@ exports.getAnalytics = asyncHandler(async (req, res, next) => {
     data: {
       userCount,
       adminCount,
+      managerCount,
       activeCampaignsCount,
       latestActivities,
       chartData,
