@@ -126,7 +126,7 @@ exports.resetPassword = asyncHandler(async (req, res, next) => {
     return next(new ApiError('لم يتم التحقق من رمز إعادة التعيين', statusCodes.BAD_REQUEST));
   }
 
-  user.password = await bcrypt.hash(req.body.newPassword, 12);
+  user.password = req.body.newPassword;
   user.passwordResetCode = undefined;
   user.passwordResetExpires = undefined;
   user.passwordResetVerified = undefined;
