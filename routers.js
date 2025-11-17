@@ -35,6 +35,7 @@ const miaRouter      = require("./router/miaRoute");
 const subscriptionRouter = require("./router/subscriptionRoute");
 const testRouter     = require("./router/testRoute");
 const notificationRouter = require("./router/notificationRoute"); // Add this line
+const analyticsRouter = require("./router/analyticsRoute");
 
 // Main router instance
 const router = express.Router();
@@ -78,6 +79,12 @@ router.use("/mias", miaRouter);
 router.use("/subscriptions", subscriptionRouter);
 router.use("/test", testRouter);
 router.use("/notifications", notificationRouter); // Add this line
+router.use("/analytics", analyticsRouter);
+
+// Test Route
+router.get('/test-route', (req, res) => {
+  res.status(200).json({ message: 'Test route is working!' });
+});
 
 // ========================================
 // Protected Category Routes
