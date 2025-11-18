@@ -36,14 +36,21 @@ exports.createOne = (Model) =>
         .filter((key) => !key.startsWith('_') && key !== 'id');
 
       const cleanedBody = {};
-      schemaKeys.forEach((key) => {
-        if (req.body.hasOwnProperty(key)) {
-          cleanedBody[key] = req.body[key];
-        }
-        if (Model.modelName === 'Coupon' && key === 'couponCode' && req.body[key]) {
-          cleanedBody[key] = req.body[key].toUpperCase();
-        }
-      });
+      // Ensure req.body is an object before proceeding
+      if (typeof req.body === 'object' && req.body !== null) {
+        schemaKeys.forEach((key) => {
+          if (req.body.hasOwnProperty(key)) {
+            cleanedBody[key] = req.body[key];
+          }
+          if (Model.modelName === 'Coupon' && key === 'couponCode' && req.body[key]) {
+            cleanedBody[key] = req.body[key].toUpperCase();
+          }
+        });
+      } else {
+        console.warn("req.body is not an object or is null/undefined:", req.body);
+        // Optionally, handle this error more gracefully, e.g., return a 400 error
+        // return next(new ApiError('Invalid request body', statusCodes.BAD_REQUEST));
+      }
 
       console.log(`Creating ${Model.modelName} with cleaned body:`, cleanedBody);
 
