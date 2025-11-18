@@ -36,20 +36,21 @@ exports.createOne = (Model) =>
         .filter((key) => !key.startsWith('_') && key !== 'id');
 
       const cleanedBody = {};
-      // Ensure req.body is an object before proceeding
-      if (typeof req.body === 'object' && req.body !== null) {
+
+      // Ensure req.body is a valid object
+      if (req.body && typeof req.body === 'object' && !Array.isArray(req.body)) {
         schemaKeys.forEach((key) => {
-          if (req.body.hasOwnProperty(key)) {
+          if (Object.prototype.hasOwnProperty.call(req.body, key)) {
             cleanedBody[key] = req.body[key];
           }
+
+          // Uppercase coupon codes
           if (Model.modelName === 'Coupon' && key === 'couponCode' && req.body[key]) {
             cleanedBody[key] = req.body[key].toUpperCase();
           }
         });
       } else {
-        console.warn("req.body is not an object or is null/undefined:", req.body);
-        // Optionally, handle this error more gracefully, e.g., return a 400 error
-        // return next(new ApiError('Invalid request body', statusCodes.BAD_REQUEST));
+        return next(new ApiError('Invalid request body: Expected an object.', statusCodes.BAD_REQUEST));
       }
 
       console.log(`Creating ${Model.modelName} with cleaned body:`, cleanedBody);
@@ -61,6 +62,7 @@ exports.createOne = (Model) =>
       console.error("Error in createOne:", error.message);
       console.error("Original Body:", req.body);
 
+      // Duplicate key handler
       if (error.code === 11000 && error.keyValue) {
         const field = Object.keys(error.keyValue)[0];
         const value = error.keyValue[field] ?? "(empty)";
@@ -88,6 +90,7 @@ exports.createOne = (Model) =>
         );
       }
 
+      // Validation errors
       if (error.name === "ValidationError") {
         const messages = Object.values(error.errors)
           .map((err) => err.message)
@@ -98,6 +101,7 @@ exports.createOne = (Model) =>
       return next(error);
     }
   });
+
 
 exports.getOne = (Model, populationOpt) =>
   asyncHandler(async (req, res, next) => {
