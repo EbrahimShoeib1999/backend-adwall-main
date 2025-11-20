@@ -7,6 +7,7 @@ const Subscription = require('../model/subscriptionModel');
 const ApiError = require('../utils/apiError');
 const Coupon = require('../model/couponModel');
 const sendEmail = require('../utils/sendEmail');
+const { createNotification } = require('./notificationController');
 const { sendSuccessResponse, statusCodes } = require('../utils/responseHandler');
 
 // @desc    Create a checkout session for a one-time plan purchase (with optional coupon)
@@ -93,7 +94,7 @@ exports.createCheckoutSession = asyncHandler(async (req, res, next) => {
   });
 });
 
-const createSubscription = async (session) => {
+const createSubscriptionAndNotify = async (session, req) => {
   const userId = session.metadata.userId;
   const planId = session.metadata.planId;
   const couponId = session.metadata.couponId || null;
@@ -115,6 +116,17 @@ const createSubscription = async (session) => {
     expiresAt,
     paymentStatus: 'paid',
   });
+
+  // Notify user and admins
+  if (req) {
+    // Notify user
+    createNotification(req, user._id, `تم تفعيل اشتراكك في باقة "${plan.name}" بنجاح بعد الدفع.`, 'success', '/my-subscriptions');
+    // Notify admins
+    const admins = await User.find({ role: 'admin' });
+    admins.forEach(admin => {
+      createNotification(req, admin._id, `المستخدم ${user.name} دفع واشترك في باقة "${plan.name}".`, 'info', `/users/${user._id}`);
+    });
+  }
 
   // Send activation email
   try {
@@ -157,7 +169,10 @@ exports.stripeWebhook = asyncHandler(async (req, res) => {
 
   if (event.type === 'checkout.session.completed') {
     const session = event.data.object;
-    await createSubscription(session);
+    // Pass a mock `req` object with `io` to the handler function
+    // This is necessary because the webhook is called directly by Stripe, not via a standard Express route handler
+    const mockReq = { io: req.app.get('socketio') }; // Assuming you've stored io in the app instance
+    await createSubscriptionAndNotify(session, mockReq);
   }
 
   res.json({ received: true });

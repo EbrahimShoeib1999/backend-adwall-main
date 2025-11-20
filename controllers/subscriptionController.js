@@ -4,6 +4,7 @@ const Plan = require('../model/planModel');
 const User = require('../model/userModel');
 const Subscription = require('../model/subscriptionModel');
 const ApiError = require('../utils/apiError');
+const { createNotification } = require('./notificationController');
 const { sendSuccessResponse, statusCodes } = require('../utils/responseHandler');
 
 // @desc    Create a new subscription for the logged-in user
@@ -61,6 +62,16 @@ exports.createSubscription = asyncHandler(async (req, res, next) => {
     isActive: true,
   };
   await user.save();
+
+  // Notify user
+  createNotification(req, userId, `لقد اشتركت بنجاح في باقة "${plan.name}".`, 'success', '/my-subscriptions');
+
+  // Notify admins
+  const admins = await User.find({ role: 'admin' });
+  admins.forEach(admin => {
+    createNotification(req, admin._id, `المستخدم ${user.name} اشترك في باقة "${plan.name}".`, 'info', `/users/${userId}`);
+  });
+
 
   sendSuccessResponse(res, statusCodes.CREATED, 'تم الاشتراك في الباقة بنجاح', {
     data: {
@@ -131,6 +142,10 @@ exports.adminCreateSubscriptionForUser = asyncHandler(async (req, res, next) => 
   // For now, we'll clear the old one to avoid confusion.
   user.subscription = {}; 
   await user.save();
+
+  // Notify user
+  createNotification(req, userId, `قام المدير بتفعيل اشتراكك في باقة "${plan.name}".`, 'success', '/my-subscriptions');
+
 
   // Send notification email to the user
   try {

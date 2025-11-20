@@ -15,6 +15,7 @@ const { uploadSingleImage } = require("../middlewares/uploadImageMiddleware");
 const { formatCategoryId, formatCompanies } = require("../utils/formatCategoryId");
 const { sendSuccessResponse, statusCodes } = require("../utils/responseHandler");
 const { deleteImage } = require('../utils/fileHelper');
+const { createNotification } = require('./notificationController');
 
 exports.uploadCompanyImage = uploadSingleImage("logo");
 
@@ -51,6 +52,14 @@ exports.createCompany = asyncHandler(async (req, res, next) => {
 
   await User.findByIdAndUpdate(req.user._id, {
     $inc: { 'subscription.adsUsed': 1 },
+  });
+
+  // Notify admins about the new pending company
+  const admins = await User.find({ role: 'admin' });
+  admins.forEach(admin => {
+    createNotification(
+      req, admin._id, `شركة جديدة (${newDoc.companyName}) في انتظار المراجعة.`, 'warning', `/companies/pending`
+    );
   });
 
   const populatedDoc = await Company.findById(newDoc._id)
@@ -280,6 +289,11 @@ exports.approveCompany = asyncHandler(async (req, res, next) => {
 
   const formattedCompany = formatCompanies([updatedCompany]);
 
+  // Notify the company owner
+  createNotification(
+    req, updatedCompany.userId._id, `تهانينا! تمت الموافقة على شركتك "${updatedCompany.companyName}".`, 'success', `/company/${updatedCompany._id}`
+  );
+
   try {
     if (formattedCompany[0].userId) {
       const message = `Hi ${formattedCompany[0].userId.name},\n\nCongratulations! Your company "${formattedCompany[0].companyName}" has been approved and is now live on AddWall.\n\nThanks,\nThe AddWall Team`;
@@ -321,6 +335,11 @@ exports.rejectCompany = asyncHandler(async (req, res, next) => {
     .lean();
 
   const formattedCompany = formatCompanies([updatedCompany]);
+
+  // Notify the company owner
+  createNotification(
+    req, updatedCompany.userId._id, `للأسف، تم رفض شركتك "${updatedCompany.companyName}". السبب: ${reason}`, 'error', `/my-companies`
+  );
 
   try {
     if (formattedCompany[0].userId) {

@@ -7,9 +7,39 @@ const { sendSuccessResponse, statusCodes } = require("../utils/responseHandler")
 
 exports.getCoupons = factory.getAll(Coupon);
 exports.getCoupon = factory.getOne(Coupon);
-exports.createCoupon = factory.createOne(Coupon);
-exports.updateCoupon = factory.updateOne(Coupon);
-exports.deleteCoupon = factory.deleteOne(Coupon);
+
+exports.createCoupon = asyncHandler(async (req, res, next) => {
+  const newCoupon = await Coupon.create(req.body);
+  
+  // Emit a socket event to notify clients about the new coupon
+  req.io.emit('newCoupon', newCoupon);
+
+  sendSuccessResponse(res, statusCodes.CREATED, 'تم إنشاء الكوبون بنجاح', { data: newCoupon });
+});
+
+exports.updateCoupon = asyncHandler(async (req, res, next) => {
+  const { id } = req.params;
+  const updatedCoupon = await Coupon.findByIdAndUpdate(id, req.body, { new: true });
+
+  if (!updatedCoupon) {
+    return next(new ApiError(`لا يوجد كوبون بهذا المعرف ${id}`, 404));
+  }
+
+  // Emit a socket event to notify clients about the updated coupon
+  req.io.emit('updateCoupon', updatedCoupon);
+
+  sendSuccessResponse(res, statusCodes.OK, 'تم تحديث الكوبون بنجاح', { data: updatedCoupon });
+});
+exports.deleteCoupon = asyncHandler(async (req, res, next) => {
+  const { id } = req.params;
+  await Coupon.findByIdAndDelete(id);
+
+  // Emit a socket event to notify clients about the deleted coupon
+  req.io.emit('deleteCoupon', id);
+
+  sendSuccessResponse(res, statusCodes.NO_CONTENT, 'تم حذف الكوبون بنجاح');
+});
+
 
 // @desc    Apply a coupon
 // @route   POST /api/v1/coupons/apply

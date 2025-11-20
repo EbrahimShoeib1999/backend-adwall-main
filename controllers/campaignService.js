@@ -2,6 +2,8 @@ const asyncHandler = require('express-async-handler');
 const factory = require('./handlersFactory');
 const Campaign = require('../model/campaignModel');
 const { decrementAdCount } = require('../middlewares/subscriptionMiddleware');
+const User = require('../model/userModel');
+const { createNotification } = require('./notificationController');
 const { sendSuccessResponse, statusCodes } = require('../utils/responseHandler');
 
 // @desc    Get list of campaigns
