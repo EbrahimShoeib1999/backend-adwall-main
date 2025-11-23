@@ -47,7 +47,6 @@ router.post(
   "/",
   uploadSingleImage("logo"),
   resizeImage,
-  canCreateAd,
   createCompanyValidator,
   createCompany
 );

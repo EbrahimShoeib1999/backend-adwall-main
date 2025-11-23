@@ -19,7 +19,6 @@ router
     .post(
         authService.protect,
         authService.allowedTo('admin', 'manager', 'user'), // Allow all authenticated users
-        canCreateAd, // Check if user can create an ad
         createCampaign
     );
 

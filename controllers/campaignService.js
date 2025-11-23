@@ -1,7 +1,6 @@
 const asyncHandler = require('express-async-handler');
 const factory = require('./handlersFactory');
 const Campaign = require('../model/campaignModel');
-const { decrementAdCount } = require('../middlewares/subscriptionMiddleware');
 const User = require('../model/userModel');
 const { createNotification } = require('./notificationController');
 const { sendSuccessResponse, statusCodes } = require('../utils/responseHandler');
@@ -24,9 +23,6 @@ exports.createCampaign = asyncHandler(async (req, res, next) => {
     req.body.advertiser = req.user._id;
 
     const doc = await Campaign.create(req.body);
-
-    // Decrement the ad count for the user's subscription
-    await decrementAdCount(req, res, () => {}); // Pass a dummy next function
 
     sendSuccessResponse(res, statusCodes.CREATED, 'تم إنشاء الحملة بنجاح', { data: doc });
 });
