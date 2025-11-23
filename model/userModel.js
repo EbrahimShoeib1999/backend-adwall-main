@@ -97,7 +97,7 @@ const userSchema = new mongoose.Schema(
       }
     },
   },
-  { timestamps: true }
+  { timestamps: true, toJSON: { virtuals: true }, toObject: { virtuals: true } } // Added schema options
 );
 
 userSchema.pre("save", async function (next) {
@@ -110,6 +110,15 @@ userSchema.pre("save", async function (next) {
   this.password = await bcrypt.hash(this.password, 12);
   this.passwordChangedAt = Date.now();
   next();
+});
+
+// Virtual property for profile image URL
+userSchema.virtual('profileImgUrl').get(function() {
+  if (this.profileImg) {
+    // Assuming 'uploads/users' is the path where user profile images are stored
+    return `${process.env.BASE_URL}/uploads/users/${this.profileImg}`;
+  }
+  return undefined;
 });
 
 const User = mongoose.model("User", userSchema);

@@ -105,23 +105,19 @@ companySchema.pre(/^find/, function (next) {
   next();
 });
 
-const setMediaUrl = (doc) => {
-  if (doc.logo) {
-    const logoUrl = `${process.env.BASE_URL}/uploads/companies/${doc.logo}`;
-    doc.logo = logoUrl;
+// Virtual properties for logo and video URLs
+companySchema.virtual('logoUrl').get(function() {
+  if (this.logo) {
+    return `${process.env.BASE_URL}/uploads/brands/${this.logo}`; // Assuming 'uploads/brands' for company logos
   }
-  if (doc.video) {
-    const videoUrl = `${process.env.BASE_URL}/uploads/videos/${doc.video}`;
-    doc.video = videoUrl;
-  }
-};
-
-companySchema.post('init', (doc) => {
-  setMediaUrl(doc);
+  return undefined;
 });
 
-companySchema.post('save', (doc) => {
-  setMediaUrl(doc);
+companySchema.virtual('videoUrl').get(function() {
+  if (this.video) {
+    return `${process.env.BASE_URL}/uploads/videos/${this.video}`;
+  }
+  return undefined;
 });
 
 module.exports = mongoose.model("Company", companySchema);
