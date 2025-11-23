@@ -110,82 +110,64 @@ exports.deleteCategory = asyncHandler(async (req, res, next) => {
 
   // @access  Private/Admin
 
-  exports.getCategoryStats = asyncHandler(async (req, res, next) => {
+    exports.getCategoryStats = asyncHandler(async (req, res, next) => {
 
-    const stats = await Company.aggregate([
+      const stats = await Category.aggregate([ // Start aggregation from Category model
 
-      {
+        {
 
-        $group: {
+          $lookup: {
 
-          _id: '$categoryId',
+            from: 'companies', // The name of the companies collection
 
-          companyCount: { $sum: 1 },
+            localField: '_id',
 
-        },
+            foreignField: 'categoryId', // Assuming categoryId in Company model links to _id in Category model
 
-      },
-
-      {
-
-        $lookup: {
-
-          from: 'categories', // The name of the categories collection
-
-          localField: '_id',
-
-          foreignField: '_id',
-
-          as: 'category',
-
-        },
-
-      },
-
-      {
-
-        $unwind: '$category',
-
-      },
-
-      {
-
-        $project: {
-
-          _id: 0,
-
-          category: {
-
-            id: '$category._id',
-
-            nameAr: '$category.nameAr',
-
-            nameEn: '$category.nameEn',
+            as: 'companies',
 
           },
 
-          companyCount: 1,
+        },
+
+        {
+
+          $project: {
+
+            _id: 0,
+
+            category: {
+
+              id: '$_id',
+
+              nameAr: '$nameAr',
+
+              nameEn: '$nameEn',
+
+            },
+
+            companyCount: { $size: '$companies' }, // Count the number of companies in the array
+
+          },
 
         },
 
-      },
+        {
 
-      {
+          $sort: { companyCount: -1 }, // Sort by most popular
 
-        $sort: { companyCount: -1 }, // Sort by most popular
+        },
 
-      },
+      ]);
 
-    ]);
+    
 
-  
+      sendSuccessResponse(res, statusCodes.OK, 'Category statistics retrieved successfully', {
 
-    sendSuccessResponse(res, statusCodes.OK, 'Category statistics retrieved successfully', {
+        data: stats,
 
-      data: stats,
+      });
 
     });
-
-  });
 
   
