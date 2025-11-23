@@ -4,11 +4,11 @@ const { createSubscription, getMySubscriptions, adminCreateSubscriptionForUser }
 
 const router = express.Router();
 
-// All routes are protected
-router.use(authService.protect);
+// All routes are protected and admin-only
+router.use(authService.protect, authService.allowedTo('admin'));
 
 // Route for admin to create a subscription for a user
-router.post('/admin-create', authService.allowedTo('admin'), adminCreateSubscriptionForUser);
+router.post('/admin-create', adminCreateSubscriptionForUser);
 
 // Create subscription for the logged-in user
 router.post('/', createSubscription);

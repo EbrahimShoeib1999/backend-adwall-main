@@ -50,10 +50,6 @@ exports.createCompany = asyncHandler(async (req, res, next) => {
   req.body.userId = req.user._id;
   const newDoc = await Company.create(req.body);
 
-  await User.findByIdAndUpdate(req.user._id, {
-    $inc: { 'subscription.adsUsed': 1 },
-  });
-
   // Notify admins about the new pending company
   const admins = await User.find({ role: 'admin' });
   admins.forEach(admin => {

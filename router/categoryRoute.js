@@ -14,11 +14,18 @@ const {
   deleteCategory,
   uploadCategoryImage,
   resizeImage,
+  getCategoryStats,
 } = require("../controllers/categoryService");
 
 const authService = require("../controllers/authService");
 
 const router = express.Router();
+
+router.get('/stats',
+  authService.protect,
+  authService.allowedTo('admin'),
+  getCategoryStats
+);
 
 router
   .route("/")

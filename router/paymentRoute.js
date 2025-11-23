@@ -8,6 +8,6 @@ const router = express.Router();
 router.post('/webhook', express.raw({ type: 'application/json' }), stripeWebhook);
 
 // Protected routes
-router.post('/create-checkout-session', authService.protect, createCheckoutSession);
+router.post('/create-checkout-session', authService.protect, authService.allowedTo('admin'), createCheckoutSession);
 
 module.exports = router;

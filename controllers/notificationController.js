@@ -7,7 +7,21 @@ const { sendSuccessResponse, statusCodes } = require('../utils/responseHandler')
 // @route   GET /api/v1/notifications
 // @access  Private/Protect
 exports.getNotifications = asyncHandler(async (req, res, next) => {
-  const notifications = await Notification.find({ user: req.user._id })
+  const { type, userId } = req.query;
+  const query = {};
+
+  // Build the query based on parameters
+  if (req.user.role === 'admin' && userId) {
+    query.user = userId; // Admin can query for a specific user
+  } else {
+    query.user = req.user._id; // Regular user can only get their own
+  }
+
+  if (type) {
+    query.type = type;
+  }
+
+  const notifications = await Notification.find(query)
     .sort('-createdAt'); // Sort by newest first
 
   sendSuccessResponse(res, statusCodes.OK, 'Notifications retrieved successfully', {

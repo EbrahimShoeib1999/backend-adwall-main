@@ -36,6 +36,7 @@ const subscriptionRouter = require("./router/subscriptionRoute");
 const testRouter     = require("./router/testRoute");
 const notificationRouter = require("./router/notificationRoute"); // Add this line
 const analyticsRouter = require("./router/analyticsRoute");
+const categoryRouter   = require("./router/categoryRoute");
 
 // Main router instance
 const router = express.Router();
@@ -57,8 +58,6 @@ router.get('/auth/google/callback', passport.authenticate('google', { session: f
 // ========================================
 // Public Routes
 // ========================================
-router.get("/categories", cachingMiddleware, getCategories);
-router.get("/categories/:id", getCategoryValidator, getCategory);
 
 router.get("/companies", getAllCompanies);
 router.get("/companies/search", searchCompaniesByName);
@@ -80,19 +79,9 @@ router.use("/subscriptions", subscriptionRouter);
 router.use("/test", testRouter);
 router.use("/notifications", notificationRouter); // Add this line
 router.use("/analytics", analyticsRouter);
+router.use("/categories", categoryRouter);
 
-// ========================================
-// Protected Category Routes
-// ========================================
-const protectedCategoryRouter = express.Router();
-protectedCategoryRouter.route("/")
-  .post(authService.protect, authService.allowedTo("admin", "manager"), uploadCategoryImage, resizeCategoryImage, createCategoryValidator, createCategory);
 
-protectedCategoryRouter.route("/:id")
-  .put(authService.protect, authService.allowedTo("admin", "manager"), uploadCategoryImage, resizeCategoryImage, updateCategoryValidator, updateCategory)
-  .delete(authService.protect, authService.allowedTo("admin"), deleteCategoryValidator, deleteCategory);
-
-router.use("/categories", protectedCategoryRouter);
 
 // ========================================
 // Reviews (Nested)
@@ -108,7 +97,7 @@ reviewRouter.route('/:id/approve').patch(authService.protect, authService.allowe
 const protectedCompanyRouter = express.Router();
 protectedCompanyRouter.use('/:companyId/reviews', reviewRouter);
 
-protectedCompanyRouter.post("/", authService.protect, canCreateAd, uploadSingleImage("logo"), resizeCompanyImage, createCompanyValidator, createCompanyService);
+protectedCompanyRouter.post("/", authService.protect, uploadSingleImage("logo"), resizeCompanyImage, createCompanyValidator, createCompanyService);
 protectedCompanyRouter.put("/:id", authService.protect, uploadSingleImage("logo"), resizeCompanyImage, updateCompany);
 protectedCompanyRouter.delete("/:id", authService.protect, deleteCompany);
 

@@ -105,4 +105,23 @@ companySchema.pre(/^find/, function (next) {
   next();
 });
 
+const setMediaUrl = (doc) => {
+  if (doc.logo) {
+    const logoUrl = `${process.env.BASE_URL}/uploads/companies/${doc.logo}`;
+    doc.logo = logoUrl;
+  }
+  if (doc.video) {
+    const videoUrl = `${process.env.BASE_URL}/uploads/videos/${doc.video}`;
+    doc.video = videoUrl;
+  }
+};
+
+companySchema.post('init', (doc) => {
+  setMediaUrl(doc);
+});
+
+companySchema.post('save', (doc) => {
+  setMediaUrl(doc);
+});
+
 module.exports = mongoose.model("Company", companySchema);
