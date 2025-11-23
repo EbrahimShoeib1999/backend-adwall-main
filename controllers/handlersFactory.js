@@ -122,11 +122,27 @@ exports.getAll = (Model, modelName = "", populateOptions = []) =>
   asyncHandler(async (req, res, next) => {
     try {
       let filter = req.filterObj || {};
-      const documentsCounts = await Model.countDocuments(filter);
 
-      const apiFeatures = new ApiFeatures(Model.find(filter), req.query)
-        .paginate(documentsCounts)
-        .filter();
+      // Build query
+      const apiFeatures = new ApiFeatures(Model.find(filter), req.query);
+
+      // Apply filtering, searching, field limiting, and sorting
+      apiFeatures.filter();
+      if (modelName) apiFeatures.search(modelName);
+      apiFeatures.limitFields().sort();
+
+      // Populate options if any
+      if (populateOptions.length > 0) {
+        populateOptions.forEach((option) => {
+          apiFeatures.mongooseQuery = apiFeatures.mongooseQuery.populate(option);
+        });
+      }
+
+      // Count documents AFTER all filters/searches are applied, but BEFORE pagination
+      const documentsCounts = await apiFeatures.mongooseQuery.model.countDocuments(apiFeatures.mongooseQuery._conditions);
+
+      // Apply pagination
+      apiFeatures.paginate(documentsCounts);
 
       if (populateOptions.length > 0) {
         populateOptions.forEach((option) => {
