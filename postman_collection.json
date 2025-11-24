@@ -327,27 +327,6 @@
           "response": []
         },
         {
-          "name": "PATCH /api/v1/company/:id/view",
-          "request": {
-            "method": "PATCH",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/api/v1/company/:id/view",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "company",
-                ":id",
-                "view"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
           "name": "POST /api/v1/company/",
           "request": {
             "method": "POST",

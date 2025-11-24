@@ -18,7 +18,7 @@ const { createCompanyValidator } = require("./utils/validators/companyValidator"
 const authService = require('./controllers/authService');
 const { getCampaigns, getCampaign, createCampaign, updateCampaign, deleteCampaign } = require('./controllers/campaignService');
 const { getCategories, getCategory, createCategory, updateCategory, deleteCategory, uploadCategoryImage, resizeImage: resizeCategoryImage } = require("./controllers/categoryService");
-const { updateCompany, deleteCompany, approveCompany, createCompany: createCompanyService, getCompaniesByCategory, getPendingCompanies, getAllCompanies, searchCompaniesByName, resizeImage: resizeCompanyImage, searchCompaniesByCategoryAndLocation, getUserCompanies, getUserCompany, getUserCompaniesByStatus, getOneCompany, processVideo, updateCompanyVideo, incrementCompanyView } = require("./controllers/companyService");
+const { updateCompany, deleteCompany, approveCompany, createCompany: createCompanyService, getCompaniesByCategory, getPendingCompanies, getAllCompanies, searchCompaniesByName, resizeImage: resizeCompanyImage, searchCompaniesByCategoryAndLocation, getUserCompanies, getUserCompany, getUserCompaniesByStatus, getOneCompany, processVideo, updateCompanyVideo } = require("./controllers/companyService");
 const { getMias, getMia, createMia, updateMia, deleteMia } = require('./controllers/miaService');
 const { createCheckoutSession } = require('./controllers/paymentController');
 const { generateSitemap } = require('./controllers/sitemapService');
@@ -65,7 +65,7 @@ router.get("/companies/category/:categoryId", getCompaniesByCategory);
 router.get("/companies/category/:categoryId/search-location", searchCompaniesByCategoryAndLocation);
 router.get("/companies/pending", authService.protect, authService.allowedTo("admin"), getPendingCompanies);
 router.get("/companies/:id", getOneCompany);
-router.patch("/companies/:id/view", incrementCompanyView);
+
 
 // ========================================
 // Mounted Routers
