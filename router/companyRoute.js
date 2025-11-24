@@ -20,7 +20,6 @@ const {
   getOneCompany,
   processVideo,
   updateCompanyVideo,
-  updateCompanyViews, // Add this for incrementing views
 } = require("../controllers/companyService");
 
 const { createCompanyValidator } = require("../utils/validators/companyValidator");
@@ -35,7 +34,6 @@ router.use('/:companyId/reviews', reviewRoute);
 // Public routes
 router.get("/", getAllCompanies);
 router.get("/:id", getOneCompany);
-router.patch("/:id/views", updateCompanyViews); // New route to increment views
 router.get("/search/name", searchCompaniesByName);
 router.get("/category/:categoryId", getCompaniesByCategory);
 router.get("/category/:categoryId/search-location", searchCompaniesByCategoryAndLocation);

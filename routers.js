@@ -65,6 +65,7 @@ router.get("/companies/category/:categoryId", getCompaniesByCategory);
 router.get("/companies/category/:categoryId/search-location", searchCompaniesByCategoryAndLocation);
 router.get("/companies/pending", authService.protect, authService.allowedTo("admin"), getPendingCompanies);
 router.get("/companies/:id", getOneCompany);
+router.patch("/companies/:id/views", updateCompanyViews); // New public route to increment views
 
 
 // ========================================
