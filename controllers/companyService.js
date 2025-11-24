@@ -100,6 +100,9 @@ exports.getOneCompany = asyncHandler(async (req, res, next) => {
     return next(new ApiError(`لا توجد شركة بهذا المعرف ${req.params.id}`, statusCodes.NOT_FOUND));
   }
 
+  // Increment view count after successfully finding the company
+  await Company.findByIdAndUpdate(req.params.id, { $inc: { views: 1 } }, { new: true });
+
   const formattedCompany = formatCompanies([company]);
 
   sendSuccessResponse(res, statusCodes.OK, 'تم جلب بيانات الشركة بنجاح', {
@@ -424,21 +427,7 @@ exports.getUserCompaniesByStatus = asyncHandler(async (req, res, next) => {
   });
 });
 
-// @desc Increment view count
-exports.incrementCompanyView = asyncHandler(async (req, res, next) => {
-  const { id } = req.params;
-  const company = await Company.findByIdAndUpdate(
-    id,
-    { $inc: { views: 1 } },
-    { new: true }
-  ).lean();
 
-  if (!company) {
-    return next(new ApiError(`لا توجد شركة بهذا المعرف ${id}`, statusCodes.NOT_FOUND));
-  }
-
-  sendSuccessResponse(res, statusCodes.OK, 'تم زيادة عدد المشاهدات بنجاح');
-});
 
 // @desc Process video upload
 exports.processVideo = asyncHandler(async (req, res, next) => {

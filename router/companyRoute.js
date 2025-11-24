@@ -38,7 +38,7 @@ router.get("/:id", getOneCompany);
 router.get("/search/name", searchCompaniesByName);
 router.get("/category/:categoryId", getCompaniesByCategory);
 router.get("/category/:categoryId/search-location", searchCompaniesByCategoryAndLocation);
-router.patch("/:id/view", incrementCompanyView);
+
 
 // Protected routes
 router.use(authService.protect);
