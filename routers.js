@@ -13,6 +13,7 @@ const { uploadSingleImage } = require("./middlewares/uploadImageMiddleware");
 const { signupValidator, loginValidator, resetPasswordValidator } = require('./utils/validators/authValidator');
 const { getCategoryValidator, createCategoryValidator, updateCategoryValidator, deleteCategoryValidator } = require("./utils/validators/categoryValidator");
 const { createCompanyValidator } = require("./utils/validators/companyValidator");
+const { validateQueryParams } = require("./utils/validators/queryValidator"); // Add this line
 
 // Services & Controllers
 const authService = require('./controllers/authService');
@@ -59,12 +60,12 @@ router.get('/auth/google/callback', passport.authenticate('google', { session: f
 // Public Routes
 // ========================================
 
-router.get("/companies", getAllCompanies);
-router.get("/companies/search", searchCompaniesByName);
-router.get("/companies/category/:categoryId", getCompaniesByCategory);
-router.get("/companies/category/:categoryId/search-location", searchCompaniesByCategoryAndLocation);
-router.get("/companies/pending", authService.protect, authService.allowedTo("admin"), getPendingCompanies);
-router.get("/companies/:id", getOneCompany);
+router.get("/companies", validateQueryParams, getAllCompanies);
+router.get("/companies/search", validateQueryParams, searchCompaniesByName);
+router.get("/companies/category/:categoryId", validateQueryParams, getCompaniesByCategory);
+router.get("/companies/category/:categoryId/search-location", validateQueryParams, searchCompaniesByCategoryAndLocation);
+router.get("/companies/pending", authService.protect, authService.allowedTo("admin"), validateQueryParams, getPendingCompanies);
+router.get("/companies/:id", validateQueryParams, getOneCompany);
 router.patch("/companies/:id/views", updateCompanyViews); // New public route to increment views
 
 
@@ -102,9 +103,9 @@ protectedCompanyRouter.post("/", authService.protect, uploadSingleImage("logo"),
 protectedCompanyRouter.put("/:id", authService.protect, uploadSingleImage("logo"), resizeCompanyImage, updateCompany);
 protectedCompanyRouter.delete("/:id", authService.protect, deleteCompany);
 
-protectedCompanyRouter.get("/user/:userId", authService.protect, getUserCompanies);
+protectedCompanyRouter.get("/user/:userId", authService.protect, validateQueryParams, getUserCompanies);
 protectedCompanyRouter.get("/user/:userId/company/:companyId", authService.protect, getUserCompany);
-protectedCompanyRouter.get("/user/:userId/status/:status", authService.protect, getUserCompaniesByStatus);
+protectedCompanyRouter.get("/user/:userId/status/:status", authService.protect, validateQueryParams, getUserCompaniesByStatus);
 
 protectedCompanyRouter.use(authService.protect, authService.allowedTo("admin"));
 protectedCompanyRouter.patch("/:id/approve", approveCompany);

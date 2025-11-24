@@ -118,7 +118,7 @@ exports.getOne = (Model, populationOpt) =>
     sendSuccessResponse(res, statusCodes.OK, 'تم جلب المستند بنجاح', { data: document });
   });
 
-exports.getAll = (Model, modelName = "", populateOptions = []) =>
+exports.getAll = (Model, modelName = "", populateOptions = [], searchFields = []) =>
   asyncHandler(async (req, res, next) => {
     try {
       let filter = req.filterObj || {};
@@ -128,10 +128,11 @@ exports.getAll = (Model, modelName = "", populateOptions = []) =>
 
       // Apply filtering, searching, field limiting, and sorting
       apiFeatures.filter();
-      if (modelName) apiFeatures.search(modelName);
+      // Use the new search method with provided searchFields
+      apiFeatures.search(searchFields);
       apiFeatures.limitFields().sort();
 
-      // Populate options if any
+      // Populate options if any (moved here to apply before counting and paginating)
       if (populateOptions.length > 0) {
         populateOptions.forEach((option) => {
           apiFeatures.mongooseQuery = apiFeatures.mongooseQuery.populate(option);
@@ -144,15 +145,7 @@ exports.getAll = (Model, modelName = "", populateOptions = []) =>
       // Apply pagination
       apiFeatures.paginate(documentsCounts);
 
-      if (populateOptions.length > 0) {
-        populateOptions.forEach((option) => {
-          apiFeatures.mongooseQuery = apiFeatures.mongooseQuery.populate(option);
-        });
-      }
-
-      if (modelName) apiFeatures.search(modelName);
-
-      apiFeatures.limitFields().sort();
+      // Removed redundant calls to populate, search, limitFields, and sort here.
 
       const { mongooseQuery, paginationResult } = apiFeatures;
       const documents = await mongooseQuery;

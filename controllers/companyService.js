@@ -16,6 +16,7 @@ const { formatCategoryId, formatCompanies } = require("../utils/formatCategoryId
 const { sendSuccessResponse, statusCodes } = require("../utils/responseHandler");
 const { deleteImage } = require('../utils/fileHelper');
 const { createNotification } = require('./notificationController');
+const factory = require('../controllers/handlersFactory'); // Add this line
 
 exports.uploadCompanyImage = uploadSingleImage("logo");
 
@@ -75,19 +76,10 @@ exports.createCompany = asyncHandler(async (req, res, next) => {
 });
 
 // [Admin] Get all registered companies
-exports.getAllCompanies = asyncHandler(async (req, res, next) => {
-  let companies = await Company.find()
-    .populate({ path: "userId", select: "name email" })
-    .populate({ path: "categoryId", select: "_id nameAr nameEn color" })
-    .lean();
-
-  companies = formatCompanies(companies);
-
-  sendSuccessResponse(res, statusCodes.OK, 'تم جلب جميع الشركات بنجاح', {
-    results: companies.length,
-    data: companies,
-  });
-});
+exports.getAllCompanies = factory.getAll(Company, 'Company', [
+  { path: "userId", select: "name email" },
+  { path: "categoryId", select: "_id nameAr nameEn color" }
+]);
 
 // @desc Get one company
 exports.getOneCompany = asyncHandler(async (req, res, next) => {
@@ -163,17 +155,10 @@ exports.deleteCompany = asyncHandler(async (req, res, next) => {
 
 // @desc Get companies by category
 exports.getCompaniesByCategory = asyncHandler(async (req, res, next) => {
-  const { categoryId } = req.params;
-  let companies = await Company.find({ categoryId, status: "approved" })
-    .populate({ path: "categoryId", select: "_id nameAr nameEn color" })
-    .lean();
-
-  companies = formatCompanies(companies);
-
-  sendSuccessResponse(res, statusCodes.OK, 'تم جلب الشركات حسب الفئة بنجاح', {
-    results: companies.length,
-    data: companies,
-  });
+  req.filterObj = { categoryId: req.params.categoryId, status: "approved" };
+  return factory.getAll(Company, 'Company', [
+    { path: "categoryId", select: "_id nameAr nameEn color" }
+  ])(req, res, next);
 });
 
 // @desc Search companies by name
@@ -183,40 +168,21 @@ exports.searchCompaniesByName = asyncHandler(async (req, res, next) => {
     return next(new ApiError("يرجى إدخال اسم الشركة للبحث", statusCodes.BAD_REQUEST));
   }
 
-  const searchConditions = {
-    $or: [
-      { companyName: { $regex: name, $options: "i" } },
-      { companyNameEn: { $regex: name, $options: "i" } },
-      { description: { $regex: name, $options: "i" } },
-      { descriptionEn: { $regex: name, $options: "i" } },
-    ],
-    status: "approved",
-  };
+  // Map 'name' to 'keyword' for ApiFeatures
+  req.query.keyword = name;
+  req.filterObj = { status: "approved" };
 
-  let companies = await Company.find(searchConditions)
-    .populate({ path: "categoryId", select: "_id nameAr nameEn color" })
-    .lean();
-
-  companies = formatCompanies(companies);
-
-  sendSuccessResponse(res, statusCodes.OK, 'تم البحث في الشركات بنجاح', {
-    results: companies.length,
-    data: companies,
-  });
+  return factory.getAll(Company, 'Company', [
+    { path: "categoryId", select: "_id nameAr nameEn color" }
+  ], ['companyName', 'companyNameEn', 'description', 'descriptionEn'])(req, res, next);
 });
 
 // @desc Get all pending companies (admin only)
 exports.getPendingCompanies = asyncHandler(async (req, res, next) => {
-  let pendingCompanies = await Company.find({ status: "pending" })
-    .populate({ path: "categoryId", select: "_id nameAr nameEn color" })
-    .lean();
-
-  pendingCompanies = formatCompanies(pendingCompanies);
-
-  sendSuccessResponse(res, statusCodes.OK, 'تم جلب الشركات المعلقة بنجاح', {
-    results: pendingCompanies.length,
-    data: pendingCompanies,
-  });
+  req.filterObj = { status: "pending" };
+  return factory.getAll(Company, 'Company', [
+    { path: "categoryId", select: "_id nameAr nameEn color" }
+  ])(req, res, next);
 });
 
 // @desc Search companies by city and country
@@ -226,20 +192,13 @@ exports.searchCompaniesByLocation = asyncHandler(async (req, res, next) => {
     return next(new ApiError("يرجى إدخال المدينة أو الدولة للبحث", statusCodes.BAD_REQUEST));
   }
 
-  const query = { status: "approved" };
-  if (city) query.city = { $regex: city, $options: "i" };
-  if (country) query.country = { $regex: country, $options: "i" };
+  req.filterObj = { status: "approved" };
+  if (city) req.filterObj.city = { $regex: city, $options: "i" };
+  if (country) req.filterObj.country = { $regex: country, $options: "i" };
 
-  let companies = await Company.find(query)
-    .populate({ path: "categoryId", select: "_id nameAr nameEn color" })
-    .lean();
-
-  companies = formatCompanies(companies);
-
-  sendSuccessResponse(res, statusCodes.OK, 'تم البحث في الشركات حسب الموقع بنجاح', {
-    results: companies.length,
-    data: companies,
-  });
+  return factory.getAll(Company, 'Company', [
+    { path: "categoryId", select: "_id nameAr nameEn color" }
+  ])(req, res, next);
 });
 
 // @desc Search companies by category and location
@@ -251,20 +210,13 @@ exports.searchCompaniesByCategoryAndLocation = asyncHandler(async (req, res, nex
     return next(new ApiError("يرجى تحديد الفئة", statusCodes.BAD_REQUEST));
   }
 
-  const query = { categoryId, status: "approved" };
-  if (city) query.city = { $regex: city, $options: "i" };
-  if (country) query.country = { $regex: country, $options: "i" };
+  req.filterObj = { categoryId, status: "approved" };
+  if (city) req.filterObj.city = { $regex: city, $options: "i" };
+  if (country) req.filterObj.country = { $regex: country, $options: "i" };
 
-  let companies = await Company.find(query)
-    .populate({ path: "categoryId", select: "_id nameAr nameEn color" })
-    .lean();
-
-  companies = formatCompanies(companies);
-
-  sendSuccessResponse(res, statusCodes.OK, 'تم البحث في الشركات حسب الفئة والموقع بنجاح', {
-    results: companies.length,
-    data: companies,
-  });
+  return factory.getAll(Company, 'Company', [
+    { path: "categoryId", select: "_id nameAr nameEn color" }
+  ])(req, res, next);
 });
 
 // @desc Admin approve company
@@ -366,17 +318,15 @@ exports.getUserCompanies = asyncHandler(async (req, res, next) => {
     return next(new ApiError("غير مصرح لك بالوصول إلى هذه الشركات", statusCodes.FORBIDDEN));
   }
 
-  let companies = await Company.find({ userId })
-    .populate({ path: "categoryId", select: "_id nameAr nameEn color" })
-    .sort({ createdAt: -1 })
-    .lean();
+  req.filterObj = { userId };
+  // Set default sort in req.query if not already present, so ApiFeatures can pick it up
+  if (!req.query.sort) {
+    req.query.sort = '-createdAt';
+  }
 
-  companies = formatCompanies(companies);
-
-  sendSuccessResponse(res, statusCodes.OK, 'تم جلب شركات المستخدم بنجاح', {
-    results: companies.length,
-    data: companies,
-  });
+  return factory.getAll(Company, 'Company', [
+    { path: "categoryId", select: "_id nameAr nameEn color" }
+  ])(req, res, next);
 });
 
 // @desc Get a specific company for a specific user
@@ -414,17 +364,15 @@ exports.getUserCompaniesByStatus = asyncHandler(async (req, res, next) => {
     return next(new ApiError("حالة غير صحيحة", statusCodes.BAD_REQUEST));
   }
 
-  let companies = await Company.find({ userId, status })
-    .populate({ path: "categoryId", select: "_id nameAr nameEn color" })
-    .sort({ createdAt: -1 })
-    .lean();
+  req.filterObj = { userId, status };
+  // Set default sort in req.query if not already present, so ApiFeatures can pick it up
+  if (!req.query.sort) {
+    req.query.sort = '-createdAt';
+  }
 
-  companies = formatCompanies(companies);
-
-  sendSuccessResponse(res, statusCodes.OK, `تم جلب الشركات بحالة ${status} بنجاح`, {
-    results: companies.length,
-    data: companies,
-  });
+  return factory.getAll(Company, 'Company', [
+    { path: "categoryId", select: "_id nameAr nameEn color" }
+  ])(req, res, next);
 });
 
 
