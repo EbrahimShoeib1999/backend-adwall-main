@@ -20,7 +20,6 @@ const {
   getOneCompany,
   processVideo,
   updateCompanyVideo,
-  incrementCompanyView,
 } = require("../controllers/companyService");
 
 const { createCompanyValidator } = require("../utils/validators/companyValidator");
