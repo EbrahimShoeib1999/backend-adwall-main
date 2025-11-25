@@ -41,38 +41,26 @@ exports.resizeImage = asyncHandler(async (req, res, next) => {
 // @desc    Get list of categories
 // @route   GET /api/v1/categories
 // @access  Public
-exports.getCategories = asyncHandler(async (req, res, next) => {
-  // استخدام pagination كاملة لكن بدون فلتر إضافي لضمان جلب كل الـ 4 فئات
-  const page = req.query.page * 1 || 1;
-  const limit = req.query.limit * 1 || 10;
-  const skip = (page - 1) * limit;
-
-  // جلب الكل بدون فلتر (افتراضيًا، إذا كان factory يضيف فلتر، هنا نلغيه)
-  let filterObject = {};
-  // إذا كان هناك req.filterObj من middleware، يمكن إزالته هنا إذا كان السبب في فلترة خاطئة
-  // filterObject = req.filterObj || {}; // علق هذا إذا كان يسبب مشكلة
-
-  const categories = await Category.find(filterObject).skip(skip).limit(limit).sort({ createdAt: -1 });
-  const countDocuments = await Category.countDocuments(filterObject);
-
-  // للتحقق: أضف console.log للـ count في الـ console أثناء التشغيل
-  console.log(`Total categories in DB: ${countDocuments}`); // هذا سيساعد في الديباج
-
-  sendSuccessResponse(res, statusCodes.OK, 'تم جلب المستندات بنجاح', {
-    results: countDocuments,
-    paginationResult: {
-      currentPage: page,
-      limit,
-      numberOfPages: Math.ceil(countDocuments / limit)
-    },
-    data: categories
-  });
-});
+exports.getCategories = factory.getAll(Category, 'Category', [], ['nameAr', 'nameEn']);
 
 // @desc    Get specific category by id
 // @route   GET /api/v1/categories/:id
 // @access  Public
 exports.getCategory = factory.getOne(Category);
+
+// @desc Search categories by name
+// @route GET /api/v1/categories/search?keyword=<keyword>
+// @access Public
+exports.searchCategories = asyncHandler(async (req, res, next) => {
+  const { keyword } = req.query;
+  if (!keyword) {
+    return next(new ApiError("يرجى إدخال كلمة البحث للفئة", statusCodes.BAD_REQUEST));
+  }
+
+  // ApiFeatures will pick up req.query.keyword
+  // We need to specify the fields to search within the Category model
+  return factory.getAll(Category, 'Category', [], ['nameAr', 'nameEn'])(req, res, next);
+});
 
 // @desc    Create category
 // @route   POST  /api/v1/categories

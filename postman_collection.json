@@ -217,6 +217,26 @@
             }
           },
           "response": []
+        },
+        {
+          "name": "GET /api/v1/category/search",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/category/search",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "category",
+                "search"
+              ]
+            }
+          },
+          "response": []
         }
       ]
     },
@@ -489,6 +509,48 @@
                 "company",
                 "admin",
                 "pending"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET /api/v1/company/admin/approved",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/company/admin/approved",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "company",
+                "admin",
+                "approved"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET /api/v1/company/admin/rejected",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/company/admin/rejected",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "company",
+                "admin",
+                "rejected"
               ]
             }
           },

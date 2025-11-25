@@ -5,6 +5,7 @@ const {
   updateCategoryValidator,
   deleteCategoryValidator,
 } = require("../utils/validators/categoryValidator");
+const { validateQueryParams } = require("../utils/validators/queryValidator"); // Add this import
 
 const {
   getCategories,
@@ -15,6 +16,7 @@ const {
   uploadCategoryImage,
   resizeImage,
   getCategoryStats,
+  searchCategories, // Add this import
 } = require("../controllers/categoryService");
 
 const authService = require("../controllers/authService");
@@ -27,9 +29,12 @@ router.get('/stats',
   getCategoryStats
 );
 
+// New search route - placed before /:id
+router.get("/search", validateQueryParams, searchCategories);
+
 router
   .route("/")
-  .get(getCategories)
+  .get(validateQueryParams, getCategories)
   .post(
     authService.protect,
     authService.allowedTo("admin", "manager"),

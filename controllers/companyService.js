@@ -79,7 +79,7 @@ exports.createCompany = asyncHandler(async (req, res, next) => {
 exports.getAllCompanies = factory.getAll(Company, 'Company', [
   { path: "userId", select: "name email" },
   { path: "categoryId", select: "_id nameAr nameEn color" }
-]);
+], ['companyName', 'companyNameEn', 'description', 'descriptionEn']);
 
 // @desc Get one company
 exports.getOneCompany = asyncHandler(async (req, res, next) => {
@@ -182,7 +182,23 @@ exports.getPendingCompanies = asyncHandler(async (req, res, next) => {
   req.filterObj = { status: "pending" };
   return factory.getAll(Company, 'Company', [
     { path: "categoryId", select: "_id nameAr nameEn color" }
-  ])(req, res, next);
+  ], ['companyName', 'companyNameEn', 'description', 'descriptionEn'])(req, res, next);
+});
+
+// @desc Get all approved companies (admin only)
+exports.getApprovedCompanies = asyncHandler(async (req, res, next) => {
+  req.filterObj = { status: "approved" };
+  return factory.getAll(Company, 'Company', [
+    { path: "categoryId", select: "_id nameAr nameEn color" }
+  ], ['companyName', 'companyNameEn', 'description', 'descriptionEn'])(req, res, next);
+});
+
+// @desc Get all rejected companies (admin only)
+exports.getRejectedCompanies = asyncHandler(async (req, res, next) => {
+  req.filterObj = { status: "rejected" };
+  return factory.getAll(Company, 'Company', [
+    { path: "categoryId", select: "_id nameAr nameEn color" }
+  ], ['companyName', 'companyNameEn', 'description', 'descriptionEn'])(req, res, next);
 });
 
 // @desc Search companies by city and country

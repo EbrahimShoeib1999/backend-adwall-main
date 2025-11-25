@@ -10,6 +10,8 @@ const {
   rejectCompany,
   getCompaniesByCategory,
   getPendingCompanies,
+  getApprovedCompanies,
+  getRejectedCompanies,
   getAllCompanies,
   searchCompaniesByName,
   resizeImage,
@@ -76,6 +78,8 @@ router.patch(
 router.use(authService.allowedTo("admin"));
 
 router.get("/admin/pending", getPendingCompanies);
+router.get("/admin/approved", getApprovedCompanies);
+router.get("/admin/rejected", getRejectedCompanies);
 router.patch("/admin/:id/approve", approveCompany);
 router.patch("/admin/:id/reject", rejectCompany);
 

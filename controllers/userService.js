@@ -41,7 +41,7 @@ exports.resizeImage = asyncHandler(async (req, res, next) => {
   next();
 });
 
-exports.getUsers = factory.getAll(User);
+exports.getUsers = factory.getAll(User, 'User', [], ['name', 'email']);
 exports.getUser = factory.getOne(User);
 exports.createUser = factory.createOne(User);
 

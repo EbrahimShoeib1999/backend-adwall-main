@@ -5,7 +5,7 @@ const ApiError = require("../utils/apiError");
 const asyncHandler = require("express-async-handler");
 const { sendSuccessResponse, statusCodes } = require("../utils/responseHandler");
 
-exports.getCoupons = factory.getAll(Coupon);
+exports.getCoupons = factory.getAll(Coupon, 'Coupon', [], ['couponCode']);
 exports.getCoupon = factory.getOne(Coupon);
 
 exports.createCoupon = asyncHandler(async (req, res, next) => {
