@@ -13,7 +13,16 @@ const mountRoutes = require('./routers');
 const app = express();
 
 // Middlewares
-app.use(cors());
+app.use(cors({
+  origin: [
+    "http://adwallpro.com",
+    "https://adwallpro.com",
+    "http://www.adwallpro.com",
+    "https://www.adwallpro.com",
+    "http://localhost:3000",
+    "https://localhost:3000"
+  ],
+}));
 app.use(express.json({ limit: '20kb' }));
 app.use(express.urlencoded({ extended: true }));
 
