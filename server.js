@@ -65,31 +65,12 @@ if (process.env.NODE_ENV === "development") {
   const server = http.createServer(app);
 
   // Setup Socket.IO
-  const io = new Server(server, {
-    cors: {
-      origin: "*", // In production, restrict this to your frontend's URL
-      methods: ["GET", "POST"]
-    }
-  });
-
+  const io = require('./utils/socket').init(server);
   io.on('connection', (socket) => {
     console.log(`Socket connected: ${socket.id}`);
-    // Here you can implement logic for joining rooms, e.g., based on userId
-    // socket.on('join', (userId) => {
-    //   socket.join(userId);
-    // });
     socket.on('disconnect', () => {
       console.log(`Socket disconnected: ${socket.id}`);
     });
-  });
-
-  // Make io accessible to the rest of the app (for webhook)
-  app.set('socketio', io);
-
-  // Middleware to attach io to each request
-  app.use((req, res, next) => {
-    req.io = io;
-    next();
   });
 
   try {

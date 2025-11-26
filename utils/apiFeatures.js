@@ -6,13 +6,33 @@ class ApiFeatures {
 
   filter() {
     const queryStringObj = { ...this.queryString };
-    const excludesFields = ['page', 'sort', 'limit', 'fields'];
+    const excludesFields = ['page', 'sort', 'limit', 'fields', 'keyword'];
     excludesFields.forEach((field) => delete queryStringObj[field]);
-    // Apply filtration using [gte, gt, lte, lt]
-    let queryStr = JSON.stringify(queryStringObj);
-    queryStr = queryStr.replace(/\b(gte|gt|lte|lt)\b/g, (match) => `$${match}`);
 
-    this.mongooseQuery = this.mongooseQuery.find(JSON.parse(queryStr));
+    const queryObj = {};
+    Object.keys(queryStringObj).forEach(key => {
+      const value = queryStringObj[key];
+      if (typeof value === 'string') {
+        // Check if the value is a boolean string
+        if (value === 'true' || value === 'false') {
+          queryObj[key] = value === 'true';
+        } else {
+          // It's a string, use case-insensitive regex
+          queryObj[key] = { $regex: value, $options: 'i' };
+        }
+      } else if (typeof value === 'object' && value !== null) {
+        // Handle operators like gte, lte
+        const operatorKey = Object.keys(value)[0];
+        const operatorValue = value[operatorKey];
+        queryObj[key] = { [`$${operatorKey}`]: operatorValue };
+      }
+      else {
+        // For other types like numbers, booleans not as strings
+        queryObj[key] = value;
+      }
+    });
+
+    this.mongooseQuery = this.mongooseQuery.find(queryObj);
 
     return this;
   }

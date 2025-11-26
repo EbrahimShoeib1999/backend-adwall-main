@@ -12,7 +12,8 @@ exports.createCoupon = asyncHandler(async (req, res, next) => {
   const newCoupon = await Coupon.create(req.body);
   
   // Emit a socket event to notify clients about the new coupon
-  req.io.emit('newCoupon', newCoupon);
+const io = require('../utils/socket').getIO();
+  io.emit('newCoupon', newCoupon);
 
   sendSuccessResponse(res, statusCodes.CREATED, 'تم إنشاء الكوبون بنجاح', { data: newCoupon });
 });
@@ -26,7 +27,8 @@ exports.updateCoupon = asyncHandler(async (req, res, next) => {
   }
 
   // Emit a socket event to notify clients about the updated coupon
-  req.io.emit('updateCoupon', updatedCoupon);
+const io = require('../utils/socket').getIO();
+  io.emit('updateCoupon', updatedCoupon);
 
   sendSuccessResponse(res, statusCodes.OK, 'تم تحديث الكوبون بنجاح', { data: updatedCoupon });
 });
@@ -35,7 +37,8 @@ exports.deleteCoupon = asyncHandler(async (req, res, next) => {
   await Coupon.findByIdAndDelete(id);
 
   // Emit a socket event to notify clients about the deleted coupon
-  req.io.emit('deleteCoupon', id);
+const io = require('../utils/socket').getIO();
+  io.emit('deleteCoupon', id);
 
   sendSuccessResponse(res, statusCodes.NO_CONTENT, 'تم حذف الكوبون بنجاح');
 });

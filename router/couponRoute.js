@@ -7,6 +7,10 @@ const {
   deleteCoupon,
   applyCoupon,
 } = require("../controllers/couponService");
+const {
+  createCouponValidator,
+  updateCouponValidator,
+} = require("../utils/validators/couponValidator");
 
 const authService = require("../controllers/authService");
 
@@ -20,11 +24,11 @@ router.use(authService.protect, authService.allowedTo("admin", "manager"));
 
 router.route("/")
   .get(getCoupons)
-  .post(createCoupon);
+  .post(createCouponValidator, createCoupon);
 
 router.route("/:id")
   .get(getCoupon)
-  .put(updateCoupon)
+  .put(updateCouponValidator, updateCoupon)
   .delete(deleteCoupon);
 
 module.exports = router;
