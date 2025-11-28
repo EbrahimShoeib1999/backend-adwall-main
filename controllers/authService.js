@@ -184,3 +184,13 @@ exports.googleCallback = asyncHandler(async (req, res, next) => {
     res.redirect(`${process.env.FRONTEND_URL}/login-failure`);
   }
 });
+
+// @desc    Get Google Client ID
+// @route   GET /api/auth/google/client-id
+// @access  Public
+exports.getGoogleClientId = asyncHandler(async (req, res, next) => {
+  const clientId = process.env.GOOGLE_CLIENT_ID;
+  sendSuccessResponse(res, statusCodes.OK, 'Google Client ID retrieved successfully', { 
+    clientId 
+  });
+});

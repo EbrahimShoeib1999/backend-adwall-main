@@ -12,6 +12,7 @@ const {
   verifyPassResetCode,
   resetPassword,
   googleCallback, // Import googleCallback
+  getGoogleClientId,
 } = require('../controllers/authService');
 
 const router = express.Router();
@@ -24,6 +25,7 @@ router.put('/resetPassword', resetPassword);
 
 // Social Login Routes
 router.get('/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
+router.get('/google/client-id', getGoogleClientId);
 
 router.get(
   '/google/callback',

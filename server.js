@@ -16,11 +16,6 @@ const http = require('http');
 // Requires
 // ========================================
 const express = require("express");
-// Create a temporary HTTP server for redirection
-const httpServer = http.createServer((req, res) => {
-  res.writeHead(301, { "Location": "https://" + req.headers['host'] + req.url });
-  res.end();
-});
 const { Server } = require('socket.io');
 const app = require("./app");
 require('./generatePostmanCollection.js');
@@ -68,40 +63,52 @@ if (process.env.NODE_ENV === "development") {
 // ========================================
 // SSL Configuration
 // ========================================
-// Note: You need to generate your own SSL certificate and key.
-// You can use a tool like OpenSSL to generate a self-signed certificate for development.
-// For production, you should use a certificate from a trusted Certificate Authority (CA).
-//
-// Example using OpenSSL to generate a self-signed certificate:
-// openssl req -x509 -newkey rsa:2048 -keyout key.pem -out cert.pem -days 365 -nodes
-//
-// Once you have the key and certificate, place them in the 'config' directory.
+const selfsigned = require('selfsigned');
+
+const configDir = path.join(__dirname, 'config');
+const keyPath = path.join(configDir, 'key.pem');
+const certPath = path.join(configDir, 'cert.pem');
+
 let sslOptions;
-try {
+
+// Check if certificate files exist
+if (fs.existsSync(keyPath) && fs.existsSync(certPath)) {
+  // Load existing certificates
+  console.log('Loading existing SSL certificates.');
   sslOptions = {
-    key: fs.readFileSync(path.join(__dirname, 'config', 'key.pem')),
-    cert: fs.readFileSync(path.join(__dirname, 'config', 'cert.pem'))
+    key: fs.readFileSync(keyPath),
+    cert: fs.readFileSync(certPath)
   };
-} catch (error) {
-  console.error("SSL certificate files not found. Please generate them and place them in the 'config' directory.");
-  console.error("To generate a self-signed certificate for development, run the following command:");
-  console.error("openssl req -x509 -newkey rsa:2048 -keyout ./config/key.pem -out ./config/cert.pem -days 365 -nodes -subj \"/C=US/ST=California/L=San Francisco/O=MyCompany/OU=MyOrg/CN=www.adwallpro.com\"");
-  // process.exit(1); // Exit if SSL certificates are not found
+} else {
+  // Generate new self-signed certificates
+  console.log('SSL certificate files not found. Generating new self-signed certificates...');
+  
+  // Ensure config directory exists
+  if (!fs.existsSync(configDir)) {
+    fs.mkdirSync(configDir);
+  }
+
+  const attrs = [{ name: 'commonName', value: 'www.adwallpro.com' }];
+  const pems = selfsigned.generate(attrs, { days: 365 });
+
+  fs.writeFileSync(keyPath, pems.private);
+  fs.writeFileSync(certPath, pems.cert);
+  
+  console.log('New self-signed SSL certificates have been generated and saved.');
+  
+  sslOptions = {
+    key: pems.private,
+    cert: pems.cert
+  };
 }
+
 
 
 // ========================================
 // Start Server
 // ========================================
 (async () => {
-  let server;
-  if (sslOptions) {
-    server = https.createServer(sslOptions, app);
-  } else {
-    console.warn("Starting server with HTTP because SSL certificates were not found.");
-    server = http.createServer(app);
-  }
-
+  const server = https.createServer(sslOptions, app);
 
   // Setup Socket.IO
   const io = require('./utils/socket').init(server);
@@ -116,18 +123,11 @@ try {
     await ensureAdminUser();
     startExpirationNotifier();
 
-    const PORT = process.env.PORT || 8000;
-    const HTTP_PORT = 80; // Port for HTTP redirection
+    const PORT = process.env.PORT || 443; // Default HTTPS port
 
     const serverInstance = server.listen(PORT, '0.0.0.0', () => {
-      const protocol = sslOptions ? 'https' : 'http';
-      console.log(`App running on ${protocol}://www.adwallpro.com:${PORT}`);
-      console.log(`Internal URL: ${protocol}://0.0.0.0:${PORT}`);
-    });
-    
-    // Start the HTTP redirection server
-    httpServer.listen(HTTP_PORT, '0.0.0.0', () => {
-      console.log(`HTTP redirection server running on port ${HTTP_PORT}`);
+      console.log(`App running on https://www.adwallpro.com:${PORT}`);
+      console.log(`Internal URL: https://0.0.0.0:${PORT}`);
     });
 
     // Handle unhandled promise rejections

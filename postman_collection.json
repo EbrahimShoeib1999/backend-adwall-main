@@ -173,6 +173,27 @@
           "response": []
         },
         {
+          "name": "GET /api/v1/auth/google/client-id",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/google/client-id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "google",
+                "client-id"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
           "name": "GET /api/v1/auth/google/callback",
           "request": {
             "method": "GET",
