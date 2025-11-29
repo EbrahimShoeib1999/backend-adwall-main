@@ -119,4 +119,11 @@ router.use("/companies", protectedCompanyRouter);
 router.post('/payments/create-checkout-session', authService.protect, createCheckoutSession);
 router.get('/sitemap.xml', generateSitemap);
 
+// ========================================
+// Health Check
+// ========================================
+router.get('/health', (req, res) => {
+  res.status(200).json({ status: 'UP' });
+});
+
 module.exports = router;
