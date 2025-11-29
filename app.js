@@ -54,7 +54,7 @@ app.get('/health', (req, res) => {
 
 // Handle unhandled routes
 app.all('*', (req, res, next) => {
-  next(new ApiError(`Can't find ${req.originalUrl} on this server!`, 404));
+  next(new ApiError(`TEST: Route ${req.originalUrl} not found on this server!`, 404));
 });
 
 // Global error handling middleware
