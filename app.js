@@ -1,6 +1,6 @@
 const express = require('express');
 const path = require('path');
-const axios = require('axios'); // للـ proxy requests
+const axios = require('axios');
 const ApiError = require('./utils/apiError');
 const globalError = require('./middlewares/errorMiddleware');
 const mountRoutes = require('./router');
@@ -30,7 +30,6 @@ app.use((req, res, next) => {
   if (req.method === "OPTIONS") {
     return res.sendStatus(204);
   }
-
   next();
 });
 
@@ -52,24 +51,25 @@ app.use(analyticsMiddleware);
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // =======================
-// 5️⃣ API Routes
-// =======================
-app.use('/api/v1', mountRoutes);
-
-// =======================
-// 6️⃣ Proxy route لأي backend بعيد (اختياري)
+// 5️⃣ Proxy for all /api/v1 requests to backend
 // =======================
 const BACKEND_URL = "http://72.60.178.180:8000";
 
-app.use('/api/proxy/*', async (req, res, next) => {
+app.use('/api/v1/*', async (req, res, next) => {
   try {
-    const url = `${BACKEND_URL}${req.originalUrl.replace('/api/proxy', '')}`;
+    const url = `${BACKEND_URL}${req.originalUrl}`;
     const response = await axios({
       method: req.method,
       url,
       data: req.body,
       headers: { ...req.headers, host: undefined } // حذف host الأصلي
     });
+
+    // أضف headers CORS في الرد
+    res.setHeader("Access-Control-Allow-Origin", req.headers.origin || "*");
+    res.setHeader("Access-Control-Allow-Credentials", "true");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS");
+    res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
 
     res.status(response.status).send(response.data);
   } catch (err) {
@@ -78,21 +78,21 @@ app.use('/api/proxy/*', async (req, res, next) => {
 });
 
 // =======================
-// 7️⃣ Health check
+// 6️⃣ Health check
 // =======================
 app.get('/health', (req, res) => {
   res.status(200).json({ status: 'UP' });
 });
 
 // =======================
-// 8️⃣ Handle unhandled routes
+// 7️⃣ Handle unhandled routes
 // =======================
 app.all('*', (req, res, next) => {
   next(new ApiError(`Can't find ${req.originalUrl} on this server!`, 404));
 });
 
 // =======================
-// 9️⃣ Global error handling
+// 8️⃣ Global error handling
 // =======================
 app.use(globalError);
 
