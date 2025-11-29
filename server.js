@@ -1,4 +1,4 @@
-// server.js - النسخة المعدلة للـ VPS
+// server.js - Final Version for VPS Deployment
 
 const path = require("path");
 const fs = require("fs");
@@ -9,13 +9,11 @@ const fs = require("fs");
 const envPath = fs.existsSync(path.join(__dirname, 'env.txt')) ? 'env.txt' : '.env';
 require("dotenv").config({ path: envPath });
 
-const https = require('https');
-const http = require('http');
-
 // ========================================
 // Requires
 // ========================================
 const express = require("express");
+const http = require("http");
 const { Server } = require('socket.io');
 const app = require("./app");
 require('./generatePostmanCollection.js');
@@ -61,57 +59,13 @@ if (process.env.NODE_ENV === "development") {
 }
 
 // ========================================
-// SSL Configuration
-// ========================================
-const selfsigned = require('selfsigned');
-
-const configDir = path.join(__dirname, 'config');
-const keyPath = path.join(configDir, 'key.pem');
-const certPath = path.join(configDir, 'cert.pem');
-
-let sslOptions;
-
-// Check if certificate files exist
-if (fs.existsSync(keyPath) && fs.existsSync(certPath)) {
-  // Load existing certificates
-  console.log('Loading existing SSL certificates.');
-  sslOptions = {
-    key: fs.readFileSync(keyPath),
-    cert: fs.readFileSync(certPath)
-  };
-} else {
-  // Generate new self-signed certificates
-  console.log('SSL certificate files not found. Generating new self-signed certificates...');
-  
-  // Ensure config directory exists
-  if (!fs.existsSync(configDir)) {
-    fs.mkdirSync(configDir);
-  }
-
-  const attrs = [{ name: 'commonName', value: 'www.adwallpro.com' }];
-  const pems = selfsigned.generate(attrs, { days: 365 });
-
-  fs.writeFileSync(keyPath, pems.private);
-  fs.writeFileSync(certPath, pems.cert);
-  
-  console.log('New self-signed SSL certificates have been generated and saved.');
-  
-  sslOptions = {
-    key: pems.private,
-    cert: pems.cert
-  };
-}
-
-
-
-// ========================================
-// Start Server
+// Start HTTP Server ONLY (SSL handled by Nginx)
 // ========================================
 (async () => {
-  const server = https.createServer(sslOptions, app);
+  const httpServer = http.createServer(app);
 
   // Setup Socket.IO
-  const io = require('./utils/socket').init(server);
+  const io = require('./utils/socket').init(httpServer);
   io.on('connection', (socket) => {
     console.log(`Socket connected: ${socket.id}`);
     socket.on('disconnect', () => {
@@ -123,29 +77,20 @@ if (fs.existsSync(keyPath) && fs.existsSync(certPath)) {
     await ensureAdminUser();
     startExpirationNotifier();
 
-    const PORT = process.env.PORT || 443; // Default HTTPS port
+    const PORT = process.env.PORT || 8000;
 
-    const serverInstance = server.listen(PORT, '0.0.0.0', () => {
-      console.log(`App running on https://www.adwallpro.com:${PORT}`);
-      console.log(`Internal URL: https://0.0.0.0:${PORT}`);
+    const serverInstance = httpServer.listen(PORT, '127.0.0.1', () => {
+      console.log(`🚀 API running on port ${PORT} (HTTP, behind NGINX SSL)`);
     });
 
-    // Handle unhandled promise rejections
     process.on("unhandledRejection", (err) => {
       console.error(`UnhandledRejection: ${err.name} | ${err.message}`);
-      serverInstance.close(() => {
-        console.error(`Shutting down due to unhandled rejection`);
-        process.exit(1);
-      });
+      serverInstance.close(() => process.exit(1));
     });
 
-    // Handle uncaught exceptions
     process.on("uncaughtException", (err) => {
       console.error(`UncaughtException: ${err.name} | ${err.message}`);
-      serverInstance.close(() => {
-        console.error(`Shutting down due to uncaught exception`);
-        process.exit(1);
-      });
+      serverInstance.close(() => process.exit(1));
     });
 
   } catch (err) {
