@@ -8,16 +8,38 @@ const mountRoutes = require('./router');
 const app = express();
 
 // =======================
-// 1️⃣ CORS Middleware
+// 1️⃣ CORS Middleware (Enhanced for Nginx)
 // =======================
 const allowedOrigins = [
   "https://adwallpro.com",
   "https://www.adwallpro.com",
-  "https://adwallpro.vercel.app", 
+  "https://adwallpro.vercel.app",
   "http://localhost:3000",
   "https://localhost:3000"
 ];
 
+// Manual CORS headers (works even behind Nginx)
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+  
+  if (allowedOrigins.includes(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+  }
+  
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept');
+  res.setHeader('Access-Control-Expose-Headers', 'Content-Range, X-Content-Range');
+  
+  // Handle preflight
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
+  
+  next();
+});
+
+// Also use cors package as backup
 const corsOptions = {
   origin: (origin, callback) => {
     if (allowedOrigins.indexOf(origin) !== -1 || !origin) {
@@ -34,9 +56,6 @@ const corsOptions = {
 };
 
 app.use(cors(corsOptions));
-
-// Handle preflight requests explicitly
-app.options('*', cors(corsOptions));
 
 // =======================
 // 2️⃣ Body parsers
