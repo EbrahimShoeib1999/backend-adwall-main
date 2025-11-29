@@ -20,9 +20,11 @@ app.use(cors({
     "http://www.adwallpro.com",
     "https://www.adwallpro.com",
     "http://localhost:3000",
-    "https://localhost:3000"
+    "https://localhost:3000",
+    "https://adwallpro.vercel.app" // <-- الفرونت الجديد
   ],
 }));
+
 app.use(express.json({ limit: '20kb' }));
 app.use(express.urlencoded({ extended: true }));
 
