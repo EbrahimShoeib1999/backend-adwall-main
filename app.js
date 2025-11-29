@@ -22,13 +22,9 @@ const allowedOrigins = [
 
 app.use(cors({
   origin: function(origin, callback){
-    // السماح بالطلبات بدون origin (مثلاً Postman) أو من الـ whitelist
-    if(!origin) return callback(null, true);
-    if(allowedOrigins.indexOf(origin) === -1){
-      const msg = `The CORS policy for this site does not allow access from the specified Origin.`;
-      return callback(new Error(msg), false);
-    }
-    return callback(null, true);
+    // For debugging: dynamically allow the requesting origin
+    console.log(`CORS: Allowing origin: ${origin}`); // Log the origin
+    callback(null, true); 
   },
   credentials: true, // للسماح بالكوكيز و Authorization headers
 }));
@@ -54,7 +50,7 @@ app.get('/health', (req, res) => {
 
 // Handle unhandled routes
 app.all('*', (req, res, next) => {
-  next(new ApiError(`TEST: Route ${req.originalUrl} not found on this server!`, 404));
+  next(new ApiError(`Can't find ${req.originalUrl} on this server!`, 404));
 });
 
 // Global error handling middleware
