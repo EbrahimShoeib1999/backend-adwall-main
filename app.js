@@ -1,5 +1,4 @@
 const express = require('express');
-const mongoose = require('mongoose');
 const path = require('path');
 const cors = require('cors');
 
@@ -9,7 +8,9 @@ const mountRoutes = require('./router');
 
 const app = express();
 
-// Allowed origins
+// =======================
+// 1️⃣ CORS Middleware
+// =======================
 const allowedOrigins = [
   "https://adwallpro.com",
   "https://www.adwallpro.com",
@@ -18,47 +19,59 @@ const allowedOrigins = [
   "https://localhost:3000"
 ];
 
-// CORS middleware
 app.use((req, res, next) => {
   const origin = req.headers.origin;
   if (allowedOrigins.includes(origin)) {
-    res.header('Access-Control-Allow-Origin', origin);
-    res.header('Access-Control-Allow-Credentials', 'true');
-    res.header('Access-Control-Allow-Methods', 'GET,POST,PUT,PATCH,DELETE,OPTIONS');
-    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    res.setHeader("Access-Control-Allow-Origin", origin);
+    res.setHeader("Access-Control-Allow-Credentials", "true"); // للسماح بالكوكيز و Authorization
+    res.setHeader("Access-Control-Allow-Methods", "GET,POST,PUT,PATCH,DELETE,OPTIONS");
+    res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
   }
-  // Handle preflight requests
-  if (req.method === 'OPTIONS') {
-    return res.sendStatus(204);
+  if (req.method === "OPTIONS") {
+    return res.sendStatus(204); // Preflight request
   }
   next();
 });
 
-// Body parsers
+// =======================
+// 2️⃣ Body parsers
+// =======================
 app.use(express.json({ limit: '20kb' }));
 app.use(express.urlencoded({ extended: true }));
 
-// Analytics Middleware
+// =======================
+// 3️⃣ Analytics Middleware
+// =======================
 const analyticsMiddleware = require('./middlewares/analyticsMiddleware');
 app.use(analyticsMiddleware);
 
-// Static files
+// =======================
+// 4️⃣ Static files
+// =======================
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-// Mount routes
+// =======================
+// 5️⃣ API Routes
+// =======================
 app.use('/api/v1', mountRoutes);
 
-// Health check
+// =======================
+// 6️⃣ Health check
+// =======================
 app.get('/health', (req, res) => {
   res.status(200).json({ status: 'UP' });
 });
 
-// Handle unhandled routes
+// =======================
+// 7️⃣ Handle unhandled routes
+// =======================
 app.all('*', (req, res, next) => {
   next(new ApiError(`Can't find ${req.originalUrl} on this server!`, 404));
 });
 
-// Global error handling
+// =======================
+// 8️⃣ Global error handling
+// =======================
 app.use(globalError);
 
 module.exports = app;
