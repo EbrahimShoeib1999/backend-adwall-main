@@ -52,7 +52,7 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 // =======================
 // 5️⃣ Mount routes
 // =======================
-mountRoutes(app);
+app.use(mountRoutes);
 
 // =======================
 // 6️⃣ Health check
