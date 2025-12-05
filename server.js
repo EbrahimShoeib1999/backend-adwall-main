@@ -79,9 +79,9 @@ if (process.env.NODE_ENV === "development") {
 
     const PORT = process.env.PORT || 8000;
 
-    const serverInstance = httpServer.listen(PORT, '127.0.0.1', () => {
-      console.log(`🚀 API running on port ${PORT} (HTTP, behind NGINX SSL)`);
-    });
+ const serverInstance = httpServer.listen(PORT, '0.0.0.0', () => {
+  console.log(`🚀 API running on port ${PORT} (HTTP, behind NGINX SSL)`);
+});
 
     process.on("unhandledRejection", (err) => {
       console.error(`UnhandledRejection: ${err.name} | ${err.message}`);
