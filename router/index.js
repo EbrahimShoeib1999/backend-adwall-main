@@ -27,6 +27,14 @@ router.use("/mias", miaRoute);
 router.use("/payments", paymentRoute);
 router.use('/subscriptions', subscriptionRoute);
 router.use('/analytics', analyticsRoute);
+
+router.get("/", (req, res) => {
+  res.status(200).json({
+    status: "success",
+    message: "Ad-Wall API is running",
+  });
+});
 router.use("/", sitemapRoute);
+
 
 module.exports = router;
