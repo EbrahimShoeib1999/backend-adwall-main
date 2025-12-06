@@ -3,7 +3,7 @@ const path = require('path');
 const cors = require('cors');
 const ApiError = require('./utils/apiError');
 const globalError = require('./middlewares/errorMiddleware');
-const mountRoutes = require('./router');
+const mountRoutes = require('./routers');
 
 const app = express();
 
@@ -21,21 +21,21 @@ const allowedOrigins = [
 // Manual CORS headers (works even behind Nginx)
 app.use((req, res, next) => {
   const origin = req.headers.origin;
-  
+
   if (allowedOrigins.includes(origin)) {
     res.setHeader('Access-Control-Allow-Origin', origin);
   }
-  
+
   res.setHeader('Access-Control-Allow-Credentials', 'true');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept');
   res.setHeader('Access-Control-Expose-Headers', 'Content-Range, X-Content-Range');
-  
+
   // Handle preflight
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
   }
-  
+
   next();
 });
 
