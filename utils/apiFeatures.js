@@ -9,6 +9,9 @@ class ApiFeatures {
     const excludesFields = ['page', 'sort', 'limit', 'fields', 'keyword'];
     excludesFields.forEach((field) => delete queryStringObj[field]);
 
+    // Fields that should be treated as exact matches (ObjectIds, IDs, etc.)
+    const exactMatchFields = ['categoryId', 'userId', 'companyId', 'orderId', 'productId', 'restaurantId', 'agentId', '_id', 'id'];
+
     const queryObj = {};
     Object.keys(queryStringObj).forEach(key => {
       const value = queryStringObj[key];
@@ -16,8 +19,14 @@ class ApiFeatures {
         // Check if the value is a boolean string
         if (value === 'true' || value === 'false') {
           queryObj[key] = value === 'true';
-        } else {
-          // It's a string, use case-insensitive regex
+        } 
+        // Check if this field should be an exact match (ObjectId or ID field)
+        else if (exactMatchFields.includes(key) || key.endsWith('Id') || key.endsWith('_id')) {
+          // Use exact match for ID fields
+          queryObj[key] = value;
+        } 
+        else {
+          // It's a string field, use case-insensitive regex
           queryObj[key] = { $regex: value, $options: 'i' };
         }
       } else if (typeof value === 'object' && value !== null) {
