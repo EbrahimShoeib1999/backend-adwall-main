@@ -17,13 +17,12 @@ const authService = require('../controllers/authService');
 
 const router = express.Router();
 
-// Admin only routes
-router.use(authService.protect, authService.allowedTo('admin'));
-
-// Public routes
+// ✅ Public routes - المستخدمون يمكنهم رؤية الباقات
 router.route('/').get(getPlans);
 router.route('/:id').get(getPlanValidator, getPlan);
 
+// 🔒 Admin only routes - فقط الأدمن يمكنه إنشاء/تعديل/حذف الباقات
+router.use(authService.protect, authService.allowedTo('admin'));
 
 router.route('/').post(createPlanValidator, createPlan);
 router

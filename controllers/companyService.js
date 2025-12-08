@@ -92,8 +92,40 @@ exports.getOneCompany = asyncHandler(async (req, res, next) => {
     return next(new ApiError(`لا توجد شركة بهذا المعرف ${req.params.id}`, statusCodes.NOT_FOUND));
   }
 
-  // Increment view count after successfully finding the company
-  await Company.findByIdAndUpdate(req.params.id, { $inc: { views: 1 } }, { new: true });
+  // ✅ تتبع المشاهدات الفريدة - كل مستخدم مرة واحدة فقط
+  const companyDoc = await Company.findById(req.params.id);
+  
+  let shouldIncrementView = false;
+  
+  if (req.user?._id) {
+    // مستخدم مسجل - التحقق من viewedBy array
+    const userIdString = req.user._id.toString();
+    const hasViewed = companyDoc.viewedBy.some(id => id.toString() === userIdString);
+    
+    if (!hasViewed) {
+      shouldIncrementView = true;
+      companyDoc.viewedBy.push(req.user._id);
+    }
+  } else {
+    // ✅ مستخدم غير مسجل - تتبع IP address
+    const clientIP = req.ip || 
+                     req.headers['x-forwarded-for']?.split(',')[0]?.trim() || 
+                     req.headers['x-real-ip'] || 
+                     req.connection.remoteAddress || 
+                     'unknown';
+    
+    const hasViewedByIP = companyDoc.viewedByIPs.includes(clientIP);
+    
+    if (!hasViewedByIP && clientIP !== 'unknown') {
+      shouldIncrementView = true;
+      companyDoc.viewedByIPs.push(clientIP);
+    }
+  }
+  
+  if (shouldIncrementView) {
+    companyDoc.views += 1;
+    await companyDoc.save();
+  }
 
   const formattedCompany = formatCompanies([company]);
 

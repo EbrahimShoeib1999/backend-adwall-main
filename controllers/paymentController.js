@@ -14,11 +14,11 @@ const { sendSuccessResponse, statusCodes } = require('../utils/responseHandler')
 // @route   POST /api/v1/payments/create-checkout-session
 // @access  Private/User
 exports.createCheckoutSession = asyncHandler(async (req, res, next) => {
-  const { planId, couponCode } = req.body;
+  const { planId, optionId, couponCode } = req.body; // ✅ إضافة optionId
   const user = await User.findById(req.user._id);
 
-  if (!planId) {
-    return next(new ApiError('معرف الباقة مطلوب', statusCodes.BAD_REQUEST));
+  if (!planId || !optionId) { // ✅ التحقق من optionId
+    return next(new ApiError('معرف الباقة والخيار مطلوبان', statusCodes.BAD_REQUEST));
   }
 
   const plan = await Plan.findById(planId);
@@ -26,11 +26,13 @@ exports.createCheckoutSession = asyncHandler(async (req, res, next) => {
     return next(new ApiError('الباقة غير موجودة', statusCodes.NOT_FOUND));
   }
 
-  if (!plan.stripePriceId) {
-    return next(new ApiError('هذه الباقة غير متاحة للشراء حالياً', statusCodes.BAD_REQUEST));
+  // ✅ الحصول على الخيار المحدد
+  const selectedOption = plan.options.id(optionId);
+  if (!selectedOption) {
+    return next(new ApiError('الخيار غير موجود', statusCodes.NOT_FOUND));
   }
 
-  let finalAmount = plan.price;
+  let finalAmount = selectedOption.finalPriceUSD; // ✅ استخدام سعر الخيار المحدد
   let appliedCoupon = null;
 
   if (couponCode) {
@@ -49,9 +51,9 @@ exports.createCheckoutSession = asyncHandler(async (req, res, next) => {
     }
 
     if (coupon.discountType === 'fixed') {
-      finalAmount = Math.max(0, plan.price - coupon.discountValue);
+      finalAmount = Math.max(0, selectedOption.finalPriceUSD - coupon.discountValue); // ✅ استخدام سعر الخيار
     } else if (coupon.discountType === 'percentage') {
-      finalAmount = Math.max(0, plan.price * (1 - coupon.discountValue / 100));
+      finalAmount = Math.max(0, selectedOption.finalPriceUSD * (1 - coupon.discountValue / 100)); // ✅ استخدام سعر الخيار
     }
 
     appliedCoupon = coupon;
@@ -83,8 +85,9 @@ exports.createCheckoutSession = asyncHandler(async (req, res, next) => {
     metadata: {
       userId: user._id.toString(),
       planId: plan._id.toString(),
+      optionId: selectedOption._id.toString(), // ✅ إضافة optionId
       couponId: appliedCoupon?._id?.toString() || '',
-      originalPrice: plan.price.toString(),
+      originalPrice: selectedOption.finalPriceUSD.toString(), // ✅ استخدام سعر الخيار
       finalPrice: finalAmount.toString(),
     },
   });
@@ -97,6 +100,7 @@ exports.createCheckoutSession = asyncHandler(async (req, res, next) => {
 const createSubscriptionAndNotify = async (session, req) => {
   const userId = session.metadata.userId;
   const planId = session.metadata.planId;
+  const optionId = session.metadata.optionId; // ✅ إضافة optionId
   const couponId = session.metadata.couponId || null;
 
   const plan = await Plan.findById(planId);
@@ -107,11 +111,38 @@ const createSubscriptionAndNotify = async (session, req) => {
     return;
   }
 
-  const expiresAt = new Date(Date.now() + plan.duration * 24 * 60 * 60 * 1000);
+  // ✅ الحصول على الخيار المحدد
+  const selectedOption = plan.options.id(optionId);
+  if (!selectedOption) {
+    console.error('Selected option not found during subscription creation');
+    return;
+  }
+
+  // ✅ حساب تاريخ الانتهاء بناءً على duration
+  const durationMatch = selectedOption.duration.match(/(\d+)\s*(month|year|day)/i);
+  let expiresAt;
+  
+  if (durationMatch) {
+    const [, value, unit] = durationMatch;
+    const now = new Date();
+    expiresAt = new Date(now);
+
+    if (unit.toLowerCase().startsWith('month')) {
+      expiresAt.setMonth(expiresAt.getMonth() + parseInt(value));
+    } else if (unit.toLowerCase().startsWith('year')) {
+      expiresAt.setFullYear(expiresAt.getFullYear() + parseInt(value));
+    } else if (unit.toLowerCase().startsWith('day')) {
+      expiresAt.setDate(expiresAt.getDate() + parseInt(value));
+    }
+  } else {
+    // إذا لم يتم العثور على الصيغة، استخدم 30 يوم كافتراضي
+    expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+  }
 
   await Subscription.create({
     user: user._id,
     plan: plan._id,
+    option: optionId, // ✅ إضافة option
     status: 'active',
     expiresAt,
     paymentStatus: 'paid',

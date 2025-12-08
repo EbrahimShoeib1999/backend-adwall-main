@@ -36,14 +36,23 @@ exports.createSubscription = asyncHandler(async (req, res, next) => {
     );
   }
 
+  // ✅ حساب تاريخ الانتهاء بناءً على duration
+  const durationMatch = selectedOption.duration.match(/(\d+)\s*(month|year|day)/i);
+  
+  if (!durationMatch) {
+    return next(new ApiError('صيغة المدة غير صالحة. يجب أن تكون مثل: "3 months" أو "1 year"', statusCodes.BAD_REQUEST));
+  }
+
+  const [, value, unit] = durationMatch;
   const now = new Date();
-  let endDate;
-  if (selectedOption.duration.toLowerCase() === 'monthly') {
-    endDate = new Date(now.setMonth(now.getMonth() + 1));
-  } else if (selectedOption.duration.toLowerCase() === 'yearly') {
-    endDate = new Date(now.setFullYear(now.getFullYear() + 1));
-  } else {
-    return next(new ApiError('مدة الباقة غير صالحة', statusCodes.BAD_REQUEST));
+  let endDate = new Date(now);
+
+  if (unit.toLowerCase().startsWith('month')) {
+    endDate.setMonth(endDate.getMonth() + parseInt(value));
+  } else if (unit.toLowerCase().startsWith('year')) {
+    endDate.setFullYear(endDate.getFullYear() + parseInt(value));
+  } else if (unit.toLowerCase().startsWith('day')) {
+    endDate.setDate(endDate.getDate() + parseInt(value));
   }
 
   const newSubscription = await Subscription.create({
@@ -112,20 +121,23 @@ exports.adminCreateSubscriptionForUser = asyncHandler(async (req, res, next) => 
     { status: 'canceled' }
   );
 
+  // ✅ حساب تاريخ الانتهاء بناءً على duration
+  const durationMatch = selectedOption.duration.match(/(\d+)\s*(month|year|day)/i);
+  
+  if (!durationMatch) {
+    return next(new ApiError('صيغة المدة غير صالحة. يجب أن تكون مثل: "3 months" أو "1 year"', statusCodes.BAD_REQUEST));
+  }
+
+  const [, value, unit] = durationMatch;
   const now = new Date();
-  let endDate;
-  if (selectedOption.duration.toLowerCase() === 'monthly') {
-    endDate = new Date(now.setMonth(now.getMonth() + 1));
-  } else if (selectedOption.duration.toLowerCase() === 'yearly') {
-    endDate = new Date(now.setFullYear(now.getFullYear() + 1));
-  } else {
-    // Assuming duration can also be a number of days
-    const days = parseInt(selectedOption.duration, 10);
-    if (!isNaN(days)) {
-        endDate = new Date(now.setDate(now.getDate() + days));
-    } else {
-        return next(new ApiError('مدة الباقة غير صالحة', statusCodes.BAD_REQUEST));
-    }
+  let endDate = new Date(now);
+
+  if (unit.toLowerCase().startsWith('month')) {
+    endDate.setMonth(endDate.getMonth() + parseInt(value));
+  } else if (unit.toLowerCase().startsWith('year')) {
+    endDate.setFullYear(endDate.getFullYear() + parseInt(value));
+  } else if (unit.toLowerCase().startsWith('day')) {
+    endDate.setDate(endDate.getDate() + parseInt(value));
   }
 
   const newSubscription = await Subscription.create({

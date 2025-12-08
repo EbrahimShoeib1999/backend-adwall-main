@@ -4,16 +4,14 @@ const { createSubscription, getMySubscriptions, adminCreateSubscriptionForUser }
 
 const router = express.Router();
 
-// All routes are protected and admin-only
-router.use(authService.protect, authService.allowedTo('admin'));
+// 🔒 جميع الـ routes محمية - يجب تسجيل الدخول
+router.use(authService.protect);
 
-// Route for admin to create a subscription for a user
-router.post('/admin-create', adminCreateSubscriptionForUser);
+// ✅ User routes - المستخدمون العاديون
+router.post('/', createSubscription); // إنشاء اشتراك للمستخدم المسجل
+router.get('/my-subscriptions', getMySubscriptions); // جلب اشتراكات المستخدم
 
-// Create subscription for the logged-in user
-router.post('/', createSubscription);
-
-// Get my subscriptions
-router.get('/my-subscriptions', getMySubscriptions);
+// 🔒 Admin only routes - فقط الأدمن
+router.post('/admin-create', authService.allowedTo('admin'), adminCreateSubscriptionForUser);
 
 module.exports = router;

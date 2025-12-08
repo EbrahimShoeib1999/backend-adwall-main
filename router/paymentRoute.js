@@ -7,7 +7,7 @@ const router = express.Router();
 // Webhook must be before express.json()
 router.post('/webhook', express.raw({ type: 'application/json' }), stripeWebhook);
 
-// Protected routes
-router.post('/create-checkout-session', authService.protect, authService.allowedTo('admin'), createCheckoutSession);
+// ✅ Protected routes - المستخدمون المسجلون يمكنهم الدفع
+router.post('/create-checkout-session', authService.protect, createCheckoutSession);
 
 module.exports = router;
