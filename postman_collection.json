@@ -722,26 +722,6 @@
       "name": "Subscription",
       "item": [
         {
-          "name": "POST /api/v1/subscription/admin-create",
-          "request": {
-            "method": "POST",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/api/v1/subscription/admin-create",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "subscription",
-                "admin-create"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
           "name": "POST /api/v1/subscription/",
           "request": {
             "method": "POST",
@@ -775,6 +755,26 @@
                 "v1",
                 "subscription",
                 "my-subscriptions"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST /api/v1/subscription/admin-create",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/subscription/admin-create",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "subscription",
+                "admin-create"
               ]
             }
           },
