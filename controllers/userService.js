@@ -95,8 +95,9 @@ exports.changeUserPassword = asyncHandler(async (req, res, next) => {
     return next(new ApiError(`لا يوجد مستخدم بهذا المعرف ${req.params.id}`, statusCodes.NOT_FOUND));
   }
 
-  sendSuccessResponse(res, statusCodes.OK, 'تم تغيير كلمة المرور بنجاح', {
+  sendSuccessResponse(res, statusCodes.OK, 'تم تغيير كلمة المرور بنجاح. سيحتاج المستخدم إلى تسجيل الدخول مرة أخرى.', {
     data: document,
+    message: 'تم تحديث كلمة المرور. يجب على المستخدم تسجيل الدخول مرة أخرى للحصول على token جديد.'
   });
 });
 
@@ -188,9 +189,11 @@ exports.updateLoggedUserPassword = asyncHandler(async (req, res, next) => {
 
   const token = createToken(user._id);
 
-  sendSuccessResponse(res, statusCodes.OK, 'تم تحديث كلمة المرور بنجاح', {
+  sendSuccessResponse(res, statusCodes.OK, 'تم تحديث كلمة المرور بنجاح. يرجى استخدام الـ token الجديد في جميع الطلبات اللاحقة.', {
     data: user,
     token,
+    tokenUpdated: true,
+    message: 'تم إنشاء token جديد. يجب تحديث الـ token المحفوظ في الـ Frontend.'
   });
 });
 
