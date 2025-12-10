@@ -58,8 +58,13 @@ router.get('/auth/google', passport.authenticate('google', {
 }));
 router.get('/auth/google/callback', passport.authenticate('google', { session: false }), (req, res) => {
   const frontendUrl = process.env.NODE_ENV === 'development' 
-    ? 'http://localhost:3000' 
+    ? 'http://localhost:3030' 
     : process.env.FRONTEND_URL;
+  
+  // Explicitly set headers for the redirect response
+  res.setHeader('Cross-Origin-Opener-Policy', 'unsafe-none');
+  res.setHeader('Cross-Origin-Embedder-Policy', 'unsafe-none');
+
   res.redirect(`${frontendUrl}/login-success?token=${req.user.token}`);
 });
 
