@@ -24,7 +24,11 @@ router.post('/verifyResetCode', verifyPassResetCode);
 router.put('/resetPassword', resetPassword);
 
 // Social Login Routes
-router.get('/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
+router.get('/google', passport.authenticate('google', { 
+  scope: ['profile', 'email'],
+  accessType: 'offline',
+  prompt: 'consent'
+}));
 router.get('/google/client-id', getGoogleClientId);
 
 router.get(
