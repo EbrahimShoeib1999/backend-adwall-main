@@ -115,7 +115,7 @@ companySchema.pre(/^find/, function (next) {
 // Virtual properties for logo and video URLs
 companySchema.virtual('logoUrl').get(function() {
   if (this.logo) {
-    return `${process.env.BASE_URL}/uploads/brands/${this.logo}`; // Assuming 'uploads/brands' for company logos
+    return `${process.env.BASE_URL}/uploads/companies/${this.logo}`; // Corrected path
   }
   return undefined;
 });
