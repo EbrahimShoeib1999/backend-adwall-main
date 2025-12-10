@@ -209,6 +209,15 @@ exports.updateLoggedUserData = asyncHandler(async (req, res, next) => {
   if (req.body.phone) {
     updateData.phone = req.body.phone;
   }
+  if (req.body.profileImg) {
+    updateData.profileImg = req.body.profileImg;
+    
+    // Delete old image if exists and not default
+    const user = await User.findById(req.user._id);
+    if (user.profileImg && user.profileImg !== 'default-profile.png' && !user.profileImg.startsWith('http')) {
+      await deleteImage('users', user.profileImg);
+    }
+  }
 
   const updatedUser = await User.findByIdAndUpdate(req.user._id, updateData, {
     new: true,

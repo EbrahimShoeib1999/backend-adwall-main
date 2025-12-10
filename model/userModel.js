@@ -115,7 +115,9 @@ userSchema.pre("save", async function (next) {
 // Virtual property for profile image URL
 userSchema.virtual('profileImgUrl').get(function() {
   if (this.profileImg) {
-    // Assuming 'uploads/users' is the path where user profile images are stored
+    if (this.profileImg.startsWith('http')) {
+      return this.profileImg;
+    }
     return `${process.env.BASE_URL}/uploads/users/${this.profileImg}`;
   }
   return undefined;
