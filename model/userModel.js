@@ -28,8 +28,8 @@ const userSchema = new mongoose.Schema(
     },
     phone: {
       type: String,
-      required: [true, "phone required"],
       unique: true,
+      sparse: true, // Allows multiple null values
     },
     profileImg: {
       type: String,
@@ -97,7 +97,7 @@ const userSchema = new mongoose.Schema(
       }
     },
   },
-  { timestamps: true, toJSON: { virtuals: true }, toObject: { virtuals: true } } // Added schema options
+  { timestamps: true, toJSON: { virtuals: true }, toObject: { virtuals: true } }
 );
 
 userSchema.pre("save", async function (next) {

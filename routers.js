@@ -57,7 +57,10 @@ router.get('/auth/google', passport.authenticate('google', {
   prompt: 'consent'
 }));
 router.get('/auth/google/callback', passport.authenticate('google', { session: false }), (req, res) => {
-  res.redirect(`${process.env.FRONTEND_URL}/login-success?token=${req.user.token}`);
+  const frontendUrl = process.env.NODE_ENV === 'development' 
+    ? 'http://localhost:3000' 
+    : process.env.FRONTEND_URL;
+  res.redirect(`${frontendUrl}/login-success?token=${req.user.token}`);
 });
 
 // ========================================
