@@ -56,6 +56,7 @@ router.get('/auth/google', passport.authenticate('google', {
   accessType: 'offline',
   prompt: 'consent'
 }));
+router.post('/auth/google', authService.verifyGoogle); // Add POST route for frontend verification
 router.get('/auth/google/callback', passport.authenticate('google', { session: false }), (req, res) => {
   const frontendUrl = process.env.NODE_ENV === 'development' 
     ? 'http://localhost:3030' 

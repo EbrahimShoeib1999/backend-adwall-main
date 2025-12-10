@@ -194,3 +194,49 @@ exports.getGoogleClientId = asyncHandler(async (req, res, next) => {
     clientId 
   });
 });
+
+// @desc    Verify Google Login (from Frontend)
+// @route   POST /api/auth/google
+// @access  Public
+exports.verifyGoogle = asyncHandler(async (req, res, next) => {
+  const { email, name, picture, sub } = req.body;
+
+  if (!email) {
+    return next(new ApiError('البريد الإلكتروني مطلوب', statusCodes.BAD_REQUEST));
+  }
+
+  let user = await User.findOne({ email });
+
+  if (!user) {
+    // Create new user
+    user = await User.create({
+      name: name || email.split('@')[0],
+      email: email,
+      profileImg: picture,
+      googleId: sub,
+      password: Math.random().toString(36).slice(-8), // Random password
+    });
+  } else {
+    // Update existing user info if needed
+    if (!user.googleId) {
+      user.googleId = sub;
+      if (picture && (!user.profileImg || user.profileImg === 'default-profile.png')) {
+        user.profileImg = picture;
+      }
+      await user.save();
+    }
+  }
+
+  const token = createToken(user._id);
+
+  // Return format matching frontend expectation: { success: true, user, token }
+  // Note: sendSuccessResponse wraps data in a 'data' field usually, but let's match frontend
+  // Frontend expects: res.data.user and res.data.token directly from axios response
+  
+  // Using sendSuccessResponse but ensuring structure matches
+  res.status(200).json({
+    status: 'success',
+    user,
+    token
+  });
+});

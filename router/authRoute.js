@@ -11,8 +11,9 @@ const {
   forgotPassword,
   verifyPassResetCode,
   resetPassword,
-  googleCallback, // Import googleCallback
+  googleCallback,
   getGoogleClientId,
+  verifyGoogle, // Import verifyGoogle
 } = require('../controllers/authService');
 
 const router = express.Router();
@@ -29,14 +30,16 @@ router.get('/google', passport.authenticate('google', {
   accessType: 'offline',
   prompt: 'consent'
 }));
+
+// New POST route for frontend-initiated Google login
+router.post('/google', verifyGoogle);
+
 router.get('/google/client-id', getGoogleClientId);
 
 router.get(
   '/google/callback',
   passport.authenticate('google', { session: false }),
-  googleCallback // Use the new googleCallback function
+  googleCallback
 );
-
-
 
 module.exports = router;
