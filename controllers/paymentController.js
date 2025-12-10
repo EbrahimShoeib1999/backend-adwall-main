@@ -59,41 +59,23 @@ exports.createCheckoutSession = asyncHandler(async (req, res, next) => {
     appliedCoupon = coupon;
   }
 
-  const amountInCents = Math.round(finalAmount * 100);
-
-  const session = await stripe.checkout.sessions.create({
-    payment_method_types: ['card'],
-    mode: 'payment',
-    line_items: [
-      {
-        price_data: {
-          currency: 'usd',
-          product_data: {
-            name: plan.name,
-            metadata: {
-              planId: plan._id.toString(),
-            },
-          },
-          unit_amount: amountInCents,
-        },
-        quantity: 1,
-      },
-    ],
-    success_url: `${process.env.FRONTEND_URL}/payment-success?session_id={CHECKOUT_SESSION_ID}`,
-    cancel_url: `${process.env.FRONTEND_URL}/payment-cancel`,
-    customer_email: user.email,
+  // BYPASS STRIPE: Activate subscription immediately for free
+  const mockSession = {
     metadata: {
       userId: user._id.toString(),
       planId: plan._id.toString(),
-      optionId: selectedOption._id.toString(), // ✅ إضافة optionId
+      optionId: selectedOption._id.toString(),
       couponId: appliedCoupon?._id?.toString() || '',
-      originalPrice: selectedOption.finalPriceUSD.toString(), // ✅ استخدام سعر الخيار
-      finalPrice: finalAmount.toString(),
-    },
-  });
+    }
+  };
 
-  sendSuccessResponse(res, statusCodes.OK, 'تم إنشاء جلسة الدفع بنجاح', {
-    session,
+  await createSubscriptionAndNotify(mockSession, null);
+
+  sendSuccessResponse(res, statusCodes.OK, 'تم تفعيل الاشتراك مجاناً بنجاح', {
+    session: {
+      id: 'free_pass_' + Date.now(),
+      url: `${process.env.FRONTEND_URL}/payment-success?session_id=free_pass`
+    },
   });
 });
 
@@ -149,15 +131,13 @@ const createSubscriptionAndNotify = async (session, req) => {
   });
 
   // Notify user and admins
-  if (req) {
-    // Notify user
-    createNotification(req, user._id, `تم تفعيل اشتراكك في باقة "${plan.name}" بنجاح بعد الدفع.`, 'success', '/my-subscriptions');
-    // Notify admins
-    const admins = await User.find({ role: 'admin' });
-    admins.forEach(admin => {
-      createNotification(req, admin._id, `المستخدم ${user.name} دفع واشترك في باقة "${plan.name}".`, 'info', `/users/${user._id}`);
-    });
-  }
+  // Notify user
+  createNotification(null, user._id, `تم تفعيل اشتراكك في باقة "${plan.name}" بنجاح بعد الدفع.`, 'success', '/my-subscriptions');
+  // Notify admins
+  const admins = await User.find({ role: 'admin' });
+  admins.forEach(admin => {
+    createNotification(null, admin._id, `المستخدم ${user.name} دفع واشترك في باقة "${plan.name}".`, 'info', `/users/${user._id}`);
+  });
 
   // Send activation email
   try {
@@ -200,10 +180,8 @@ exports.stripeWebhook = asyncHandler(async (req, res) => {
 
   if (event.type === 'checkout.session.completed') {
     const session = event.data.object;
-    // Pass a mock `req` object with `io` to the handler function
-    // This is necessary because the webhook is called directly by Stripe, not via a standard Express route handler
-    const mockReq = { io: req.app.get('socketio') }; // Assuming you've stored io in the app instance
-    await createSubscriptionAndNotify(session, mockReq);
+    // Pass null as req, createNotification will handle socket internally
+    await createSubscriptionAndNotify(session, null);
   }
 
   res.json({ received: true });

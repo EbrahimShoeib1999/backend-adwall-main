@@ -88,12 +88,11 @@ exports.createNotification = async (req, userId, message, type = 'info', link = 
     });
 
     // Emit a real-time event to the specific user
-    if (req && req.io) {
-      // The 'to' method sends the event only to sockets in the specified room.
-      // You'll need to have users join a room named after their userId on socket connection.
-      // For now, we can emit a general event and let the client-side filter.
-      // A better approach is to use rooms: req.io.to(userId.toString()).emit('newNotification', notification);
-      req.io.emit(`notification_for_${userId}`, notification);
+    try {
+      const io = require('../utils/socket').getIO();
+      io.emit(`notification_for_${userId}`, notification);
+    } catch (socketError) {
+      console.warn('Socket.io not initialized or error emitting event:', socketError.message);
     }
 
     return notification;

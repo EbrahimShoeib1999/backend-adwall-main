@@ -24,6 +24,7 @@ const dbConnection = require("./config/database");
 const { stripeWebhook } = require('./controllers/paymentController');
 const ensureAdminUser = require('./utils/seedAdmin');
 const { startExpirationNotifier } = require('./jobs/expirationNotifier');
+const { startCouponCleaner } = require('./jobs/couponCleaner');
 
 // Passport config
 require('./config/passport');
@@ -76,6 +77,7 @@ if (process.env.NODE_ENV === "development") {
   try {
     await ensureAdminUser();
     startExpirationNotifier();
+    startCouponCleaner();
 
     const PORT = process.env.PORT || 8000;
 
