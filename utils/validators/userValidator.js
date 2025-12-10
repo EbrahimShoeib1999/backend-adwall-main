@@ -241,7 +241,7 @@ exports.deleteUserValidator = [
  */
 exports.updateLoggedUserValidator = [
   body().custom((value, { req }) => {
-    const allowedUpdates = ['name', 'phone'];
+    const allowedUpdates = ['name', 'phone', 'profileImg'];
     const updates = Object.keys(req.body);
     // Ensure there's at least one valid field to update
     if (updates.length === 0) {
