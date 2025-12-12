@@ -117,7 +117,7 @@ companySchema.virtual('logoUrl').get(function() {
   if (this.logo) {
     return `${process.env.BASE_URL}/uploads/companies/${this.logo}`; // Corrected path
   }
-  return undefined;
+  return "https://www.adwallpro.com/uploads/users/default-profile.png";
 });
 
 companySchema.virtual('videoUrl').get(function() {

@@ -49,6 +49,11 @@ exports.resizeImage = asyncHandler(async (req, res, next) => {
 // @access Public
 exports.createCompany = asyncHandler(async (req, res, next) => {
   req.body.userId = req.user._id;
+
+  if (!req.body.logo) {
+    req.body.logo = "../users/default-profile.png";
+  }
+
   const newDoc = await Company.create(req.body);
 
   // Notify admins about the new pending company
