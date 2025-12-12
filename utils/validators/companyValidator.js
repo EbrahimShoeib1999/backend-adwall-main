@@ -35,11 +35,11 @@ exports.createCompanyValidator = [
     .isMongoId()
     .withMessage('Invalid ID format for category'),
   check('whatsapp')
-    .optional()
+    .optional({ checkFalsy: true })
     .isMobilePhone(['en-US', 'ar-SA', 'ar-EG']) // Example locales
     .withMessage('Invalid WhatsApp number'),
   check('website')
-    .optional()
+    .optional({ checkFalsy: true })
     .isURL()
     .withMessage('Invalid website URL'),
   validatorMiddleware,
