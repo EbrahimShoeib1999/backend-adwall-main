@@ -14,7 +14,7 @@ module.exports = {
         BASE_URL: "https://www.adwallpro.com",
 
         DB_URI:
-          "mongodb+srv://adwall:alA3LcGR3G8yXXkp@cluster0.tzc2ylz.mongodb.net/?appName=Cluster0",
+          "mongodb+srv://AdwallPro:AdwallPro@cluster0.bln62tn.mongodb.net/?appName=Cluster0",
 
         JWT_SECRET_KEY: "change_this_to_a_long_random_secret_!@#123ABCxyz789",
         JWT_EXPIRES_IN: "30d",
