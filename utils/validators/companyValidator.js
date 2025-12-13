@@ -12,9 +12,7 @@ exports.createCompanyValidator = [
     .withMessage('English company name is required'),
   check('description')
     .notEmpty()
-    .withMessage('Description is required')
-    .isLength({ min: 20 })
-    .withMessage('Too short company description'),
+    .withMessage('Description is required'),
   check('descriptionEn')
     .notEmpty()
     .withMessage('English description is required'),
@@ -35,9 +33,7 @@ exports.createCompanyValidator = [
     .isMongoId()
     .withMessage('Invalid ID format for category'),
   check('whatsapp')
-    .optional({ checkFalsy: true })
-    .isMobilePhone(['en-US', 'ar-SA', 'ar-EG']) // Example locales
-    .withMessage('Invalid WhatsApp number'),
+    .optional({ checkFalsy: true }),
   check('website')
     .optional({ checkFalsy: true })
     .isURL()

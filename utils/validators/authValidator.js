@@ -17,10 +17,6 @@ exports.signupValidator = [
   check('phone')
     .notEmpty()
     .withMessage('Phone number required')
-    .isMobilePhone(['ar-EG', 'ar-SA'])
-    .withMessage(
-      'Invalid phone number, only Egypt and Saudi Arabia phone numbers are allowed'
-    )
     .custom((val) =>
       User.findOne({ phone: val }).then((user) => {
         if (user) {

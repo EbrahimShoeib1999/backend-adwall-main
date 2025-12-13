@@ -52,9 +52,7 @@ exports.createUserValidator = [
     .withMessage('تأكيد كلمة المرور مطلوب'),
 
   check('phone')
-    .optional()
-    .matches(/^\+(?:[0-9] ?){6,14}[0-9]$/)
-    .withMessage('رقم هاتف غير صالح'),
+    .optional(),
 
   // Optional fields
   check('profileImg').optional(),
@@ -108,9 +106,7 @@ exports.createAdminValidator = [
 
   check('phone')
     .notEmpty()
-    .withMessage('رقم الهاتف مطلوب')
-    .matches(/^\+(?:[0-9] ?){6,14}[0-9]$/)
-    .withMessage('رقم هاتف غير صالح'),
+    .withMessage('رقم الهاتف مطلوب'),
 
   check('addresses')
     .optional()
@@ -168,9 +164,7 @@ exports.updateUserValidator = [
 
   // Phone (optional)
   check('phone')
-    .optional()
-    .matches(/^\+(?:[0-9] ?){6,14}[0-9]$/)
-    .withMessage('رقم هاتف غير صالح، يجب أن يكون رقم هاتف دولي صحيح'),
+    .optional(),
 
   // Optional fields
   check('profileImg').optional(),
@@ -257,8 +251,6 @@ exports.updateLoggedUserValidator = [
   }),
   body('name').optional(),
   check('phone')
-    .optional()
-    .matches(/^\+(?:[0-9] ?){6,14}[0-9]$/)
-    .withMessage('رقم الهاتف غير صالح. يجب أن يكون رقم هاتف دولي صحيح'),
+    .optional(),
   validatorMiddleware,
 ];
